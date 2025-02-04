@@ -8,33 +8,23 @@
         <h2 class="text-xl font-bold mb-4">Menu</h2>
         <ul class="space-y-2">
             <li><a href="#" class="block p-2 bg-gray-200 rounded hover:bg-gray-300">Home</a></li>
-            <li><a href="#" class="block p-2 bg-gray-200 rounded hover:bg-gray-300">Tables</a></li>
             <li><a href="#" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                 Orders
             </a></li>
             <li><a href="{{ route('products.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                 Add New Product
             </a></li>
+            @if(!Session::has('admin_logged_in'))
+                <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Login</a>
+            @else
+                <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600">Admin Dashboard</a>
+            @endif
+
+
+
         </ul>
     </div>
 
-    <!-- Product Grid -->
-    <!--<div class="w-2/3 p-6">
-        <h1 class="text-3xl font-bold mb-6">Products</h1>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @foreach($products as $product)
-                <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
-                    <img src="https://via.placeholder.com/150" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-                    <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-                    <p class="text-gray-500">${{ number_format($product->price, 2) }}</p>
-                    <button 
-                        class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full">
-                        Add to Order
-                    </button>
-                </div>
-            @endforeach
-        </div>
-    </div>-->
     <div class="w-2/3 p-6">
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($products as $product)
