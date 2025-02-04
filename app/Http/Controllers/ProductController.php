@@ -18,13 +18,31 @@ class ProductController extends Controller
     }
 
     public function store(Request $request)
-    {
-        Product::create($request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer'
-        ]));
+{
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'price' => 'required|numeric',
+        'is_available' => 'required|boolean',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Validate image file
+    ]);
 
-        return redirect()->route('products.index');
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('product_images', 'public'); // Save image to storage
+        $validatedData['image'] = $imagePath;
     }
+
+    Product::create($validatedData);
+
+    return redirect()->route('products.index')->with('success', 'Product added successfully.');
+}
+
+
+public function updateAvailability(Product $product)
+{
+    $product->update(['is_available' => !$product->is_available]);
+
+    return redirect()->back()->with('success', 'Product availability updated.');
+}
+
+
 }

@@ -29,8 +29,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Admin Dashboard Route
 Route::get('/admin', [AuthController::class, 'dashboard'])->name('admin.dashboard');
 
+Route::patch('/products/{product}/availability', [ProductController::class, 'updateAvailability'])->name('products.updateAvailability');
+Route::get('/admin/products', [ProductController::class, 'adminIndex'])->name('admin.products');
+
+
 
 // Update Credentials (Only accessible if logged in)
 Route::get('/admin/update', [AuthController::class, 'showUpdateCredentials'])->name('admin.update');
 Route::post('/admin/update', [AuthController::class, 'updateCredentials']);
 Route::get('/admin/credentials', [AuthController::class, 'showUpdateCredentials'])->name('admin.credentials');
+
+
+Route::post('/products/{product}/toggle-availability', [ProductController::class, 'updateAvailability'])->name('products.toggleAvailability');
+

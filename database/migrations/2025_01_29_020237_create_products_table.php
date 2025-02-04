@@ -7,15 +7,16 @@ use Illuminate\Support\Facades\Schema;
 class CreateProductsTable extends Migration
 {
     public function up()
-    {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->decimal('price', 8, 2);
-            $table->integer('stock')->default(0);
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->decimal('price', 8, 2);
+        $table->boolean('is_available')->default(true);
+        $table->string('image')->nullable(); // Store image path
+        $table->timestamps();
+    });
+}
 
     public function down()
     {

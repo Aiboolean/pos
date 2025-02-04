@@ -27,23 +27,37 @@
 
     <div class="w-2/3 p-6">
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @foreach($products as $product)
-            <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
-                <img src="https://via.placeholder.com/150" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-                <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-                <p class="text-gray-500">${{ number_format($product->price, 2) }}</p>
-                <button 
-                    class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
-                    data-id="{{ $product->id }}"
-                    data-name="{{ $product->name }}"
-                    data-price="{{ $product->price }}">
-                    Add to Order
-                </button>
-            </div>
+        @foreach($products as $product)
+        <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
+            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
             
+            <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+            <p class="text-gray-500">${{ number_format($product->price, 2) }}</p>
+            
+            <!-- Availability Status -->
+            <p class="text-sm font-semibold {{ $product->is_available ? 'text-green-500' : 'text-red-500' }}">
+                {{ $product->is_available ? 'Available' : 'Not Available' }}
+            </p>
+
+            <!-- Form to Toggle Availability -->
+            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST">
+                @csrf
+                <button type="submit"
+                    class="mt-2 px-4 py-2 rounded-lg w-full transition-all text-white 
+                        {{ $product->is_available ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                    {{ $product->is_available ? 'Mark as Not Available' : 'Mark as Available' }}
+                </button>
+            </form>
+
+            <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
+                    data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}">
+                Add to Order
+            </button>
+        </div>
         @endforeach
-        </div>
-        </div>
+    </div>
+</div>
+
 
 
     <!-- Order Summary -->
