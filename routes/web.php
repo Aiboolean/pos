@@ -3,42 +3,84 @@
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Route;
 
-// Redirect home to the products page
+// ----------------------
+// 🔹 Redirect Home to Login
+// ----------------------
 Route::get('/', function () {
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
     return redirect('/products');
 });
 
-// Product routes (CRUD operations)
+// ----------------------
+// 🔹 Product Routes (CRUD Operations) - Requires Login
+// ----------------------
 Route::resource('products', ProductController::class);
 
-// Order processing route
-Route::post('orders', [OrderController::class, 'store']);
+// ----------------------
+// 🔹 Order Processing - Requires Login
+// ----------------------
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 
+// ----------------------
+// 🔹 Admin Authentication Routes
+// ----------------------
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login'); // Show login form
+Route::post('/login', [AuthController::class, 'login']); // Handle login logic
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout'); // Handle logout
 
-//login
-// Admin Authentication Routes
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// ----------------------
+// 🔹 Admin Dashboard - Requires Login
+// ----------------------
+Route::get('/admin', function () {
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+    return app(AuthController::class)->dashboard();
+})->name('admin.dashboard');
 
-// Admin Dashboard Route
-Route::get('/admin', [AuthController::class, 'dashboard'])->name('admin.dashboard');
-
+// ----------------------
+// 🔹 Product Availability Management - Requires Login
+// ----------------------
 Route::patch('/products/{product}/availability', [ProductController::class, 'updateAvailability'])->name('products.updateAvailability');
-Route::get('/admin/products', [ProductController::class, 'adminIndex'])->name('admin.products');
+Route::post('/products/{product}/toggle-availability', [ProductController::class, 'updateAvailability'])->name('products.toggleAvailability');
 
+// ----------------------
+// 🔹 Admin Product Management - Requires Login
+// ----------------------
+Route::get('/admin/products', function () {
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+    return app(ProductController::class)->adminIndex();
+})->name('admin.products');
 
+// ----------------------
+// 🔹 Update Admin Credentials - Requires Login
+// ----------------------
+Route::get('/admin/update', function () {
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+    return app(AuthController::class)->showUpdateCredentials();
+})->name('admin.update');
 
-// Update Credentials (Only accessible if logged in)
-Route::get('/admin/update', [AuthController::class, 'showUpdateCredentials'])->name('admin.update');
 Route::post('/admin/update', [AuthController::class, 'updateCredentials']);
 Route::get('/admin/credentials', [AuthController::class, 'showUpdateCredentials'])->name('admin.credentials');
 
+// ----------------------
+// 🔹 Employee Management (Only Admin) - Requires Login
+// ----------------------
+Route::get('/admin/employees/create', function () {
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+    return app(AuthController::class)->showCreateEmployeeForm();
+})->name('admin.employees.create');
 
-Route::post('/products/{product}/toggle-availability', [ProductController::class, 'updateAvailability'])->name('products.toggleAvailability');
+Route::post('/admin/employees/store', [AuthController::class, 'storeEmployee'])->name('admin.employees.store');
 

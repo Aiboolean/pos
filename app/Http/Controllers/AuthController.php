@@ -24,23 +24,29 @@ class AuthController extends Controller
     $user = DB::table('users')->where('username', $request->username)->first();
 
     if ($user && Hash::check($request->password, $user->password)) {
-        // Set session for admin login
+        // Set session for login
         Session::put('admin_logged_in', true);
+        Session::put('user_role', $user->role);
+        Session::put('user_id', $user->id);
         Session::save();
 
-        // Redirect to admin dashboard instead of POS
-        return redirect()->route('admin.dashboard');
+        // Redirect based on role
+        if ($user->role === 'Admin') {
+            return redirect()->route('admin.dashboard');
+        } else {
+            return redirect()->route('products.index');
+        }
     }
 
     return back()->with('error', 'Invalid credentials');
 }
 
+public function logout()
+{
+    Session::forget('admin_logged_in');
+    return redirect('/login')->with('success', 'You have been logged out.');
+}
 
-    public function logout()
-    {
-        Session::forget('admin_logged_in');
-        return redirect('/login');
-    }
 
     public function showUpdateCredentials()
     {
@@ -73,11 +79,54 @@ class AuthController extends Controller
 
     public function dashboard()
 {
+    if (!Session::has('user_id') || Session::get('role') !== 'Admin') {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    return view('admin.dashboard');
+}
+
+
+public function showCreateEmployeeForm()
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+    
+    return view('admin.add_employee');
+}
+
+public function storeEmployee(Request $request)
+{
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
 
-    return view('admin.dashboard'); // Create this Blade file
+    $request->validate([
+        'first_name' => 'required',
+        'last_name' => 'required',
+        'phone' => 'required|unique:users',
+    ]);
+
+    // Generate username
+    $username = strtolower($request->first_name . '.' . $request->last_name);
+    
+    // Generate password from first and last name
+    $password = strtolower($request->first_name . $request->last_name);
+
+    DB::table('users')->insert([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'phone' => $request->phone,
+        'username' => $username,
+        'password' => Hash::make($password),
+        'role' => 'Employee',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return redirect()->route('admin.dashboard')->with('success', "Employee added. Username: $username, Password: $password");
 }
+
 
 }

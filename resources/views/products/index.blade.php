@@ -17,8 +17,16 @@
             @if(!Session::has('admin_logged_in'))
                 <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Login</a>
             @else
-                <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600">Admin Dashboard</a>
+                @if(Session::get('user_role') === 'Admin')
+                    <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600">Admin Dashboard</a>
+                @endif
             @endif
+            <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                Logout
+            </button>
+        </form>
 
 
 
