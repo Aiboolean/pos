@@ -78,13 +78,15 @@ public function logout()
     }
 
     public function dashboard()
-{
-    if (!Session::has('user_id') || Session::get('role') !== 'Admin') {
-        return redirect('/login')->with('error', 'Unauthorized access.');
+    {
+        if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
+            return redirect('/login')->with('error', 'Unauthorized access.');
+        }
+    
+        return view('admin.dashboard');
     }
 
-    return view('admin.dashboard');
-}
+
 
 
 public function showCreateEmployeeForm()

@@ -3,7 +3,7 @@
 @section('content')
 <div class="flex justify-center items-center h-screen">
     <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+        <h2 class="text-2xl font-bold mb-4">Login</h2>
 
         @if(session('error'))
             <p class="text-red-500">{{ session('error') }}</p>

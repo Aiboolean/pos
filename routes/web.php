@@ -29,15 +29,15 @@ Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 // ----------------------
 // 🔹 Admin Authentication Routes
 // ----------------------
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login'); // Show login form
-Route::post('/login', [AuthController::class, 'login']); // Handle login logic
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout'); // Handle logout
+ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login'); // Show login form
+ Route::post('/login', [AuthController::class, 'login']); // Handle login logic
+ Route::post('/logout', [AuthController::class, 'logout'])->name('logout'); // Handle logout
 
 // ----------------------
 // 🔹 Admin Dashboard - Requires Login
 // ----------------------
 Route::get('/admin', function () {
-    if (!Session::has('admin_logged_in')) {
+    if (!Session::has('admin_logged_in') || Session::get('user_role') !== 'Admin') {
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
     return app(AuthController::class)->dashboard();

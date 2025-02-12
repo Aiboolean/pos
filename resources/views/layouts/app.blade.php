@@ -11,7 +11,7 @@
     <div class="min-h-screen flex flex-col">
         <nav class="bg-gray-600 text-white p-4">
             <div class="container mx-auto">
-                <a href="/" class="text-lg font-bold">Coffee Shop POS</a>
+                <a href="" class="text-lg font-bold">CupsStreet</a>
             </div>
         </nav>
         <main class="flex-grow">
