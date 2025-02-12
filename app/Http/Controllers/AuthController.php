@@ -68,7 +68,7 @@ public function logout()
             'password' => 'required|min:4',
         ]);
 
-        DB::table('users')->where('username', 'admin')->update([
+        DB::table('users')->where('id', Session::get('user_id'))->update([
             'username' => $request->username,
             'password' => Hash::make($request->password),
             'updated_at' => now()

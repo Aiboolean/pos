@@ -21,9 +21,14 @@
                 <input type="password" name="password" required class="w-full p-2 border rounded">
             </div>
 
-            <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
-                Update Credentials
-            </button>
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-green-500 text-white p-2 rounded hover:bg-green-600">
+                    Update Credentials
+                </button>
+                <a href="{{ url()->previous() }}" class="w-1/2 bg-gray-500 text-white p-2 rounded hover:bg-gray-600 text-center">
+                    Cancel
+                </a>
+            </div>
         </form>
     </div>
 </div>
