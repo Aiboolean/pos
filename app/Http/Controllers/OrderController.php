@@ -17,6 +17,7 @@ class OrderController extends Controller
         'items.*.id' => 'required|exists:products,id',
         'items.*.quantity' => 'required|integer|min:1',
         'items.*.price' => 'required|numeric',
+        'items.*.size' => 'required|string', // Add validation for size
     ]);
 
     $order = Order::create([
@@ -28,11 +29,11 @@ class OrderController extends Controller
             'order_id' => $order->id,
             'product_id' => $item['id'],
             'quantity' => $item['quantity'],
-            'price' => $item['price']
+            'price' => $item['price'],
+            'size' => $item['size'], // Add size to the order item
         ]);
     }
 
     return response()->json(['order_id' => $order->id], 201);
 }
-
 }

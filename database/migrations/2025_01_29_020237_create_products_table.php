@@ -14,6 +14,7 @@ class CreateProductsTable extends Migration
         $table->decimal('price', 8, 2);
         $table->boolean('is_available')->default(true);
         $table->string('image')->nullable(); // Store image path
+        $table->string('category')->nullable(); // Add this line for the category column
         $table->timestamps();
     });
 }
