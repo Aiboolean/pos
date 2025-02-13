@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="flex h-screen">
-
     <!-- Sidebar -->
     <div class="w-1/6 bg-gray-100 p-4">
         <h2 class="text-xl font-bold mb-4">Menu</h2>
@@ -22,86 +21,104 @@
                 @endif
             @endif
             <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
-                Logout
-            </button>
-        </form>
-
-
-
+                @csrf
+                <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                    Logout
+                </button>
+            </form>
         </ul>
     </div>
 
+    <!-- Main Content -->
     <div class="w-2/3 p-6">
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        @foreach($products as $product)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
-    <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-    
-    <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-    <p class="text-gray-500">Category: {{ $product->category }}</p>
-    
-    <!-- Availability Status -->
-    <p class="text-sm font-semibold {{ $product->is_available ? 'text-green-500' : 'text-red-500' }}">
-        {{ $product->is_available ? 'Available' : 'Not Available' }}
-    </p>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach($products as $product)
+                <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
+                    <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
+                    
+                    <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+                    <p class="text-gray-500">Category: {{ $product->category }}</p>
+                    
+                    <!-- Availability Status -->
+                    <p class="text-sm font-semibold {{ $product->is_available ? 'text-green-500' : 'text-red-500' }}">
+                        {{ $product->is_available ? 'Available' : 'Not Available' }}
+                    </p>
 
-    <!-- Size Selection -->
-    <div class="mt-2">
-        <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
-        <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
-            @php
-                $prices = $product->prices ? json_decode($product->prices, true) : [];
-            @endphp
-            @if(isset($prices['small']) && $prices['small'])
-                <option value="small" data-price="{{ $prices['small'] }}">Small - ${{ $prices['small'] }}</option>
-            @endif
-            @if(isset($prices['medium']) && $prices['medium'])
-                <option value="medium" data-price="{{ $prices['medium'] }}">Medium - ${{ $prices['medium'] }}</option>
-            @endif
-            @if(isset($prices['large']) && $prices['large'])
-                <option value="large" data-price="{{ $prices['large'] }}">Large - ${{ $prices['large'] }}</option>
-            @endif
-        </select>
-    </div>
+                    <!-- Price Display -->
+                    @php
+                        $prices = $product->prices ? json_decode($product->prices, true) : [];
+                    @endphp
+                    @if(isset($prices['single']))
+                        <p class="text-gray-500">Price: ${{ $prices['single'] }}</p>
+                    @else
+                        <p class="text-gray-500">
+                            @if(isset($prices['small'])) Small: ${{ $prices['small'] }} @endif
+                            @if(isset($prices['medium'])) Medium: ${{ $prices['medium'] }} @endif
+                            @if(isset($prices['large'])) Large: ${{ $prices['large'] }} @endif
+                        </p>
+                    @endif
 
-    <!-- Quantity Adjustment -->
-    <div class="mt-2">
-        <label class="block text-sm font-medium text-gray-700">Quantity</label>
-        <div class="flex items-center">
-            <button class="px-2 py-1 bg-gray-300 rounded-l-lg" onclick="adjustQuantity('{{ $product->id }}', -1)">-</button>
-            <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="w-16 text-center border-t border-b">
-            <button class="px-2 py-1 bg-gray-300 rounded-r-lg" onclick="adjustQuantity('{{ $product->id }}', 1)">+</button>
+                    <!-- Size Selection (Only for products with sizes) -->
+                    @if(!isset($prices['single']))
+                        <div class="mt-2">
+                            <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+                            <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
+                                @if(isset($prices['small']) && $prices['small'])
+                                    <option value="small" data-price="{{ $prices['small'] }}">Small - ${{ $prices['small'] }}</option>
+                                @endif
+                                @if(isset($prices['medium']) && $prices['medium'])
+                                    <option value="medium" data-price="{{ $prices['medium'] }}">Medium - ${{ $prices['medium'] }}</option>
+                                @endif
+                                @if(isset($prices['large']) && $prices['large'])
+                                    <option value="large" data-price="{{ $prices['large'] }}">Large - ${{ $prices['large'] }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    @endif
+
+                    <!-- Quantity Adjustment -->
+                    <div class="mt-2">
+                        <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                        <div class="flex items-center">
+                            <button class="px-2 py-1 bg-gray-300 rounded-l-lg" onclick="adjustQuantity('{{ $product->id }}', -1)">-</button>
+                            <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="w-16 text-center border-t border-b">
+                            <button class="px-2 py-1 bg-gray-300 rounded-r-lg" onclick="adjustQuantity('{{ $product->id }}', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Form to Toggle Availability -->
+            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST">
+                @csrf
+                <button type="submit"
+                    class="mt-2 px-4 py-2 rounded-lg w-full transition-all text-white 
+                        {{ $product->is_available ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                    {{ $product->is_available ? 'Mark as Not Available' : 'Mark as Available' }}
+                </button>
+            </form>
+
+
+                    <!-- Add to Order Button -->
+                    <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
+                            data-id="{{ $product->id }}" data-name="{{ $product->name }}">
+                        Add to Order
+                    </button>
+                </div>
+            @endforeach
         </div>
     </div>
 
-    <!-- Add to Order Button -->
-    <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
-            data-id="{{ $product->id }}" data-name="{{ $product->name }}">
-        Add to Order
-    </button>
-</div>
-        @endforeach
+    <!-- Order Summary -->
+    <div class="w-1/6 bg-gray-100 p-4">
+        <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+        <div id="cart-items" class="space-y-2"></div>
+        <hr class="my-4">
+        <p class="text-lg font-semibold">Total: $<span id="total-price">0.00</span></p>
+        <button id="checkout" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full">
+            Proceed to Payment
+        </button>
     </div>
 </div>
 
-
-
-    <!-- Order Summary -->
-    <!-- Order Summary -->
-<div class="w-1/6 bg-gray-100 p-4">
-    <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-    <div id="cart-items" class="space-y-2"></div>
-    <hr class="my-4">
-    <p class="text-lg font-semibold">Total: $<span id="total-price">0.00</span></p>
-    <button id="checkout" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full">
-        Proceed to Payment
-    </button>
-</div>
-
-
-</div>
 <script>
     function adjustQuantity(productId, change) {
     const quantityInput = document.getElementById(`quantity-${productId}`);
