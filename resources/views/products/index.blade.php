@@ -99,7 +99,9 @@
 
                     <!-- Add to Order Button -->
                     <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
-                            data-id="{{ $product->id }}" data-name="{{ $product->name }}">
+                            data-id="{{ $product->id }}" 
+                            data-name="{{ $product->name }}"
+                            data-prices="{{ $product->prices }}">
                         Add to Order
                     </button>
                 </div>
@@ -145,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             cartItem.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <span>${item.name} (${item.size}, ${item.quantity})</span>
+                    <span>${item.name} (${item.size || 'Single'}, ${item.quantity})</span>
                     <span>$${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
                 <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
@@ -167,6 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateCartUI();
     }
 
+
     function removeFromCart(index) {
         cart.splice(index, 1);
         updateCartUI();
@@ -179,9 +182,21 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             const productId = this.dataset.id;
             const productName = this.dataset.name;
-            const size = document.getElementById(`size-${productId}`).value;
-            const price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
+            const sizeElement = document.getElementById(`size-${productId}`);
             const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
+
+            let size = 'single'; // Default size for products without sizes
+            let price = 0;
+
+            if (sizeElement) {
+                // Product has sizes
+                size = sizeElement.value;
+                price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
+            } else {
+                // Product does not have sizes (e.g., Add-ons, Rice Meals)
+                const prices = JSON.parse(this.dataset.prices);
+                price = parseFloat(prices['single']);
+            }
 
             addToCart(productId, productName, size, price, quantity);
         });
