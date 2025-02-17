@@ -62,5 +62,57 @@ public function updateAvailability(Product $product)
     return redirect()->back()->with('success', 'Product availability updated.');
 }
 
+public function edit(Product $product)
+{
+    return view('products.edit', compact('product'));
+}
+
+public function update(Request $request, Product $product)
+{
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'price_small' => 'nullable|numeric',
+        'price_medium' => 'nullable|numeric',
+        'price_large' => 'nullable|numeric',
+        'price' => 'nullable|numeric',
+        'is_available' => 'required|boolean',
+        'category' => 'required|string|max:255',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('product_images', 'public');
+        $validatedData['image'] = $imagePath;
+    }
+
+    // Handle prices
+    if (in_array($request->category, ['Hot Coffee', 'Cold Coffee', 'Frappe Coffee', 'Fruit Tea', 'Iced Tea', 'Milktea Classic', 'Milktea Premium', 'Non-Coffee', 'Yakult Series'])) {
+        $validatedData['prices'] = json_encode([
+            'small' => $request->price_small ?? null,
+            'medium' => $request->price_medium ?? null,
+            'large' => $request->price_large ?? null,
+        ]);
+    } else {
+        $validatedData['prices'] = json_encode([
+            'single' => $request->price ?? null,
+        ]);
+    }
+
+    $product->update($validatedData);
+
+    return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
+}
+
+public function destroy(Product $product)
+{
+    $product->delete();
+    return redirect()->route('admin.products')->with('success', 'Product deleted successfully.');
+}
+public function adminIndex()
+{
+    $products = Product::all();
+    return view('admin.products', compact('products'));
+}
+
 
 }

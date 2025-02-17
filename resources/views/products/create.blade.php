@@ -66,7 +66,7 @@
 
         <!-- Availability -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Available:</label>
+            <label class="block text-sm font-medium text-gray-700">Status:</label>
             <select name="is_available" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="1">Available</option>
                 <option value="0">Not Available</option>
@@ -125,6 +125,7 @@
                 case 'Hot Coffee':
                     priceSmall.disabled = false;
                     priceMedium.disabled = false;
+                    priceLarge.disabled = false;
                     break;
                 case 'Cold Coffee':
                     priceSmall.disabled = false;
@@ -132,13 +133,17 @@
                     priceLarge.disabled = false;
                     break;
                 case 'Frappe Coffee':
+                    priceSmall.disabled = false;
                     priceMedium.disabled = false;
                     priceLarge.disabled = false;
                     break;
                 case 'Fruit Tea':
+                    priceSmall.disabled = false;
+                    priceMedium.disabled = false;
                     priceLarge.disabled = false;
                     break;
                 case 'Iced Tea':
+                    priceSmall.disabled = false;
                     priceMedium.disabled = false;
                     priceLarge.disabled = false;
                     break;
@@ -148,6 +153,7 @@
                     priceLarge.disabled = false;
                     break;
                 case 'Milktea Premium':
+                    priceSmall.disabled = false;
                     priceMedium.disabled = false;
                     priceLarge.disabled = false;
                     break;
@@ -157,6 +163,8 @@
                     priceLarge.disabled = false;
                     break;
                 case 'Yakult Series':
+                    priceSmall.disabled = false;
+                    priceMedium.disabled = false;
                     priceLarge.disabled = false;
                     break;
             }

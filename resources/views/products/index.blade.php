@@ -6,12 +6,16 @@
     <div class="w-1/6 bg-gray-100 p-4">
         <h2 class="text-xl font-bold mb-4">Menu</h2>
         <ul class="space-y-2">
-            <li><a href="#" class="block p-2 bg-gray-200 rounded hover:bg-gray-300">Home</a></li>
             <li><a href="#" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                 Orders
             </a></li>
+            <li>
+            <a href="{{ route('admin.credentials') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                Update Credentials
+            </a>
+            </li>
             <li><a href="{{ route('products.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
-                Add New Product
+                Product
             </a></li>
             @if(!Session::has('admin_logged_in'))
                 <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Login</a>
@@ -45,7 +49,7 @@
                     </p>
 
                     <!-- Price Display -->
-                    @php
+                    <!-- @php
                         $prices = $product->prices ? json_decode($product->prices, true) : [];
                     @endphp
                     @if(isset($prices['single']))
@@ -56,7 +60,7 @@
                             @if(isset($prices['medium'])) Medium: ${{ $prices['medium'] }} @endif
                             @if(isset($prices['large'])) Large: ${{ $prices['large'] }} @endif
                         </p>
-                    @endif
+                    @endif -->
 
                     <!-- Size Selection (Only for products with sizes) -->
                     @if(!isset($prices['single']))
@@ -64,13 +68,13 @@
                             <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
                             <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
                                 @if(isset($prices['small']) && $prices['small'])
-                                    <option value="small" data-price="{{ $prices['small'] }}">Small - ${{ $prices['small'] }}</option>
+                                    <option value="small" data-price="{{ $prices['small'] }}">Small - ₱{{ $prices['small'] }}</option>
                                 @endif
                                 @if(isset($prices['medium']) && $prices['medium'])
-                                    <option value="medium" data-price="{{ $prices['medium'] }}">Medium - ${{ $prices['medium'] }}</option>
+                                    <option value="medium" data-price="{{ $prices['medium'] }}">Medium - ₱{{ $prices['medium'] }}</option>
                                 @endif
                                 @if(isset($prices['large']) && $prices['large'])
-                                    <option value="large" data-price="{{ $prices['large'] }}">Large - ${{ $prices['large'] }}</option>
+                                    <option value="large" data-price="{{ $prices['large'] }}">Large - ₱{{ $prices['large'] }}</option>
                                 @endif
                             </select>
                         </div>
@@ -114,7 +118,7 @@
         <h2 class="text-xl font-bold mb-4">Order Summary</h2>
         <div id="cart-items" class="space-y-2"></div>
         <hr class="my-4">
-        <p class="text-lg font-semibold">Total: $<span id="total-price">0.00</span></p>
+        <p class="text-lg font-semibold">Total: ₱<span id="total-price">0.00</span></p>
         <button id="checkout" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full">
             Proceed to Payment
         </button>
