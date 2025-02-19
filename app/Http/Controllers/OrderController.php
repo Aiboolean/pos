@@ -13,27 +13,45 @@ class OrderController extends Controller
 {
     $request->validate([
         'total_price' => 'required|numeric',
+        'amount_received' => 'required|numeric',
+        'change' => 'required|numeric',
         'items' => 'required|array',
         'items.*.id' => 'required|exists:products,id',
         'items.*.quantity' => 'required|integer|min:1',
         'items.*.price' => 'required|numeric',
-        'items.*.size' => 'required|string', // Add validation for size
+        'items.*.size' => 'required|string',
     ]);
 
+    // Create the order
     $order = Order::create([
-        'total_price' => $request->total_price
+        'total_price' => $request->total_price,
+        'amount_received' => $request->amount_received,
+        'change' => $request->change,
     ]);
 
+    // Add order items
+    $orderItems = [];
     foreach ($request->items as $item) {
-        OrderItem::create([
+        $product = Product::find($item['id']); // Fetch the product
+        $orderItem = OrderItem::create([
             'order_id' => $order->id,
             'product_id' => $item['id'],
             'quantity' => $item['quantity'],
             'price' => $item['price'],
-            'size' => $item['size'], // Add size to the order item
+            'size' => $item['size'],
         ]);
+        $orderItems[] = [
+            'name' => $product->name, // Include product name
+            'size' => $item['size'],
+            'quantity' => $item['quantity'],
+            'price' => $item['price'],
+        ];
     }
 
-    return response()->json(['order_id' => $order->id], 201);
+    // Return the order and items
+    return response()->json([
+        'order' => $order,
+        'items' => $orderItems,
+    ], 201);
 }
 }

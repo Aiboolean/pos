@@ -14,9 +14,7 @@
                 Update Credentials
             </a>
             </li>
-            <li><a href="{{ route('products.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
-                Product
-            </a></li>
+            
             @if(!Session::has('admin_logged_in'))
                 <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Login</a>
             @else
@@ -48,7 +46,7 @@
                         {{ $product->is_available ? 'Available' : 'Not Available' }}
                     </p>
 
-                    <!-- Price Display -->
+                    <!-- DO NOT REMOVE CODE BLOCK VERY IMPORTANT -->
                     <!-- @php
                         $prices = $product->prices ? json_decode($product->prices, true) : [];
                     @endphp
@@ -111,6 +109,44 @@
                 </div>
             @endforeach
         </div>
+        <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Confirm Order</h2>
+            <p class="text-lg">Total: ₱<span id="modal-total-price">0.00</span></p>
+            
+            <div class="mt-4">
+                <label for="amountReceived" class="block text-sm font-medium text-gray-700">Amount Received</label>
+                <input type="number" id="amountReceived" class="w-full p-2 border rounded-lg" placeholder="Enter amount received">
+            </div>
+
+            <div class="mt-4">
+                <p class="text-lg">Change: ₱<span id="changeAmount">0.00</span></p>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="cancelOrder" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Cancel</button>
+                <button id="confirmOrder" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <!-- Receipt Modal -->
+<div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg w-96">
+        <h2 class="text-xl font-bold mb-4">Order Receipt</h2>
+        <p class="text-lg">Order ID: <span id="receipt-order-id"></span></p>
+        <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
+        <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
+        <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
+        <hr class="my-4">
+        <h3 class="text-lg font-bold">Items:</h3>
+        <ul id="receipt-items"></ul>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button onclick="printReceipt()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Print Receipt</button>
+            <button onclick="closeReceiptModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- Order Summary -->
@@ -152,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
             cartItem.innerHTML = `
                 <div class="flex justify-between items-center">
                     <span>${item.name} (${item.size || 'Single'}, ${item.quantity})</span>
-                    <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
                 <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
             `;
@@ -206,31 +242,147 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Show confirmation modal when "Proceed to Payment" is clicked
     document.getElementById("checkout").addEventListener("click", function () {
         if (cart.length === 0) {
             alert("Your cart is empty!");
             return;
         }
 
-        fetch("{{ route('orders.store') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}",
-            },
-            body: JSON.stringify({ 
-                items: cart,
-                total_price: totalPriceElement.innerText
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Order placed successfully!");
-            cart = [];
-            updateCartUI();
-        })
-        .catch(error => console.error("Error:", error));
+        // Show the modal
+        const modal = document.getElementById("confirmationModal");
+        const modalTotalPrice = document.getElementById("modal-total-price");
+        const changeAmount = document.getElementById("changeAmount");
+        const amountReceivedInput = document.getElementById("amountReceived");
+
+        // Set the total price in the modal
+        modalTotalPrice.innerText = totalPriceElement.innerText;
+
+        // Reset the amount received and change
+        amountReceivedInput.value = "";
+        changeAmount.innerText = "0.00";
+
+        // Show the modal
+        modal.classList.remove("hidden");
+
+        // Calculate change when amount received changes
+        amountReceivedInput.addEventListener("input", function () {
+            const amountReceived = parseFloat(amountReceivedInput.value);
+            const totalPrice = parseFloat(totalPriceElement.innerText);
+
+            if (!isNaN(amountReceived) && amountReceived >= totalPrice) {
+                const change = amountReceived - totalPrice;
+                changeAmount.innerText = change.toFixed(2);
+            } else {
+                changeAmount.innerText = "0.00";
+            }
+        });
+
+        // Handle cancel button
+        document.getElementById("cancelOrder").addEventListener("click", function () {
+            modal.classList.add("hidden");
+        });
+
+        // Handle confirm button
+        document.getElementById("confirmOrder").addEventListener("click", function () {
+            const amountReceived = parseFloat(amountReceivedInput.value);
+            const totalPrice = parseFloat(totalPriceElement.innerText);
+
+            if (isNaN(amountReceived) || amountReceived < totalPrice) {
+                alert("Please enter a valid amount that covers the total price.");
+                return;
+            }
+
+            // Hide the modal
+            modal.classList.add("hidden");
+
+            // Proceed with the order
+            fetch("{{ route('orders.store') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                },
+                body: JSON.stringify({ 
+                    items: cart,
+                    total_price: totalPriceElement.innerText,
+                    amount_received: amountReceived,
+                    change: (amountReceived - totalPrice).toFixed(2)
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Order placed successfully!");
+                cart = [];
+                updateCartUI();
+
+                // Show the receipt in the modal
+                openReceiptModal(data.order, data.items); // Pass both order and items
+            })
+            .catch(error => console.error("Error:", error));
+        });
     });
+    
+    // Function to open the receipt modal
+function openReceiptModal(order, items) {
+    const receiptModal = document.getElementById("receiptModal");
+    const receiptOrderId = document.getElementById("receipt-order-id");
+    const receiptTotalPrice = document.getElementById("receipt-total-price");
+    const receiptAmountReceived = document.getElementById("receipt-amount-received");
+    const receiptChange = document.getElementById("receipt-change");
+    const receiptItems = document.getElementById("receipt-items");
+
+    // Populate the modal with order data
+    receiptOrderId.innerText = order.id;
+    receiptTotalPrice.innerText = order.total_price;
+    receiptAmountReceived.innerText = order.amount_received;
+    receiptChange.innerText = order.change;
+
+    // Populate the items list
+    receiptItems.innerHTML = items.map(item => `
+        <li>${item.name} (${item.size || 'Single'}, ${item.quantity}) - ₱${item.price * item.quantity}</li>
+    `).join("");
+
+    // Show the modal
+    receiptModal.classList.remove("hidden");
+}
+
+// Function to close the receipt modal
+function closeReceiptModal() {
+    const receiptModal = document.getElementById("receiptModal");
+    receiptModal.classList.add("hidden");
+}
+
+// Function to print the receipt
+function printReceipt() {
+    const receiptContent = document.getElementById("receiptModal").innerHTML;
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Order Receipt</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h2, h3 { color: #333; }
+                    hr { border: 1px solid #ddd; }
+                    button { display: none; } /* Hide buttons when printing */
+                </style>
+            </head>
+            <body>
+                ${receiptContent}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+    
+
+        
+    // Function to print the receipt
+    window.printReceipt = function () {
+        window.print();
+    };
 });
 </script>
 
