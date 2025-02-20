@@ -11,7 +11,7 @@
             </a></li>
             <li>
             <a href="{{ route('admin.credentials') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
-                Update Credentials
+                Update
             </a>
             </li>
             
@@ -312,7 +312,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(response => response.json())
             .then(data => {
-                alert("Order placed successfully!");
                 cart = [];
                 updateCartUI();
 
@@ -335,8 +334,8 @@ function openReceiptModal(order, items) {
     // Populate the modal with order data
     receiptOrderId.innerText = order.id;
     receiptTotalPrice.innerText = order.total_price;
-    receiptAmountReceived.innerText = order.amount_received;
-    receiptChange.innerText = order.change;
+    receiptAmountReceived.innerText = order.amount_received || "0.00"; // Fallback to "0.00" if undefined
+    receiptChange.innerText = order.change || "0.00"; // Fallback to "0.00" if undefined
 
     // Populate the items list
     receiptItems.innerHTML = items.map(item => `
@@ -347,11 +346,7 @@ function openReceiptModal(order, items) {
     receiptModal.classList.remove("hidden");
 }
 
-// Function to close the receipt modal
-function closeReceiptModal() {
-    const receiptModal = document.getElementById("receiptModal");
-    receiptModal.classList.add("hidden");
-}
+
 
 // Function to print the receipt
 function printReceipt() {
@@ -376,7 +371,13 @@ function printReceipt() {
     printWindow.document.close();
     printWindow.print();
 }
-    
+
+    document.addEventListener("click", function (event) {
+        const receiptModal = document.getElementById("receiptModal");
+        if (event.target === receiptModal) {
+            closeReceiptModal();
+        }
+    });
 
         
     // Function to print the receipt
@@ -384,6 +385,13 @@ function printReceipt() {
         window.print();
     };
 });
+
+// Function to close the receipt modal
+function closeReceiptModal() {
+    console.log("Closing receipt modal"); // Debuggingsadfsadfasadfsasdf
+    const receiptModal = document.getElementById("receiptModal");
+    receiptModal.classList.add("hidden");
+}
 </script>
 
 @endsection
