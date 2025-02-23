@@ -1,0 +1,35 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="flex justify-center items-center h-screen" style="background-color: #f1eadc;">
+    <div class="bg-[#333333] p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold mb-4 text-white">Update Credentials</h2>
+
+        @if(session('success'))
+            <p class="text-green-500">{{ session('success') }}</p>
+        @endif
+
+        <form method="POST" action="{{ route('admin.update') }}">
+            @csrf
+            <div class="mb-4">
+                <label for="username" class="block font-medium text-white">New Username</label>
+                <input type="text" name="username" required class="w-full p-2 border rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="block font-medium text-white">New Password</label>
+                <input type="password" name="password" required class="w-full p-2 border rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-green-500 text-white p-2 rounded hover:bg-green-600">
+                    Update Credentials
+                </button>
+                <a href="{{ url()->previous() }}" class="w-1/2 bg-gray-500 text-white p-2 rounded hover:bg-gray-600 text-center">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
