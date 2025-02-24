@@ -3,7 +3,8 @@
 @section('content')
 <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-2xl font-bold mb-4">Product Management</h2>
-
+    <a href="{{ route('products.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Add New Product</a>
+    
     <table class="min-w-full bg-white border border-gray-300">
         <thead>
             <tr class="bg-gray-200">

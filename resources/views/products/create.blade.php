@@ -10,23 +10,10 @@
         <!-- Category -->
         <div>
             <label class="block text-sm font-medium text-gray-700">Category:</label>
-            <select name="category" id="category" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="Hot Coffee">Hot Coffee</option>
-                <option value="Cold Coffee">Cold Coffee</option>
-                <option value="Frappe Coffee">Frappe Coffee</option>
-                <option value="Fruit Tea">Fruit Tea</option>
-                <option value="Iced Tea">Iced Tea</option>
-                <option value="Milktea Classic">Milktea Classic</option>
-                <option value="Milktea Premium">Milktea Premium</option>
-                <option value="Non-Coffee">Non-Coffee</option>
-                <option value="Yakult Series">Yakult Series</option>
-                <option value="Add Ons">Add Ons</option>
-                <option value="Rice Meals">Rice Meals</option>
-                <option value="Snacks">Snacks</option>
-                <option value="Fries">Fries</option>
-                <option value="Chips and Cup Noodles">Chips and Cup Noodles</option>
-                <option value="Croffle">Croffle</option>
-                <option value="Pastry">Pastry</option>
+            <select name="category_id" id="category_id" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
             </select>
         </div>
 
@@ -36,24 +23,31 @@
             <input type="text" name="name" required class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
+        <!-- Toggle for Multiple Sizes -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Has Multiple Sizes:</label>
+            <input type="hidden" name="has_multiple_sizes" value="0"> <!-- Always submit a value -->
+            <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="mt-2" onchange="toggleSizeFields()" value="1">
+        </div>
+
         <!-- Prices for Sizes (Hidden by Default) -->
-        <div id="size-prices">
+        <div id="size-prices" class="hidden">
             <label class="block text-sm font-medium text-gray-700">Prices:</label>
             <div class="space-y-2">
                 <!-- Small -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Small:</label>
-                    <input type="number" step="0.01" name="price_small" id="price_small" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                    <input type="number" step="0.01" name="price_small" id="price_small" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <!-- Medium -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Medium:</label>
-                    <input type="number" step="0.01" name="price_medium" id="price_medium" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                    <input type="number" step="0.01" name="price_medium" id="price_medium" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <!-- Large -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Large:</label>
-                    <input type="number" step="0.01" name="price_large" id="price_large" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                    <input type="number" step="0.01" name="price_large" id="price_large" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </div>
         </div>
@@ -87,92 +81,25 @@
     </form>
 </div>
 
-<!-- JavaScript to Handle Size Inputs and Single Price Based on Category -->
+<!-- JavaScript to Toggle Size Fields -->
 <script>
-    document.getElementById('category').addEventListener('change', function () {
-        const category = this.value;
+    function toggleSizeFields() {
+        const hasMultipleSizes = document.getElementById('has_multiple_sizes').checked;
         const sizePricesDiv = document.getElementById('size-prices');
         const singlePriceDiv = document.getElementById('single-price');
-        const priceSmall = document.getElementById('price_small');
-        const priceMedium = document.getElementById('price_medium');
-        const priceLarge = document.getElementById('price_large');
-        const priceInput = document.getElementById('price');
 
-        // Reset all fields
-        sizePricesDiv.style.display = 'none';
-        singlePriceDiv.style.display = 'none';
-        priceSmall.disabled = true;
-        priceMedium.disabled = true;
-        priceLarge.disabled = true;
-        priceSmall.value = '';
-        priceMedium.value = '';
-        priceLarge.value = '';
-        priceInput.value = '';
-
-        // Categories with sizes
-        const sizeCategories = [
-            'Hot Coffee', 'Cold Coffee', 'Frappe Coffee', 'Fruit Tea', 'Iced Tea',
-            'Milktea Classic', 'Milktea Premium', 'Non-Coffee', 'Yakult Series'
-        ];
-
-        if (sizeCategories.includes(category)) {
-            // Show size-based prices
+        if (hasMultipleSizes) {
             sizePricesDiv.style.display = 'block';
             singlePriceDiv.style.display = 'none';
-
-            // Enable fields based on category
-            switch (category) {
-                case 'Hot Coffee':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Cold Coffee':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Frappe Coffee':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Fruit Tea':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Iced Tea':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Milktea Classic':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Milktea Premium':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Non-Coffee':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-                case 'Yakult Series':
-                    priceSmall.disabled = false;
-                    priceMedium.disabled = false;
-                    priceLarge.disabled = false;
-                    break;
-            }
         } else {
-            // Show single price input
             sizePricesDiv.style.display = 'none';
             singlePriceDiv.style.display = 'block';
         }
+    }
+
+    // Initialize the form based on the default state
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleSizeFields();
     });
 </script>
 @endsection

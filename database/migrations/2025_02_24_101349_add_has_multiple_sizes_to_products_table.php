@@ -12,20 +12,14 @@ return new class extends Migration
     public function up()
 {
     Schema::table('products', function (Blueprint $table) {
-        // Remove the old price column
-        $table->dropColumn('price');
-
-        // Add the new prices column (JSON to store prices for sizes)
-        $table->json('prices')->nullable()->after('category');
+        $table->boolean('has_multiple_sizes')->default(false)->after('category_id');
     });
 }
 
 public function down()
 {
     Schema::table('products', function (Blueprint $table) {
-        // Revert the changes if needed
-        $table->decimal('price', 8, 2)->after('category'); // Re-add the old price column
-        $table->dropColumn('prices'); // Drop the new prices column
+        $table->dropColumn('has_multiple_sizes');
     });
 }
 };
