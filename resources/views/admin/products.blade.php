@@ -3,7 +3,24 @@
 @section('content')
 <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-2xl font-bold mb-4">Product Management</h2>
-    <a href="{{ route('products.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Add New Product</a>
+    
+    <div class="flex justify-between items-center mb-4">
+        <a href="{{ route('products.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Add New Product</a>
+        
+        <form method="GET" action="{{ route('admin.products') }}" class="flex items-center">
+            <label for="category" class="mr-2">Filter by Category:</label>
+            <select name="category" id="category" class="border p-2 rounded">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded ml-2">Filter</button>
+        </form>
+    </div>
+
     
     <table class="min-w-full bg-white border border-gray-300">
         <thead>
@@ -18,7 +35,7 @@
             @foreach($products as $product)
             <tr class="border">
                 <td class="p-2 border">{{ $product->name }}</td>
-                <td class="p-2 border">{{ $product->category }}</td>
+                <td class="p-2 border">{{ $product->category->name ?? 'No Category' }}</td>
                 <td class="p-2 border">
                     {{ $product->is_available ? 'Available' : 'Unavailable' }}
                 </td>

@@ -107,9 +107,18 @@ class ProductController extends Controller
         return redirect()->route('admin.products')->with('success', 'Product deleted successfully.');
     }
 
-    public function adminIndex()
-    {
-        $products = Product::all();
-        return view('admin.products', compact('products'));
+    public function adminIndex(Request $request)
+{
+    $categories = Category::all();
+    $query = Product::with('category'); // Ensure category relationship is loaded
+
+    if ($request->has('category') && $request->category != '') {
+        $query->where('category_id', $request->category);
     }
+
+    $products = $query->get();
+
+    return view('admin.products', compact('products', 'categories'));
+}
+
 }

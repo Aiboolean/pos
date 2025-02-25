@@ -40,11 +40,11 @@ Route::patch('/products/{product}/availability', [ProductController::class, 'upd
 Route::post('/products/{product}/toggle-availability', [ProductController::class, 'updateAvailability'])->name('products.toggleAvailability');
 
 // 🔹 Admin Product Management - Requires Login
-Route::get('/admin/products', function () {
+Route::get('/admin/products', function (Illuminate\Http\Request $request) {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'You must log in first.');
     }
-    return app(ProductController::class)->adminIndex();
+    return app(ProductController::class)->adminIndex($request);
 })->name('admin.products');
 
 // 🔹 Update Admin Credentials - Requires Login
