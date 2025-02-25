@@ -130,5 +130,52 @@ public function storeEmployee(Request $request)
     return redirect()->route('admin.dashboard')->with('success', "Employee added. Username: $username, Password: $password");
 }
 
+public function manageEmployees()
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    $employees = DB::table('users')->where('role', 'Employee')->get();
+    return view('admin.employees', compact('employees'));
+}
+
+public function updateEmployee(Request $request, $id)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    $request->validate([
+        'username' => 'required|unique:users,username,' . $id,
+        'password' => 'nullable|min:4',
+    ]);
+
+    $updateData = ['username' => $request->username];
+    if ($request->password) {
+        $updateData['password'] = Hash::make($request->password);
+    }
+
+    DB::table('users')->where('id', $id)->update($updateData);
+
+    return redirect()->route('admin.employees')->with('success', 'Employee updated successfully.');
+}
+public function toggleEmployeeStatus($id)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    $employee = DB::table('users')->where('id', $id)->first();
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Employee not found.');
+    }
+
+    DB::table('users')->where('id', $id)->update([
+        'is_active' => !$employee->is_active,
+    ]);
+
+    return redirect()->route('admin.employees')->with('success', 'Employee status updated.');
+}
 
 }

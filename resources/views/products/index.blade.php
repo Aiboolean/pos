@@ -3,33 +3,69 @@
 @section('content')
 <div class="flex h-screen">
     <!-- Sidebar -->
-    <div class="w-1/6 bg-gray-100 p-4">
-        <h2 class="text-xl font-bold mb-4">Menu</h2>
-        <ul class="space-y-2">
-            <li><a href="#" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+<div class="w-1/6 bg-gray-100 p-4">
+    <h2 class="text-xl font-bold mb-4">Menu</h2>
+    <ul class="space-y-2">
+        <!-- Orders - Visible to all -->
+        <li>
+            <a href="#" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                 Orders
-            </a></li>
-            <li>
-            <a href="{{ route('admin.credentials') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
-                Update
             </a>
+        </li>
+
+        <!-- Admin-only Links -->
+        @if(Session::get('user_role') === 'Admin')
+            <li>
+                <a href="{{ route('categories.index') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                    Manage Categories
+                </a>
             </li>
-            
-            @if(!Session::has('admin_logged_in'))
-                <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">Login</a>
-            @else
-                @if(Session::get('user_role') === 'Admin')
-                    <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600">Admin Dashboard</a>
-                @endif
-            @endif
+            <li>
+                <a href="{{ route('admin.products') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                    Manage Products
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.employees') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                    Manage Employees
+                </a>
+            </li>
+        @endif
+
+        <!-- Update Credentials - Visible to all -->
+        <li>
+            <a href="{{ route('admin.credentials') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
+                Update Credentials
+            </a>
+        </li>
+
+        <!-- Role-based Admin Dashboard Button -->
+        @if(Session::get('user_role') === 'Admin')
+            <li>
+                <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    Admin Dashboard
+                </a>
+            </li>
+        @endif
+
+        <!-- Authentication Links -->
+        @if(!Session::has('admin_logged_in'))
+            <li>
+                <a href="{{ route('login') }}" class="block p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Login
+                </a>
+            </li>
+        @else
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                     Logout
                 </button>
             </form>
-        </ul>
-    </div>
+        @endif
+    </ul>
+</div>
+
 
     <!-- Main Content -->
 <div class="w-2/3 p-6">

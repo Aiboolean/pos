@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('username')->unique();
             $table->string('password');
             $table->enum('role', ['Admin', 'Employee'])->default('Employee');
+            $table->boolean('is_active')->default(true); // Default to active
             $table->timestamps();
         });
     }
