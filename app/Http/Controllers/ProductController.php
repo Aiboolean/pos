@@ -87,13 +87,14 @@ class ProductController extends Controller
         }
 
         // If the product has multiple sizes, ensure size-based prices are provided
-        if ($request->has_multiple_sizes) {
+        if ($request->has('has_multiple_sizes') && $request->has_multiple_sizes) {
             $validatedData['price'] = null; // Clear single price
         } else {
             $validatedData['price_small'] = null;
             $validatedData['price_medium'] = null;
             $validatedData['price_large'] = null;
         }
+        
 
         // Update the product
         $product->update($validatedData);

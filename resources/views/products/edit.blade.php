@@ -27,7 +27,9 @@
         <!-- Toggle for Multiple Sizes -->
         <div>
             <label class="block text-sm font-medium text-gray-700">Has Multiple Sizes:</label>
-            <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="mt-2" onchange="toggleSizeFields()" {{ $product->has_multiple_sizes ? 'checked' : '' }}>
+            <input type="hidden" name="has_multiple_sizes" value="0"> 
+            <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="mt-2" onchange="toggleSizeFields()" value="1" {{ $product->has_multiple_sizes ? 'checked' : '' }}>
+
         </div>
 
         <!-- Prices for Sizes (Hidden by Default) -->
