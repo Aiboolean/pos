@@ -25,5 +25,19 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+/**
+     * Get the orders placed by the user.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 
+    /**
+     * Get the order items created by the user.
+     */
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

@@ -28,6 +28,7 @@ class OrderController extends Controller
         'total_price' => $request->total_price,
         'amount_received' => $request->amount_received,
         'change' => $request->change,
+        'user_id' => Session::get('user_id'), // Assign the logged-in user's ID
     ]);
 
     // Add order items

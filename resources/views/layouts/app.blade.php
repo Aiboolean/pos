@@ -14,7 +14,7 @@
         <div x-data="{ open: true }" class="flex">
             <!-- Sidebar Container -->
             <div 
-                class="bg-gray-900 text-white min-h-screen transition-all duration-300"
+                class="bg-gray-600 text-white min-h-screen transition-all duration-300"
                 :class="open ? 'w-64 p-4' : 'w-16 p-2'"
             >
                 <button @click="open = !open" class="text-white p-2 focus:outline-none">
