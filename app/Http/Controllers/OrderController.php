@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class OrderController extends Controller
 {
@@ -36,6 +37,7 @@ class OrderController extends Controller
         $orderItem = OrderItem::create([
             'order_id' => $order->id,
             'product_id' => $item['id'],
+            'user_id' => Session::get('user_id'), // Assign the logged-in user's ID
             'quantity' => $item['quantity'],
             'price' => $item['price'],
             'size' => $item['size'],
