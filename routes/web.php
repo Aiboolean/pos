@@ -83,3 +83,8 @@ Route::resource('categories', CategoryController::class)->except(['show']);
 Route::get('/admin/employees', [AuthController::class, 'manageEmployees'])->name('admin.employees');
 Route::post('/admin/employees/{id}/update', [AuthController::class, 'updateEmployee'])->name('admin.employees.update');
 Route::post('/admin/employees/{id}/toggle', [AuthController::class, 'toggleEmployeeStatus'])->name('admin.employees.toggle');
+
+
+// 🔹 Admin Order Management - Requires Login
+Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders');
+Route::get('/admin/orders/{order}', [OrderController::class, 'adminShow'])->name('admin.orders.show');

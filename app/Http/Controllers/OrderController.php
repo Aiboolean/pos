@@ -57,4 +57,24 @@ class OrderController extends Controller
         'items' => $orderItems,
     ], 201);
 }
+
+public function adminIndex()
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+
+    $orders = Order::with('user', 'items.product')->get();
+    return view('admin.orders.index', compact('orders'));
+}
+
+public function adminShow(Order $order)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+
+    $order->load('user', 'items.product');
+    return view('admin.orders.show', compact('order'));
+}
 }
