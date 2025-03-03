@@ -23,12 +23,12 @@
         </button>
         
         <ul class="mt-4 space-y-2">
-            <li>
-                <a href="#" class="block p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-center"
-                    :class="open ? 'text-left' : 'text-center'">
-                    Orders
-                </a>
-            </li>
+        <li>
+            <a href="{{ route('user.orders') }}" class="block p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-center"
+                :class="open ? 'text-left' : 'text-center'">
+                My Orders
+            </a>
+        </li>
 
             <!-- Admin-only Links -->
             @if(Session::get('user_role') === 'Admin')

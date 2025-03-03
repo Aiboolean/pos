@@ -88,3 +88,8 @@ Route::post('/admin/employees/{id}/toggle', [AuthController::class, 'toggleEmplo
 // 🔹 Admin Order Management - Requires Login
 Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders');
 Route::get('/admin/orders/{order}', [OrderController::class, 'adminShow'])->name('admin.orders.show');
+
+// 🔹 User Order History - Requires Login
+Route::get('/orders', [OrderController::class, 'userOrders'])->name('user.orders');
+
+Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('user.orders.show');

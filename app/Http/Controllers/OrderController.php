@@ -77,4 +77,33 @@ public function adminShow(Order $order)
     $order->load('user', 'items.product');
     return view('admin.orders.show', compact('order'));
 }
+public function userOrders()
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+
+    // Fetch orders for the logged-in user
+    $userId = Session::get('user_id');
+    $orders = Order::with('items.product')->where('user_id', $userId)->get();
+
+    return view('user.orders.index', compact('orders'));
+}
+public function userOrderShow(Order $order)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+
+    // Ensure the order belongs to the logged-in user
+    $userId = Session::get('user_id');
+    if ($order->user_id !== $userId) {
+        return redirect('/orders')->with('error', 'Unauthorized access.');
+    }
+
+    $order->load('items.product');
+    return view('user.orders.show', compact('order'));
+}
+
+
 }
