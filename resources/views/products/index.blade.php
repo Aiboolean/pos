@@ -1,13 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex h-screen">
-    
-
-    <!-- Main Content -->
     <div class="flex h-screen">
-    <!-- Main Content -->
-    <div class="w-2/3 p-6">
+    <!-- Order Summary (Now on the Left Side) -->
+    <div class="w-2/6 bg-gray-100 p-4">
+        <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+        <div id="cart-items" class="space-y-2"></div>
+        <hr class="my-4">
+        <p class="text-lg font-semibold">Total: ₱<span id="total-price">0.00</span></p>
+        <button id="checkout" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full">
+            Proceed to Payment
+        </button>
+    </div>
+
+    <!-- Main Content (Now on the Right Side) -->
+    <div class="w-4/6 p-6">
         <!-- Category Filter -->
         <div class="mb-4">
             <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
@@ -16,14 +23,14 @@
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                 @endforeach
-                <option value="unavailable">Unavailable Products</option> <!-- New Option -->
+                <option value="unavailable">Unavailable Products</option>
             </select>
         </div>
 
         <!-- Scrollable Product Grid -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto" style="max-height: 100vh;" id="productGrid">
             @foreach($products as $product)
-                @if($product->is_available) <!-- Only show available products by default -->
+                @if($product->is_available)
                     <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item" data-category="{{ $product->category_id }}" data-available="true">
                         <!-- Product Details -->
                         <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
@@ -108,19 +115,7 @@
             @endforeach
         </div>
     </div>
-
-    <!-- Order Summary -->
-    <div class="w-1/6 bg-gray-100 p-4">
-        <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-        <div id="cart-items" class="space-y-2"></div>
-        <hr class="my-4">
-        <p class="text-lg font-semibold">Total: ₱<span id="total-price">0.00</span></p>
-        <button id="checkout" class="mt-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 w-full">
-            Proceed to Payment
-        </button>
-    </div>
 </div>
-
 
 <!-- Confirmation Modal -->
 <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
