@@ -5,76 +5,109 @@
     
 
     <!-- Main Content -->
-<div class="w-2/3 p-6">
-    <!-- Scrollable Product Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto" style="max-height: 100vh;">
-        @foreach($products as $product)
-            <div class="bg-white rounded-lg shadow-md overflow-hidden p-4">
-                <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-                
-                <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-                <p class="text-gray-500">Category: {{ $product->category->name }}</p>
-                
-                <!-- Availability Status -->
-                <p class="text-sm font-semibold {{ $product->is_available ? 'text-green-500' : 'text-red-500' }}">
-                    {{ $product->is_available ? 'Available' : 'Not Available' }}
-                </p>
+    <div class="flex h-screen">
+    <!-- Main Content -->
+    <div class="w-2/3 p-6">
+        <!-- Category Filter -->
+        <div class="mb-4">
+            <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
+            <select id="categoryFilter" class="p-2 border rounded-lg">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
+                <option value="unavailable">Unavailable Products</option> <!-- New Option -->
+            </select>
+        </div>
 
-                <!-- Size Selection -->
-                <div class="mt-2">
-                    <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
-                    <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
-                        @if($product->has_multiple_sizes)
-                            @if($product->price_small)
-                                <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
-                            @endif
-                            @if($product->price_medium)
-                                <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
-                            @endif
-                            @if($product->price_large)
-                                <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
-                            @endif
-                        @else
-                            <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
-                        @endif
-                    </select>
-                </div>
+        <!-- Scrollable Product Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto" style="max-height: 100vh;" id="productGrid">
+            @foreach($products as $product)
+                @if($product->is_available) <!-- Only show available products by default -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item" data-category="{{ $product->category_id }}" data-available="true">
+                        <!-- Product Details -->
+                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
+                        <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+                        <p class="text-gray-500">Category: {{ $product->category->name }}</p>
+                        <p class="text-sm font-semibold text-green-500">Available</p>
 
-                <!-- Quantity Adjustment -->
-                <div class="mt-2">
-                    <label class="block text-sm font-medium text-gray-700">Quantity</label>
-                    <div class="flex items-center">
-                        <button class="px-2 py-1 bg-gray-300 rounded-l-lg" onclick="adjustQuantity('{{ $product->id }}', -1)">-</button>
-                        <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="w-16 text-center border-t border-b">
-                        <button class="px-2 py-1 bg-gray-300 rounded-r-lg" onclick="adjustQuantity('{{ $product->id }}', 1)">+</button>
+                        <!-- Size Selection -->
+                        <div class="mt-2">
+                            <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+                            <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
+                                @if($product->has_multiple_sizes)
+                                    @if($product->price_small)
+                                        <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
+                                    @endif
+                                    @if($product->price_medium)
+                                        <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
+                                    @endif
+                                    @if($product->price_large)
+                                        <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
+                                    @endif
+                                @else
+                                    <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- Quantity Adjustment -->
+                        <div class="mt-2">
+                            <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                            <div class="flex items-center">
+                                <button class="px-2 py-1 bg-gray-300 rounded-l-lg" onclick="adjustQuantity('{{ $product->id }}', -1)">-</button>
+                                <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="w-16 text-center border-t border-b">
+                                <button class="px-2 py-1 bg-gray-300 rounded-r-lg" onclick="adjustQuantity('{{ $product->id }}', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Availability Button -->
+                        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit"
+                                class="px-4 py-2 rounded-lg w-full transition-all text-white bg-red-500 hover:bg-red-600">
+                                Mark as Not Available
+                            </button>
+                        </form>
+
+                        <!-- Add to Order Button -->
+                        <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
+                                data-id="{{ $product->id }}" 
+                                data-name="{{ $product->name }}"
+                                data-has-multiple-sizes="{{ $product->has_multiple_sizes }}"
+                                data-price-small="{{ $product->price_small }}"
+                                data-price-medium="{{ $product->price_medium }}"
+                                data-price-large="{{ $product->price_large }}"
+                                data-price="{{ $product->price }}">
+                            Add to Order
+                        </button>
                     </div>
-                </div>
+                @endif
+            @endforeach
 
-                <!-- Form to Toggle Availability -->
-                <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST">
-                    @csrf
-                    <button type="submit"
-                        class="mt-2 px-4 py-2 rounded-lg w-full transition-all text-white 
-                            {{ $product->is_available ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
-                        {{ $product->is_available ? 'Mark as Not Available' : 'Mark as Available' }}
-                    </button>
-                </form>
+            <!-- Hidden Unavailable Products -->
+            @foreach($products as $product)
+                @if(!$product->is_available)
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item hidden" data-category="{{ $product->category_id }}" data-available="false">
+                        <!-- Product Details -->
+                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
+                        <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+                        <p class="text-gray-500">Category: {{ $product->category->name }}</p>
+                        <p class="text-sm font-semibold text-red-500">Not Available</p>
 
-                <!-- Add to Order Button -->
-                <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
-                        data-id="{{ $product->id }}" 
-                        data-name="{{ $product->name }}"
-                        data-has-multiple-sizes="{{ $product->has_multiple_sizes }}"
-                        data-price-small="{{ $product->price_small }}"
-                        data-price-medium="{{ $product->price_medium }}"
-                        data-price-large="{{ $product->price_large }}"
-                        data-price="{{ $product->price }}">
-                    Add to Order
-                </button>
-            </div>
-        @endforeach
+                        <!-- Toggle Availability Button -->
+                        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit"
+                                class="px-4 py-2 rounded-lg w-full transition-all text-white bg-green-500 hover:bg-green-600">
+                                Mark as Available
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            @endforeach
+        </div>
     </div>
-</div>
 
     <!-- Order Summary -->
     <div class="w-1/6 bg-gray-100 p-4">
@@ -87,6 +120,7 @@
         </button>
     </div>
 </div>
+
 
 <!-- Confirmation Modal -->
 <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
@@ -319,6 +353,29 @@
             const receiptModal = document.getElementById("receiptModal");
             receiptModal.classList.add("hidden");
         }
+
+        // Category Filter
+    document.getElementById('categoryFilter').addEventListener('change', function () {
+        const selectedCategory = this.value;
+        const productItems = document.querySelectorAll('.product-item');
+
+        productItems.forEach(item => {
+            const category = item.dataset.category;
+            const isAvailable = item.dataset.available === "true";
+
+            if (selectedCategory === "unavailable") {
+                // Show only unavailable products
+                item.style.display = isAvailable ? 'none' : 'block';
+            } else if (selectedCategory === "") {
+                // Show all available products
+                item.style.display = isAvailable ? 'block' : 'none';
+            } else {
+                // Show products matching the selected category and availability
+                item.style.display = (category === selectedCategory && isAvailable) ? 'block' : 'none';
+            }
+        });
+    });
+
     });
 </script>
 @endsection
