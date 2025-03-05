@@ -24,6 +24,12 @@
         
         <ul class="mt-4 space-y-2">
         <li>
+                <a href="/products" class="block p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-center"
+                    :class="open ? 'text-left' : 'text-center'">
+                    POS
+                </a>
+            </li>
+        <li>
             <a href="{{ route('user.orders') }}" class="block p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-center"
                 :class="open ? 'text-left' : 'text-center'">
                 My Orders
@@ -67,7 +73,7 @@
 
             @if(Session::get('user_role') === 'Admin')
                 <li>
-                    <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-green-500 text-white rounded hover:bg-green-600 text-center"
+                    <a href="{{ route('admin.dashboard') }}" class="block p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-center"
                         :class="open ? 'text-left' : 'text-center'">
                         Admin Dashboard
                     </a>

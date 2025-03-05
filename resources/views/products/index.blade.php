@@ -147,6 +147,7 @@
         <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
         <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
         <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
+        <p class="text-lg">Vat: 12% <span id=""></span></p>
         <hr class="my-4">
         <h3 class="text-lg font-bold">Items:</h3>
         <ul id="receipt-items"></ul>
