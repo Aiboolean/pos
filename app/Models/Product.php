@@ -15,6 +15,9 @@ class Product extends Model
         'price_medium',
         'price_large',
         'price',
+        'small_enabled',
+        'medium_enabled',
+        'large_enabled',
         'is_available',
         'image',
     ];

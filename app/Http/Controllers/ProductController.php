@@ -43,6 +43,9 @@ class ProductController extends Controller
         'price_medium' => 'nullable|numeric', // Allow nullable for medium price
         'price_large' => 'nullable|numeric', // Allow nullable for large price
         'price' => 'nullable|numeric', // Allow nullable for single price
+        'small_enabled' => 'nullable|boolean',
+        'medium_enabled' => 'nullable|boolean',
+        'large_enabled' => 'nullable|boolean',
         'is_available' => 'required|boolean',
         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);
@@ -82,15 +85,18 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'has_multiple_sizes' => 'nullable|boolean',
-            'price_small' => 'nullable|numeric',
-            'price_medium' => 'nullable|numeric',
-            'price_large' => 'nullable|numeric',
-            'price' => 'nullable|numeric',
-            'is_available' => 'required|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        'name' => 'required|string|max:255',
+        'category_id' => 'required|exists:categories,id',
+        'has_multiple_sizes' => 'nullable|boolean',
+        'price_small' => 'nullable|numeric',
+        'price_medium' => 'nullable|numeric',
+        'price_large' => 'nullable|numeric',
+        'price' => 'nullable|numeric',
+        'small_enabled' => 'nullable|boolean',
+        'medium_enabled' => 'nullable|boolean',
+        'large_enabled' => 'nullable|boolean',
+        'is_available' => 'required|boolean',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         // Handle image upload

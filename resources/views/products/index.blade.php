@@ -43,13 +43,13 @@
                             <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
                             <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
                                 @if($product->has_multiple_sizes)
-                                    @if($product->price_small)
+                                    @if($product->price_small && $product->small_enabled)
                                         <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
                                     @endif
-                                    @if($product->price_medium)
+                                    @if($product->price_medium && $product->medium_enabled)
                                         <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
                                     @endif
-                                    @if($product->price_large)
+                                    @if($product->price_large && $product->large_enabled)
                                         <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
                                     @endif
                                 @else
