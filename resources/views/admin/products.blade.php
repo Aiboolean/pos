@@ -1,55 +1,68 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
-    <h2 class="text-2xl font-bold mb-4">Product Management</h2>
-    
-    <div class="flex justify-between items-center mb-4">
-        <a href="{{ route('products.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Add New Product</a>
+<div class="bg-[#f1eadc] min-h-screen flex justify-center px-4 py-10">
+    <div class="max-w-6xl w-full bg-white p-8 rounded-xl shadow-lg">
+        <h2 class="text-3xl font-semibold mb-6 text-gray-700">Product Management</h2>
         
-        <form method="GET" action="{{ route('admin.products') }}" class="flex items-center">
-            <label for="category" class="mr-2">Filter by Category:</label>
-            <select name="category" id="category" class="border p-2 rounded">
-                <option value="">All Categories</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                        {{ $category->name }}
-                    </option>
-                @endforeach
-            </select>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded ml-2">Filter</button>
-        </form>
-    </div>
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
+            <a href="{{ route('products.create') }}" class="bg-blue-500 text-white px-5 py-2 rounded-lg font-medium transition hover:bg-blue-600">
+                Add New Product
+            </a>
+            
+            <form method="GET" action="{{ route('admin.products') }}" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                <label for="category" class="text-sm font-medium text-gray-700">Filter by Category:</label>
+                <select name="category" id="category" class="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="bg-blue-500 text-white px-5 py-2 rounded-lg font-medium transition hover:bg-blue-600">
+                    Filter
+                </button>
+            </form>
+        </div>
 
-    
-    <table class="min-w-full bg-white border border-gray-300">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="p-2 border">Name</th>
-                <th class="p-2 border">Category</th>
-                <th class="p-2 border">Availability</th>
-                <th class="p-2 border">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($products as $product)
-            <tr class="border">
-                <td class="p-2 border">{{ $product->name }}</td>
-                <td class="p-2 border">{{ $product->category->name ?? 'No Category' }}</td>
-                <td class="p-2 border">
-                    {{ $product->is_available ? 'Available' : 'Unavailable' }}
-                </td>
-                <td class="p-2 border flex space-x-2">
-                    <a href="{{ route('products.edit', $product->id) }}" class="bg-blue-500 text-white px-2 py-1 rounded">Edit</a>
-                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
+                <thead class="bg-gray-100">
+                    <tr class="text-left">
+                        <th class="px-4 py-3">Name</th>
+                        <th class="px-4 py-3">Category</th>
+                        <th class="px-4 py-3">Availability</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($products as $product)
+                    <tr class="border-t hover:bg-gray-50 transition">
+                        <td class="px-4 py-3">{{ $product->name }}</td>
+                        <td class="px-4 py-3">{{ $product->category->name ?? 'No Category' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="font-medium {{ $product->is_available ? 'text-green-600' : 'text-red-600' }}">
+                                {{ $product->is_available ? 'Available' : 'Unavailable' }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 flex space-x-2">
+                            <a href="{{ route('products.edit', $product->id) }}" class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
+                                Edit
+                            </a>
+                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 @endsection
