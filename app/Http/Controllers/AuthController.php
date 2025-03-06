@@ -24,6 +24,11 @@ class AuthController extends Controller
     $user = DB::table('users')->where('username', $request->username)->first();
 
     if ($user && Hash::check($request->password, $user->password)) {
+        // Check if the user is active
+        if (!$user->is_active) {
+            return back()->with('error', 'Your account is disabled.');
+        }
+
         // Set session for login
         Session::put('admin_logged_in', true);
         Session::put('user_role', $user->role);
@@ -148,10 +153,15 @@ public function updateEmployee(Request $request, $id)
 
     $request->validate([
         'username' => 'required|unique:users,username,' . $id,
+        'phone' => 'required|unique:users,phone,' . $id,
         'password' => 'nullable|min:4',
     ]);
 
-    $updateData = ['username' => $request->username];
+    $updateData = [
+        'username' => $request->username,
+        'phone' => $request->phone,
+    ];
+
     if ($request->password) {
         $updateData['password'] = Hash::make($request->password);
     }

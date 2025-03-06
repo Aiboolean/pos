@@ -36,7 +36,7 @@
                                 {{ $employee->is_active ? 'Disable' : 'Enable' }}
                             </button>
                         </form>
-                        <button class="btn btn-primary" onclick="showEditForm({{ $employee->id }}, '{{ $employee->username }}')">
+                        <button class="btn btn-primary" onclick="showEditForm({{ $employee->id }}, '{{ $employee->username }}', '{{ $employee->phone }}')">
                             Edit
                         </button>
                     </td>
@@ -46,27 +46,31 @@
     </table>
 
     <!-- Edit Employee Modal -->
-    <div id="editModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
-            <h3>Edit Employee</h3>
-            <form id="editForm" method="POST">
-                @csrf
-                <label for="editUsername">Username:</label>
-                <input type="text" id="editUsername" name="username" required>
-                
-                <label for="editPassword">New Password (optional):</label>
-                <input type="password" id="editPassword" name="password">
+<div id="editModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
+        <h3>Edit Employee</h3>
+        <form id="editForm" method="POST">
+            @csrf
+            <label for="editUsername">Username:</label>
+            <input type="text" id="editUsername" name="username" required>
+            
+            <label for="editPhone">Phone:</label>
+            <input type="text" id="editPhone" name="phone" required>
 
-                <button type="submit" class="btn btn-success">Update</button>
-            </form>
-        </div>
+            <label for="editPassword">New Password (optional):</label>
+            <input type="password" id="editPassword" name="password">
+
+            <button type="submit" class="btn btn-success">Update</button>
+        </form>
     </div>
+</div>
 </div>
 
 <script>
-function showEditForm(id, username) {
+function showEditForm(id, username, phone) {
     document.getElementById('editUsername').value = username;
+    document.getElementById('editPhone').value = phone;
     document.getElementById('editForm').action = `/admin/employees/${id}/update`;
     document.getElementById('editModal').style.display = 'block';
 }
