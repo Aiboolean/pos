@@ -1,31 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex justify-center items-center h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-4">Update Credentials</h2>
+<div class="bg-[#f1eadc] min-h-screen flex justify-center items-center px-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-96">
+        <h2 class="text-3xl font-semibold mb-6 text-gray-700 text-center">Update Credentials</h2>
 
         @if(session('success'))
-            <p class="text-green-500">{{ session('success') }}</p>
+            <p class="bg-green-500 text-white p-3 rounded-lg text-center mb-4">{{ session('success') }}</p>
         @endif
 
-        <form method="POST" action="{{ route('admin.update') }}">
+        <form method="POST" action="{{ route('admin.update') }}" class="space-y-5">
             @csrf
-            <div class="mb-4">
-                <label for="username" class="block font-medium">New Username</label>
-                <input type="text" name="username" required class="w-full p-2 border rounded">
+            <div>
+                <label for="username" class="block text-gray-600 font-medium mb-1">New Username</label>
+                <input type="text" name="username" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
             </div>
 
-            <div class="mb-4">
-                <label for="password" class="block font-medium">New Password</label>
-                <input type="password" name="password" required class="w-full p-2 border rounded">
+            <div>
+                <label for="password" class="block text-gray-600 font-medium mb-1">New Password</label>
+                <input type="password" name="password" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
             </div>
 
             <div class="flex space-x-4">
-                <button type="submit" class="w-1/2 bg-green-500 text-white p-2 rounded hover:bg-green-600">
-                    Update Credentials
+                <button type="submit" class="w-1/2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300">
+                    Update
                 </button>
-                <a href="{{ url()->previous() }}" class="w-1/2 bg-gray-500 text-white p-2 rounded hover:bg-gray-600 text-center">
+                <a href="{{ url()->previous() }}" class="w-1/2 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold text-center transition duration-300">
                     Cancel
                 </a>
             </div>
