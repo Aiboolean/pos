@@ -29,27 +29,37 @@
             <label class="block text-sm font-medium text-gray-700">Has Multiple Sizes:</label>
             <input type="hidden" name="has_multiple_sizes" value="0"> 
             <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="mt-2" onchange="toggleSizeFields()" value="1" {{ $product->has_multiple_sizes ? 'checked' : '' }}>
-
         </div>
 
         <!-- Prices for Sizes (Hidden by Default) -->
         <div id="size-prices" class="{{ $product->has_multiple_sizes ? 'block' : 'hidden' }}">
             <label class="block text-sm font-medium text-gray-700">Prices:</label>
             <div class="space-y-2">
-                <!-- Small -->
+                <!-- Small Size -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Small:</label>
                     <input type="number" step="0.01" name="price_small" id="price_small" value="{{ $product->price_small }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="hidden" name="small_enabled" value="0"> <!-- Hidden field for unchecked state -->
+                    <input type="checkbox" name="small_enabled" id="small_enabled" value="1" {{ $product->small_enabled ? 'checked' : '' }}>
+                    <label for="small_enabled">Enable</label>
                 </div>
-                <!-- Medium -->
+
+                <!-- Medium Size -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Medium:</label>
                     <input type="number" step="0.01" name="price_medium" id="price_medium" value="{{ $product->price_medium }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="hidden" name="medium_enabled" value="0"> <!-- Hidden field for unchecked state -->
+                    <input type="checkbox" name="medium_enabled" id="medium_enabled" value="1" {{ $product->medium_enabled ? 'checked' : '' }}>
+                    <label for="medium_enabled">Enable</label>
                 </div>
-                <!-- Large -->
+
+                <!-- Large Size -->
                 <div class="flex items-center space-x-2">
                     <label class="w-20">Large:</label>
                     <input type="number" step="0.01" name="price_large" id="price_large" value="{{ $product->price_large }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="hidden" name="large_enabled" value="0"> <!-- Hidden field for unchecked state -->
+                    <input type="checkbox" name="large_enabled" id="large_enabled" value="1" {{ $product->large_enabled ? 'checked' : '' }}>
+                    <label for="large_enabled">Enable</label>
                 </div>
             </div>
         </div>
