@@ -11,7 +11,7 @@
                 <thead>
                     <tr class="bg-gray-200">
                         <th class="border p-2">ID</th>
-                        <th class="border p-2">User</th>
+                        <th class="border p-2">Cashier</th>
                         <th class="border p-2">Total Price</th>
                         <th class="border p-2">Amount Received</th>
                         <th class="border p-2">Change</th>

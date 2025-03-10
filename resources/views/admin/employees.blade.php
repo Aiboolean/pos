@@ -1,9 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-[#f1eadc] min-h-screen flex justify-center px-4 py-10">
-    <div class="max-w-6xl w-full bg-white p-8 rounded-xl shadow-lg">
-        <h2 class="text-3xl font-semibold mb-6 text-gray-700">Manage Employees</h2>
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-3xl font-bold mb-6 text-gray-700">Manage Employees</h2>
 
                 <a href="{{ route('admin.employees.create') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4">
                 Add Employees
@@ -77,5 +76,4 @@ function closeModal() {
     document.getElementById('editModal').classList.add('hidden');
 }
 </script>
-
 @endsection
