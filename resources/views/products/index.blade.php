@@ -145,9 +145,9 @@
         <h2 class="text-xl font-bold mb-4">Order Receipt</h2>
         <p class="text-lg">Order ID: <span id="receipt-order-id"></span></p>
         <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
+        <p class="text-lg">VAT (12%): ₱<span id="receipt-vat"></span></p> <!-- Added VAT Display -->
         <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
         <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
-        <p class="text-lg">Vat: 12% <span id=""></span></p>
         <hr class="my-4">
         <h3 class="text-lg font-bold">Items:</h3>
         <ul id="receipt-items"></ul>
@@ -307,12 +307,18 @@
             const receiptModal = document.getElementById("receiptModal");
             const receiptOrderId = document.getElementById("receipt-order-id");
             const receiptTotalPrice = document.getElementById("receipt-total-price");
+            const receiptVat = document.getElementById("receipt-vat"); // VAT Element
             const receiptAmountReceived = document.getElementById("receipt-amount-received");
             const receiptChange = document.getElementById("receipt-change");
             const receiptItems = document.getElementById("receipt-items");
 
+            // Calculate VAT (12%)
+            const totalPrice = parseFloat(order.total_price);
+            const vat = (totalPrice * 0.12).toFixed(2); // 12% VAT
+
             receiptOrderId.innerText = order.id;
-            receiptTotalPrice.innerText = order.total_price;
+            receiptTotalPrice.innerText = totalPrice.toFixed(2);
+            receiptVat.innerText = vat; // Display VAT
             receiptAmountReceived.innerText = order.amount_received || "0.00";
             receiptChange.innerText = order.change || "0.00";
             receiptItems.innerHTML = items.map(item => `
