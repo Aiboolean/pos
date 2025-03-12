@@ -64,7 +64,11 @@ public function adminIndex()
         return redirect('/login')->with('error', 'You must log in first.');
     }
 
-    $orders = Order::with('user', 'items.product')->get();
+    // Fetch orders in descending order (latest first) with pagination
+    $orders = Order::with('user', 'items.product')
+                   ->orderBy('created_at', 'desc')
+                   ->paginate(10); // Adjust the number of items per page as needed
+
     return view('admin.orders.index', compact('orders'));
 }
 
@@ -83,9 +87,12 @@ public function userOrders()
         return redirect('/login')->with('error', 'You must log in first.');
     }
 
-    // Fetch orders for the logged-in user
+    // Fetch orders for the logged-in user in descending order (latest first) with pagination
     $userId = Session::get('user_id');
-    $orders = Order::with('items.product')->where('user_id', $userId)->get();
+    $orders = Order::with('items.product')
+                   ->where('user_id', $userId)
+                   ->orderBy('created_at', 'desc')
+                   ->paginate(10); // Adjust the number of items per page as needed
 
     return view('user.orders.index', compact('orders'));
 }

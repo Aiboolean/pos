@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="bg-[#f1eadc] min-h-screen flex justify-center px-4 py-10">
-    <div class="max-w-6xl w-full bg-white p-8 rounded-xl shadow-lg">
+    <div class="max-w-6xl w-full bg-white p-8 rounded-xl shadow-lg relative">
         <h2 class="text-3xl font-semibold mb-6 text-gray-700">Product Management</h2>
         
         <div class="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
@@ -26,7 +26,8 @@
             </form>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Table Wrapper with More Bottom Padding to Avoid Overlap -->
+        <div class="overflow-x-auto pb-24">
             <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
                 <thead class="bg-gray-100">
                     <tr class="text-left">
@@ -63,6 +64,11 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination (Inside Container, No Overlap, Fixed in Bottom Right) -->
+        <div class="absolute bottom-4 right-4 bg-white p-2 rounded-lg shadow-lg">
+            {{ $products->links() }}
+        </div>
     </div>
 </div>
-@endsection
+@endsection  
