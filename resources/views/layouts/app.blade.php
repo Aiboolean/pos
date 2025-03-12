@@ -98,7 +98,7 @@
                     <a href="/products" class="text-lg font-bold">CupsStreet</a>
                 </div>
                 
-               
+            
             </nav>
             <div class="w-full border-b-4 border-black"></div>
             <main class="p-6 flex-1">

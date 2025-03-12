@@ -344,10 +344,7 @@
             printWindow.print();
         }
 
-        function closeReceiptModal() {
-            const receiptModal = document.getElementById("receiptModal");
-            receiptModal.classList.add("hidden");
-        }
+       
 
         // Category Filter
     document.getElementById('categoryFilter').addEventListener('change', function () {
@@ -372,5 +369,9 @@
     });
 
     });
+    function closeReceiptModal() {
+            const receiptModal = document.getElementById("receiptModal");
+            receiptModal.classList.add("hidden");
+        }
 </script>
 @endsection
