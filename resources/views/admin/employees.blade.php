@@ -20,7 +20,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($employees as $employee)
+                @forelse ($employees as $employee)
                     <tr class="border-t hover:bg-gray-50">
                         <td class="px-4 py-3">{{ $employee->first_name }} {{ $employee->last_name }}</td>
                         <td class="px-4 py-3">{{ $employee->username }}</td>
@@ -43,7 +43,11 @@
                             </button>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-center text-gray-500">NO DATA FOUND</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

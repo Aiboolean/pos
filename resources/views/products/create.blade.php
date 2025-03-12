@@ -11,6 +11,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700">Category:</label>
             <select name="category_id" id="category_id" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="" selected disabled hidden>Select a Category</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                 @endforeach
