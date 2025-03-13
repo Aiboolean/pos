@@ -43,13 +43,13 @@
                             <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
                             <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
                                 @if($product->has_multiple_sizes)
-                                    @if($product->price_small)
+                                    @if($product->price_small && $product->small_enabled)
                                         <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
                                     @endif
-                                    @if($product->price_medium)
+                                    @if($product->price_medium && $product->medium_enabled)
                                         <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
                                     @endif
-                                    @if($product->price_large)
+                                    @if($product->price_large && $product->large_enabled)
                                         <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
                                     @endif
                                 @else
@@ -145,6 +145,7 @@
         <h2 class="text-xl font-bold mb-4">Order Receipt</h2>
         <p class="text-lg">Order ID: <span id="receipt-order-id"></span></p>
         <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
+        <p class="text-lg">VAT (12%): ₱<span id="receipt-vat"></span></p> <!-- Added VAT Display -->
         <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
         <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
         <hr class="my-4">
@@ -306,12 +307,18 @@
             const receiptModal = document.getElementById("receiptModal");
             const receiptOrderId = document.getElementById("receipt-order-id");
             const receiptTotalPrice = document.getElementById("receipt-total-price");
+            const receiptVat = document.getElementById("receipt-vat"); // VAT Element
             const receiptAmountReceived = document.getElementById("receipt-amount-received");
             const receiptChange = document.getElementById("receipt-change");
             const receiptItems = document.getElementById("receipt-items");
 
+            // Calculate VAT (12%)
+            const totalPrice = parseFloat(order.total_price);
+            const vat = (totalPrice * 0.12).toFixed(2); // 12% VAT
+
             receiptOrderId.innerText = order.id;
-            receiptTotalPrice.innerText = order.total_price;
+            receiptTotalPrice.innerText = totalPrice.toFixed(2);
+            receiptVat.innerText = vat; // Display VAT
             receiptAmountReceived.innerText = order.amount_received || "0.00";
             receiptChange.innerText = order.change || "0.00";
             receiptItems.innerHTML = items.map(item => `

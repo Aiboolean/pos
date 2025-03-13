@@ -11,6 +11,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700">Category:</label>
             <select name="category_id" id="category_id" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="" selected disabled hidden>Select a Category</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                 @endforeach
@@ -75,7 +76,7 @@
 
         <!-- Buttons -->
         <div class="flex justify-between mt-4">
-            <a href="{{ route('products.index') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Cancel</a>
+            <a href="{{ route('admin.products') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Cancel</a>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
         </div>
     </form>

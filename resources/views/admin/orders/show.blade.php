@@ -9,7 +9,7 @@
             <h1 class="text-2xl font-bold mb-4">Order Details</h1>
             <div class="mb-4">
                 <p><strong>Order ID:</strong> {{ $order->id }}</p>
-                <p><strong>User:</strong> {{ $order->user->username }}</p>
+                <p><strong>Cashier:</strong> {{ $order->user->username }}</p>
                 <p><strong>Total Price:</strong> {{ $order->total_price }}</p>
                 <p><strong>Amount Received:</strong> {{ $order->amount_received }}</p>
                 <p><strong>Change:</strong> {{ $order->change }}</p>
