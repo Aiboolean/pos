@@ -25,7 +25,7 @@
                         @forelse($orders as $order)
                         <tr class="border-t hover:bg-gray-50 transition">
                             <td class="border p-3">{{ $order->id }}</td>
-                            <td class="border p-3">{{ $order->user->name }}</td>
+                            <td class="border p-3">{{ $order->user->username }}</td>
                             <td class="border p-3 font-medium text-blue-600">
                                 {{ number_format($order->total_price, 2) }}
                             </td>
