@@ -38,7 +38,7 @@
                                 </button>
                             </form>
                             <button class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition"
-                                onclick="showEditForm({{ $employee->id }}, '{{ $employee->username }}', '{{ $employee->phone }}')">
+                                onclick="showEditForm('{{ $employee->id }}', '{{ $employee->username }}', '{{ $employee->phone }}')">
                                 Edit
                             </button>
                         </td>
