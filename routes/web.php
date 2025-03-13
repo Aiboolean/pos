@@ -84,6 +84,8 @@ Route::get('/admin/employees', [AuthController::class, 'manageEmployees'])->name
 Route::post('/admin/employees/{id}/update', [AuthController::class, 'updateEmployee'])->name('admin.employees.update');
 Route::post('/admin/employees/{id}/toggle', [AuthController::class, 'toggleEmployeeStatus'])->name('admin.employees.toggle');
 
+Route::post('/admin/employees/{id}/reset-password', [AuthController::class, 'resetPassword'])->name('admin.employees.resetPassword');
+
 
 // 🔹 Admin Order Management - Requires Login
 Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders');

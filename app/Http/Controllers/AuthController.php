@@ -151,22 +151,17 @@ public function updateEmployee(Request $request, $id)
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
 
+    // Validate the request data
     $request->validate([
         'username' => 'required|unique:users,username,' . $id,
         'phone' => 'required|unique:users,phone,' . $id,
-        'password' => 'nullable|min:4',
     ]);
 
-    $updateData = [
+    // Update the employee's details
+    DB::table('users')->where('id', $id)->update([
         'username' => $request->username,
         'phone' => $request->phone,
-    ];
-
-    if ($request->password) {
-        $updateData['password'] = Hash::make($request->password);
-    }
-
-    DB::table('users')->where('id', $id)->update($updateData);
+    ]);
 
     return redirect()->route('admin.employees')->with('success', 'Employee updated successfully.');
 }
@@ -186,6 +181,28 @@ public function toggleEmployeeStatus($id)
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Employee status updated.');
+}
+public function resetPassword($id)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    // Fetch the employee's details
+    $employee = DB::table('users')->where('id', $id)->first();
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Employee not found.');
+    }
+
+    // Generate the initial password
+    $initialPassword = strtolower($employee->first_name . $employee->last_name);
+
+    // Update the employee's password
+    DB::table('users')->where('id', $id)->update([
+        'password' => Hash::make($initialPassword),
+    ]);
+
+    return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
 }
 
 }

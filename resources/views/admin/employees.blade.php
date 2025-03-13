@@ -58,6 +58,8 @@
     <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
         <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" onclick="closeModal()">&times;</button>
         <h3 class="text-2xl font-semibold mb-4">Edit Employee</h3>
+        
+        <!-- Form for Updating Username and Phone -->
         <form id="editForm" method="POST">
             @csrf
             <div class="mb-4">
@@ -68,12 +70,16 @@
                 <label for="editPhone" class="block font-medium mb-1">Phone:</label>
                 <input type="text" id="editPhone" name="phone" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
             </div>
-            <div class="mb-4">
-                <label for="editPassword" class="block font-medium mb-1">New Password (optional):</label>
-                <input type="password" id="editPassword" name="password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
-            </div>
-            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300">
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300 mb-4">
                 Update
+            </button>
+        </form>
+
+        <!-- Form for Resetting Password -->
+        <form id="resetPasswordForm" method="POST">
+            @csrf
+            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-semibold transition duration-300">
+                Reset Password
             </button>
         </form>
     </div>
@@ -81,12 +87,19 @@
 
 <script>
 function showEditForm(id, username, phone) {
+    // Set values for the edit form
     document.getElementById('editUsername').value = username;
     document.getElementById('editPhone').value = phone;
+
+    // Set the action for the edit form
     document.getElementById('editForm').action = `/admin/employees/${id}/update`;
+
+    // Set the action for the reset password form
+    document.getElementById('resetPasswordForm').action = `/admin/employees/${id}/reset-password`;
+
+    // Show the modal
     document.getElementById('editModal').classList.remove('hidden');
 }
-
 function closeModal() {
     document.getElementById('editModal').classList.add('hidden');
 }
