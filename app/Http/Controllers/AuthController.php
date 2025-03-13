@@ -132,7 +132,7 @@ public function storeEmployee(Request $request)
         'updated_at' => now(),
     ]);
 
-    return redirect()->route('admin.dashboard')->with('success', "Employee added. Username: $username, Password: $password");
+    return redirect()->route('admin.employees')->with('success', "Employee added. Username: $username, Password: $password");
 }
 
 public function manageEmployees()
