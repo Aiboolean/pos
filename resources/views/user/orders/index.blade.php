@@ -32,7 +32,7 @@
                                     <td class="border p-3 font-medium text-red-600">{{ number_format($order->change, 2) }}</td>
                                     <td class="border p-3">
                                         <a href="{{ route('user.orders.show', $order) }}" 
-                                           class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition hover:bg-blue-600 block text-center sm:inline">
+                                        class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition hover:bg-blue-600 block text-center sm:inline">
                                             View
                                         </a>
                                     </td>
