@@ -122,8 +122,8 @@ public function storeEmployee(Request $request)
     $password = strtolower($request->first_name . $request->last_name);
 
     DB::table('users')->insert([
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,
         'username' => $username,
         'password' => Hash::make($password),
@@ -153,12 +153,16 @@ public function updateEmployee(Request $request, $id)
 
     // Validate the request data
     $request->validate([
+        'first_name' => 'required',
+        'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
         'phone' => 'required|unique:users,phone,' . $id,
     ]);
 
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
     ]);
