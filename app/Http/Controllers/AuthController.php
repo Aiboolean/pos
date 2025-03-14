@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Models\OrderItem;
 use App\Models\Order;
+use App\Models\Product;
 
 class AuthController extends Controller
 {
@@ -93,17 +94,24 @@ public function logout()
     // Fetch analytics data
     $totalOrders = Order::count();
     $totalRevenue = Order::sum('total_price');
+    $totalSalesToday = Order::whereDate('created_at', now()->toDateString())
+                            ->sum('total_price');
     $bestSeller = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
                             ->groupBy('product_id')
                             ->orderByDesc('total_quantity')
-                            ->with('product') // Load the product details
+                            ->with('product')
                             ->first();
+
+    // Fetch all products for the dropdown
+    $products = Product::all();
 
     // Pass analytics data to the view
     return view('admin.dashboard', [
         'totalOrders' => $totalOrders,
         'totalRevenue' => $totalRevenue,
+        'totalSalesToday' => $totalSalesToday,
         'bestSeller' => $bestSeller,
+        'products' => $products, // Pass products for the dropdown
     ]);
 }
 
@@ -223,6 +231,53 @@ public function resetPassword($id)
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
+}
+
+// Admin Dashboard chart data //
+//
+//
+//
+
+public function getRevenueData(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+    ]);
+
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // Fetch revenue data grouped by date
+    $revenueData = Order::whereBetween('created_at', [$startDate, $endDate])
+                        ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
+                        ->groupBy('date')
+                        ->orderBy('date')
+                        ->get();
+
+    // Prepare data for the chart
+    $labels = $revenueData->pluck('date');
+    $revenue = $revenueData->pluck('revenue');
+
+    return response()->json([
+        'labels' => $labels,
+        'revenue' => $revenue,
+    ]);
+}
+
+public function getProductSales($productId)
+{
+    // Fetch total revenue and times ordered for the product
+    $totalRevenue = OrderItem::where('product_id', $productId)
+                             ->sum(DB::raw('price * quantity'));
+
+    $timesOrdered = OrderItem::where('product_id', $productId)
+                            ->sum('quantity');
+
+    return response()->json([
+        'totalRevenue' => $totalRevenue,
+        'timesOrdered' => $timesOrdered,
+    ]);
 }
 
 }

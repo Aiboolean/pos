@@ -17,7 +17,7 @@ class ProductController extends Controller
         }
 
         $categories = Category::all();
-        $products = Product::with('category')->paginate(10); // Paginate products, 10 per page
+        $products = Product::with('category')->get(); // Fetch all products without pagination
 
         return view('products.index', compact('products', 'categories'));
     }
