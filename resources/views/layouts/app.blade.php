@@ -21,15 +21,18 @@
                 </button>
                 <ul class="mt-4 space-y-2">
                     @if(Session::get('user_role') === 'Admin')
-                    <li>
-                        <a href="{{ route('admin.dashboard') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('admin.dashboard') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="layout-dashboard" class="mr-2"></i>
-                            <span x-show="open">Admin Dashboard</span>
-                        </a>
-                    </li>
+                        <!-- Admin Dashboard -->
+                        <li>
+                            <a href="{{ route('admin.dashboard') }}" 
+                               class="flex items-center p-2 text-primary-foreground rounded 
+                                      {{ request()->routeIs('admin.dashboard') ? 'bg-green-500' : 'bg-primary' }}">
+                                <i data-lucide="layout-dashboard" class="mr-2"></i>
+                                <span x-show="open">Admin Dashboard</span>
+                            </a>
+                        </li>
                     @endif
+
+                    <!-- POS -->
                     <li>
                         <a href="/products" class="flex items-center p-2 text-primary-foreground rounded text-center 
                                   {{ request()->is('products') ? 'bg-green-500' : 'bg-primary' }}">
@@ -37,6 +40,8 @@
                             <span x-show="open">POS</span>
                         </a>
                     </li>
+
+                    <!-- Transactions -->
                     <li>
                         <a href="{{ route('user.orders') }}" class="flex items-center p-2 text-primary-foreground rounded text-center 
                                   {{ request()->is('orders') ? 'bg-green-500' : 'bg-primary' }}">
@@ -44,63 +49,52 @@
                             <span x-show="open">Transactions</span>
                         </a>
                     </li>
+
                     @if(Session::get('user_role') === 'Admin')
-                    <li>
-                        <a href="{{ route('categories.index') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('categories.index') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="grid" class="mr-2"></i>
-                            <span x-show="open">Manage Categories</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.products') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('admin.products') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="package" class="mr-2"></i>
-                            <span x-show="open">Manage Products</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.employees') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('admin.employees') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="users" class="mr-2"></i>
-                            <span x-show="open">Manage Employees</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('admin.orders') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('admin.orders') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="dollar-sign" class="mr-2"></i>
-                            <span x-show="open">Sales</span>
-                        </a>
-                    </li>
-                    @endif
-                    <li>
-                        <a href="{{ route('admin.credentials') }}" 
-                           class="flex items-center p-2 text-primary-foreground rounded 
-                                  {{ request()->routeIs('admin.credentials') ? 'bg-green-500' : 'bg-primary' }}">
-                            <i data-lucide="key" class="mr-2"></i>
-                            <span x-show="open">Update Credentials</span>
-                        </a>
-                    </li>
-                    @if(!Session::has('admin_logged_in'))
-                        <li>
-                            <a href="{{ route('login') }}" class="flex items-center p-2 bg-blue-500 text-white rounded">
-                                <i data-lucide="log-in" class="mr-2"></i>
-                                <span x-show="open">Login</span>
-                            </a>
-                        </li>
-                    @else
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="flex items-center p-2 bg-primary text-primary-foreground rounded w-full">
-                                <i data-lucide="log-out" class="mr-2"></i>
-                                <span x-show="open">Logout</span>
+                        <!-- Admin Dropdown -->
+                        <li x-data="{ adminOpen: false }">
+                            <button @click="adminOpen = !adminOpen" class="flex items-center p-2 text-primary-foreground rounded w-full 
+                                      {{ request()->routeIs(['categories.index', 'admin.products', 'admin.employees', 'admin.orders']) ? 'bg-green-500' : 'bg-primary' }}">
+                                <i data-lucide="settings" class="mr-2"></i>
+                                <span x-show="open">Admin</span>
+                                <i data-lucide="chevron-down" class="ml-auto" x-show="open"></i>
                             </button>
-                        </form>
+                            <!-- Dropdown Menu -->
+                            <ul x-show="adminOpen" class="pl-4 mt-2 space-y-2">
+                                <li>
+                                    <a href="{{ route('categories.index') }}" 
+                                       class="flex items-center p-2 text-primary-foreground rounded 
+                                              {{ request()->routeIs('categories.index') ? 'bg-green-500' : 'bg-primary' }}">
+                                        <i data-lucide="grid" class="mr-2"></i>
+                                        <span x-show="open">Manage Categories</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.products') }}" 
+                                       class="flex items-center p-2 text-primary-foreground rounded 
+                                              {{ request()->routeIs('admin.products') ? 'bg-green-500' : 'bg-primary' }}">
+                                        <i data-lucide="package" class="mr-2"></i>
+                                        <span x-show="open">Manage Products</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.employees') }}" 
+                                       class="flex items-center p-2 text-primary-foreground rounded 
+                                              {{ request()->routeIs('admin.employees') ? 'bg-green-500' : 'bg-primary' }}">
+                                        <i data-lucide="users" class="mr-2"></i>
+                                        <span x-show="open">Manage Employees</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('admin.orders') }}" 
+                                       class="flex items-center p-2 text-primary-foreground rounded 
+                                              {{ request()->routeIs('admin.orders') ? 'bg-green-500' : 'bg-primary' }}">
+                                        <i data-lucide="dollar-sign" class="mr-2"></i>
+                                        <span x-show="open">Sales</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endif
                 </ul>
             </div>
@@ -108,12 +102,39 @@
         
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
-            <nav class="bg-[#f1eadc] text-black p-4">
-                <div class="container mx-auto flex items-center space-x-2">
-                    <img src="{{ asset('storage/product_images/logocups1.png') }}" alt="Logo" class="h-8 mr-2">
-                    <a href="/products" class="text-lg font-bold">CupsStreet</a>
-                </div>
-            </nav>
+            <!-- Top Navbar -->
+<nav class="bg-[#f1eadc] text-black p-4">
+    <div class="container mx-auto flex items-center justify-between">
+        <!-- Logo and Name -->
+        <div class="flex items-center space-x-2">
+            <img src="{{ asset('storage/product_images/logocups1.png') }}" alt="Logo" class="h-8 mr-2">
+            <a href="/products" class="text-lg font-bold">CupsStreet</a>
+        </div>
+
+        <!-- Update Credentials and Logout Links -->
+        <div class="flex items-center space-x-4">
+            @if(Session::has('admin_logged_in'))
+                <a href="{{ route('admin.credentials') }}" 
+                   class="flex items-center p-2 text-black rounded hover:bg-gray-200 transition duration-300">
+                    <i data-lucide="key" class="mr-2"></i>
+                    <span>Account</span>
+                </a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="flex items-center p-2 text-black rounded hover:bg-gray-200 transition duration-300">
+                        <i data-lucide="log-out" class="mr-2"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="flex items-center p-2 text-black rounded hover:bg-gray-200 transition duration-300">
+                    <i data-lucide="log-in" class="mr-2"></i>
+                    <span>Login</span>
+                </a>
+            @endif
+        </div>
+    </div>
+</nav>
             <div class="w-full border-b-4 border-black"></div>
             <main class="p-6 flex-1">
                 @yield('content')
