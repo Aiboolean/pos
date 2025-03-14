@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use App\Models\OrderItem;
+use App\Models\Order;
 
 class AuthController extends Controller
 {
@@ -83,13 +85,27 @@ public function logout()
     }
 
     public function dashboard()
-    {
-        if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
-            return redirect('/login')->with('error', 'Unauthorized access.');
-        }
-    
-        return view('admin.dashboard');
+{
+    if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
+        return redirect('/login')->with('error', 'Unauthorized access.');
     }
+
+    // Fetch analytics data
+    $totalOrders = Order::count();
+    $totalRevenue = Order::sum('total_price');
+    $bestSeller = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+                            ->groupBy('product_id')
+                            ->orderByDesc('total_quantity')
+                            ->with('product') // Load the product details
+                            ->first();
+
+    // Pass analytics data to the view
+    return view('admin.dashboard', [
+        'totalOrders' => $totalOrders,
+        'totalRevenue' => $totalRevenue,
+        'bestSeller' => $bestSeller,
+    ]);
+}
 
 
 
