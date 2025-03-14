@@ -38,7 +38,7 @@
                                 </button>
                             </form>
                             <button class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition"
-                                onclick="showEditForm('{{ $employee->id }}', '{{ $employee->username }}', '{{ $employee->phone }}')">
+                                onclick="showEditForm('{{ $employee->id }}', '{{ $employee->first_name }}', '{{ $employee->last_name }}', '{{ $employee->username }}', '{{ $employee->phone }}')">
                                 Edit
                             </button>
                         </td>
@@ -59,9 +59,17 @@
         <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" onclick="closeModal()">&times;</button>
         <h3 class="text-2xl font-semibold mb-4">Edit Employee</h3>
         
-        <!-- Form for Updating Username and Phone -->
+        <!-- Form for Updating Username, Phone, First Name, and Last Name -->
         <form id="editForm" method="POST">
             @csrf
+            <div class="mb-4">
+                <label for="editFirstName" class="block font-medium mb-1">First Name:</label>
+                <input type="text" id="editFirstName" name="first_name" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            </div>
+            <div class="mb-4">
+                <label for="editLastName" class="block font-medium mb-1">Last Name:</label>
+                <input type="text" id="editLastName" name="last_name" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+            </div>
             <div class="mb-4">
                 <label for="editUsername" class="block font-medium mb-1">Username:</label>
                 <input type="text" id="editUsername" name="username" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
@@ -86,8 +94,10 @@
 </div>
 
 <script>
-function showEditForm(id, username, phone) {
+function showEditForm(id, firstName, lastName, username, phone) {
     // Set values for the edit form
+    document.getElementById('editFirstName').value = firstName;
+    document.getElementById('editLastName').value = lastName;
     document.getElementById('editUsername').value = username;
     document.getElementById('editPhone').value = phone;
 
@@ -100,6 +110,7 @@ function showEditForm(id, username, phone) {
     // Show the modal
     document.getElementById('editModal').classList.remove('hidden');
 }
+
 function closeModal() {
     document.getElementById('editModal').classList.add('hidden');
 }

@@ -144,8 +144,9 @@
     <div class="bg-white p-6 rounded-lg w-96">
         <h2 class="text-xl font-bold mb-4">Order Receipt</h2>
         <p class="text-lg">Order ID: <span id="receipt-order-id"></span></p>
+        <p class="text-lg">Total (without VAT): ₱<span id="receipt-total-without-vat"></span></p>
+        <p class="text-lg">VAT (12%): ₱<span id="receipt-vat"></span></p>
         <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
-        <p class="text-lg">VAT (12%): ₱<span id="receipt-vat"></span></p> <!-- Added VAT Display -->
         <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
         <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
         <hr class="my-4">
@@ -160,225 +161,296 @@
 
 <script>
     function adjustQuantity(productId, change) {
-        const quantityInput = document.getElementById(`quantity-${productId}`);
-        let quantity = parseInt(quantityInput.value);
-        quantity += change;
-        if (quantity < 1) quantity = 1;
-        quantityInput.value = quantity;
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    let quantity = parseInt(quantityInput.value);
+    quantity += change;
+    if (quantity < 1) quantity = 1;
+    quantityInput.value = quantity;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize state variables
+    let cart = [];
+    const cartItemsContainer = document.getElementById("cart-items");
+    const totalPriceElement = document.getElementById("total-price");
+    
+    // Make cart functions available globally
+    window.addToCart = function(productId, name, size, price, quantity) {
+        let existingProduct = cart.find(item => item.id === productId && item.size === size);
+        if (existingProduct) {
+            existingProduct.quantity += quantity;
+        } else {
+            cart.push({ id: productId, name, size, price, quantity });
+        }
+        updateCartUI();
+    };
+    
+    window.removeFromCart = function(index) {
+        cart.splice(index, 1);
+        updateCartUI();
+    };
+    
+    // Cart UI functions
+    function updateCartUI() {
+        cartItemsContainer.innerHTML = "";
+        let total = 0;
+
+        cart.forEach((item, index) => {
+            total += item.price * item.quantity;
+
+            let cartItem = document.createElement("div");
+            cartItem.classList.add("p-2", "bg-white", "rounded", "shadow");
+
+            cartItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span>${item.name} (${item.size || 'Single'}, ${item.quantity})</span>
+                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+                <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
+            `;
+
+            cartItemsContainer.appendChild(cartItem);
+        });
+
+        totalPriceElement.innerText = total.toFixed(2);
     }
+    
+    // Add event listeners for "Add to Order" buttons
+    document.querySelectorAll(".add-to-order").forEach(button => {
+        button.addEventListener("click", function () {
+            const productId = this.dataset.id;
+            const productName = this.dataset.name;
+            const hasMultipleSizes = this.dataset.hasMultipleSizes === '1';
+            const sizeElement = document.getElementById(`size-${productId}`);
+            const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
 
-    document.addEventListener("DOMContentLoaded", function () {
-        let cart = [];
-        const cartItemsContainer = document.getElementById("cart-items");
-        const totalPriceElement = document.getElementById("total-price");
+            let size = 'single';
+            let price = 0;
 
-        function updateCartUI() {
-            cartItemsContainer.innerHTML = "";
-            let total = 0;
-
-            cart.forEach((item, index) => {
-                total += item.price * item.quantity;
-
-                let cartItem = document.createElement("div");
-                cartItem.classList.add("p-2", "bg-white", "rounded", "shadow");
-
-                cartItem.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span>${item.name} (${item.size || 'Single'}, ${item.quantity})</span>
-                        <span>₱${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                    <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
-                `;
-
-                cartItemsContainer.appendChild(cartItem);
-            });
-
-            totalPriceElement.innerText = total.toFixed(2);
-        }
-
-        function addToCart(productId, name, size, price, quantity) {
-            let existingProduct = cart.find(item => item.id === productId && item.size === size);
-            if (existingProduct) {
-                existingProduct.quantity += quantity;
+            if (hasMultipleSizes && sizeElement) {
+                size = sizeElement.value;
+                price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
             } else {
-                cart.push({ id: productId, name, size, price, quantity });
-            }
-            updateCartUI();
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        }
-
-        window.addToCart = addToCart;
-        window.removeFromCart = removeFromCart;
-
-        document.querySelectorAll(".add-to-order").forEach(button => {
-            button.addEventListener("click", function () {
-                const productId = this.dataset.id;
-                const productName = this.dataset.name;
-                const hasMultipleSizes = this.dataset.hasMultipleSizes === '1';
-                const sizeElement = document.getElementById(`size-${productId}`);
-                const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
-
-                let size = 'single';
-                let price = 0;
-
-                if (hasMultipleSizes && sizeElement) {
-                    size = sizeElement.value;
-                    price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
-                } else {
-                    size = 'single';
-                    price = parseFloat(this.dataset.price);
-                }
-
-                addToCart(productId, productName, size, price, quantity);
-            });
-        });
-
-        document.getElementById("checkout").addEventListener("click", function () {
-            if (cart.length === 0) {
-                alert("Your cart is empty!");
-                return;
+                price = parseFloat(this.dataset.price);
             }
 
-            const modal = document.getElementById("confirmationModal");
-            const modalTotalPrice = document.getElementById("modal-total-price");
-            const changeAmount = document.getElementById("changeAmount");
-            const amountReceivedInput = document.getElementById("amountReceived");
-
-            modalTotalPrice.innerText = totalPriceElement.innerText;
-            amountReceivedInput.value = "";
-            changeAmount.innerText = "0.00";
-            modal.classList.remove("hidden");
-
-            amountReceivedInput.addEventListener("input", function () {
-                const amountReceived = parseFloat(amountReceivedInput.value);
-                const totalPrice = parseFloat(totalPriceElement.innerText);
-
-                if (!isNaN(amountReceived) && amountReceived >= totalPrice) {
-                    const change = amountReceived - totalPrice;
-                    changeAmount.innerText = change.toFixed(2);
-                } else {
-                    changeAmount.innerText = "0.00";
-                }
-            });
-
-            document.getElementById("cancelOrder").addEventListener("click", function () {
-                modal.classList.add("hidden");
-            });
-
-            document.getElementById("confirmOrder").addEventListener("click", function () {
-                const amountReceived = parseFloat(amountReceivedInput.value);
-                const totalPrice = parseFloat(totalPriceElement.innerText);
-
-                if (isNaN(amountReceived) || amountReceived < totalPrice) {
-                    alert("Please enter a valid amount that covers the total price.");
-                    return;
-                }
-
-                modal.classList.add("hidden");
-
-                fetch("{{ route('orders.store') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                    },
-                    body: JSON.stringify({ 
-                        items: cart,
-                        total_price: totalPriceElement.innerText,
-                        amount_received: amountReceived,
-                        change: (amountReceived - totalPrice).toFixed(2)
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    cart = [];
-                    updateCartUI();
-                    openReceiptModal(data.order, data.items);
-                })
-                .catch(error => console.error("Error:", error));
-            });
-        });
-
-        function openReceiptModal(order, items) {
-            const receiptModal = document.getElementById("receiptModal");
-            const receiptOrderId = document.getElementById("receipt-order-id");
-            const receiptTotalPrice = document.getElementById("receipt-total-price");
-            const receiptVat = document.getElementById("receipt-vat"); // VAT Element
-            const receiptAmountReceived = document.getElementById("receipt-amount-received");
-            const receiptChange = document.getElementById("receipt-change");
-            const receiptItems = document.getElementById("receipt-items");
-
-            // Calculate VAT (12%)
-            const totalPrice = parseFloat(order.total_price);
-            const vat = (totalPrice * 0.12).toFixed(2); // 12% VAT
-
-            receiptOrderId.innerText = order.id;
-            receiptTotalPrice.innerText = totalPrice.toFixed(2);
-            receiptVat.innerText = vat; // Display VAT
-            receiptAmountReceived.innerText = order.amount_received || "0.00";
-            receiptChange.innerText = order.change || "0.00";
-            receiptItems.innerHTML = items.map(item => `
-                <li>${item.name} (${item.size || 'Single'}, ${item.quantity}) - ₱${item.price * item.quantity}</li>
-            `).join("");
-
-            receiptModal.classList.remove("hidden");
-        }
-
-        function printReceipt() {
-            const receiptContent = document.getElementById("receiptModal").innerHTML;
-            const printWindow = window.open("", "_blank");
-            printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Order Receipt</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                            h2, h3 { color: #333; }
-                            hr { border: 1px solid #ddd; }
-                            button { display: none; }
-                        </style>
-                    </head>
-                    <body>
-                        ${receiptContent}
-                    </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-       
-
-        // Category Filter
-    document.getElementById('categoryFilter').addEventListener('change', function () {
-        const selectedCategory = this.value;
-        const productItems = document.querySelectorAll('.product-item');
-
-        productItems.forEach(item => {
-            const category = item.dataset.category;
-            const isAvailable = item.dataset.available === "true";
-
-            if (selectedCategory === "unavailable") {
-                // Show only unavailable products
-                item.style.display = isAvailable ? 'none' : 'block';
-            } else if (selectedCategory === "") {
-                // Show all available products
-                item.style.display = isAvailable ? 'block' : 'none';
-            } else {
-                // Show products matching the selected category and availability
-                item.style.display = (category === selectedCategory && isAvailable) ? 'block' : 'none';
-            }
+            addToCart(productId, productName, size, price, quantity);
         });
     });
+    
+    // Set up category filter
+    if (document.getElementById('categoryFilter')) {
+        document.getElementById('categoryFilter').addEventListener('change', function () {
+            const selectedCategory = this.value;
+            const productItems = document.querySelectorAll('.product-item');
 
-    });
-    function closeReceiptModal() {
-            const receiptModal = document.getElementById("receiptModal");
-            receiptModal.classList.add("hidden");
+            productItems.forEach(item => {
+                const category = item.dataset.category;
+                const isAvailable = item.dataset.available === "true";
+
+                if (selectedCategory === "unavailable") {
+                    // Show only unavailable products
+                    item.style.display = isAvailable ? 'none' : 'block';
+                } else if (selectedCategory === "") {
+                    // Show all available products
+                    item.style.display = isAvailable ? 'block' : 'none';
+                } else {
+                    // Show products matching the selected category and availability
+                    item.style.display = (category === selectedCategory && isAvailable) ? 'block' : 'none';
+                }
+            });
+        });
+    }
+    
+    // Set up checkout process
+    document.getElementById("checkout").addEventListener("click", function () {
+        if (cart.length === 0) {
+            alert("Your cart is empty!");
+            return;
         }
+
+        setupConfirmationModal();
+    });
+    
+    function setupConfirmationModal() {
+        const modal = document.getElementById("confirmationModal");
+        const modalTotalPrice = document.getElementById("modal-total-price");
+        const changeAmount = document.getElementById("changeAmount");
+        const amountReceivedInput = document.getElementById("amountReceived");
+
+        // Reset modal values
+        modalTotalPrice.innerText = totalPriceElement.innerText;
+        amountReceivedInput.value = "";
+        changeAmount.innerText = "0.00";
+        modal.classList.remove("hidden");
+
+        // Set up amount received input handler
+        amountReceivedInput.addEventListener("input", function () {
+            const amountReceived = parseFloat(amountReceivedInput.value);
+            const totalPrice = parseFloat(totalPriceElement.innerText);
+
+            if (!isNaN(amountReceived) && amountReceived >= totalPrice) {
+                const change = amountReceived - totalPrice;
+                changeAmount.innerText = change.toFixed(2);
+            } else {
+                changeAmount.innerText = "0.00";
+            }
+        });
+
+        // Set up order cancellation
+        document.getElementById("cancelOrder").addEventListener("click", function () {
+            modal.classList.add("hidden");
+        });
+
+        // Set up order confirmation
+        document.getElementById("confirmOrder").addEventListener("click", processOrder);
+    }
+    
+    function processOrder() {
+        const amountReceivedInput = document.getElementById("amountReceived");
+        const amountReceived = parseFloat(amountReceivedInput.value);
+        const totalPrice = parseFloat(totalPriceElement.innerText);
+
+        if (isNaN(amountReceived) || amountReceived < totalPrice) {
+            alert("Please enter a valid amount that covers the total price.");
+            return;
+        }
+
+        document.getElementById("confirmationModal").classList.add("hidden");
+
+        fetch("{{ route('orders.store') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+            },
+            body: JSON.stringify({ 
+                items: cart,
+                total_price: totalPriceElement.innerText,
+                amount_received: amountReceived,
+                change: (amountReceived - totalPrice).toFixed(2)
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            cart = [];
+            updateCartUI();
+            openReceiptModal(data.order, data.items);
+        })
+        .catch(error => console.error("Error:", error));
+    }
+});
+
+// Receipt handling functions 
+function openReceiptModal(order, items) {
+    const receiptModal = document.getElementById("receiptModal");
+    const receiptOrderId = document.getElementById("receipt-order-id");
+    const receiptTotalWithoutVat = document.getElementById("receipt-total-without-vat");
+    const receiptVat = document.getElementById("receipt-vat");
+    const receiptTotalPrice = document.getElementById("receipt-total-price");
+    const receiptAmountReceived = document.getElementById("receipt-amount-received");
+    const receiptChange = document.getElementById("receipt-change");
+    const receiptItems = document.getElementById("receipt-items");
+
+    // Calculate VAT (12%)
+    const totalPrice = parseFloat(order.total_price);
+    const totalWithoutVat = (totalPrice / 1.12).toFixed(2);
+    const vat = (totalWithoutVat * 0.12).toFixed(2);
+
+    // Update receipt content
+    receiptOrderId.innerText = order.id;
+    receiptTotalWithoutVat.innerText = totalWithoutVat;
+    receiptVat.innerText = vat;
+    receiptTotalPrice.innerText = totalPrice.toFixed(2);
+    receiptAmountReceived.innerText = order.amount_received || "0.00";
+    receiptChange.innerText = order.change || "0.00";
+    receiptItems.innerHTML = items.map(item => `
+        <li>${item.name} (${item.size || 'Single'}, ${item.quantity}) - ₱${item.price * item.quantity}</li>
+    `).join("");
+
+    receiptModal.classList.remove("hidden");
+}
+
+function closeReceiptModal() {
+    document.getElementById("receiptModal").classList.add("hidden");
+}
+
+function printReceipt() {
+    // Get the original receipt modal
+    const receiptModal = document.getElementById("receiptModal");
+
+    // Clone the receipt modal content
+    const receiptContent = receiptModal.cloneNode(true);
+    receiptContent.style.display = "block";
+
+    // Remove buttons
+    const buttons = receiptContent.querySelectorAll("button");
+    buttons.forEach(button => button.remove());
+
+    // Create print container
+    const printContainer = document.createElement("div");
+    printContainer.id = "print-container";
+    printContainer.style.position = "fixed";
+    printContainer.style.top = "0";
+    printContainer.style.left = "0";
+    printContainer.style.width = "100%";
+    printContainer.style.height = "100%";
+    printContainer.style.backgroundColor = "white";
+    printContainer.style.zIndex = "10000";
+    printContainer.style.overflow = "auto";
+    printContainer.style.padding = "20px";
+    printContainer.appendChild(receiptContent);
+
+    // Remove original modal temporarily
+    const parentElement = receiptModal.parentElement;
+    parentElement.removeChild(receiptModal);
+
+    // Add print container
+    document.body.appendChild(printContainer);
+
+    // Add print styles
+    const style = document.createElement("style");
+    style.innerHTML = `
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-container, #print-container * {
+                visibility: visible;
+            }
+            #print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                margin: 0;
+                padding: 10px;
+                font-size: 14px;
+            }
+            #print-container h2 {
+                font-size: 18px;
+                margin: 5px 0;
+            }
+            #print-container ul {
+                margin: 5px 0;
+                padding: 0;
+            }
+            #print-container li {
+                margin: 3px 0;
+            }
+            hr {
+                margin: 5px 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Print and clean up
+    window.print();
+    document.body.removeChild(printContainer);
+    document.head.removeChild(style);
+    parentElement.appendChild(receiptModal);
+}
 </script>
 @endsection

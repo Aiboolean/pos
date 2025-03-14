@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use App\Models\OrderItem;
+use App\Models\Order;
 
 class AuthController extends Controller
 {
@@ -83,13 +85,27 @@ public function logout()
     }
 
     public function dashboard()
-    {
-        if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
-            return redirect('/login')->with('error', 'Unauthorized access.');
-        }
-    
-        return view('admin.dashboard');
+{
+    if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
+        return redirect('/login')->with('error', 'Unauthorized access.');
     }
+
+    // Fetch analytics data
+    $totalOrders = Order::count();
+    $totalRevenue = Order::sum('total_price');
+    $bestSeller = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+                            ->groupBy('product_id')
+                            ->orderByDesc('total_quantity')
+                            ->with('product') // Load the product details
+                            ->first();
+
+    // Pass analytics data to the view
+    return view('admin.dashboard', [
+        'totalOrders' => $totalOrders,
+        'totalRevenue' => $totalRevenue,
+        'bestSeller' => $bestSeller,
+    ]);
+}
 
 
 
@@ -122,8 +138,8 @@ public function storeEmployee(Request $request)
     $password = strtolower($request->first_name . $request->last_name);
 
     DB::table('users')->insert([
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,
         'username' => $username,
         'password' => Hash::make($password),
@@ -132,7 +148,7 @@ public function storeEmployee(Request $request)
         'updated_at' => now(),
     ]);
 
-    return redirect()->route('admin.dashboard')->with('success', "Employee added. Username: $username, Password: $password");
+    return redirect()->route('admin.employees')->with('success', "Employee added. Username: $username, Password: $password");
 }
 
 public function manageEmployees()
@@ -153,12 +169,16 @@ public function updateEmployee(Request $request, $id)
 
     // Validate the request data
     $request->validate([
+        'first_name' => 'required',
+        'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
         'phone' => 'required|unique:users,phone,' . $id,
     ]);
 
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
     ]);
