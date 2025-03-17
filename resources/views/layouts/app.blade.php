@@ -148,9 +148,9 @@
         </div>
     </div>
 
-    <footer class="bg-gray-800 text-white p-4 text-center mt-auto shadow-inner">
+    <!-- <footer class="bg-gray-800 text-white p-4 text-center mt-auto shadow-inner">
         &copy; {{ date('Y') }} Coffee Shop POS
-    </footer>
+    </footer> -->
 
     <script>
         lucide.createIcons();

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\OrderItem;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Category;
 
 class AuthController extends Controller
 {
@@ -101,17 +102,17 @@ public function logout()
                             ->orderByDesc('total_quantity')
                             ->with('product')
                             ->first();
-
-    // Fetch all products for the dropdown
+//Fetch Categories and Products
+    $categories = Category::with('products')->get();
     $products = Product::all();
-
     // Pass analytics data to the view
     return view('admin.dashboard', [
         'totalOrders' => $totalOrders,
         'totalRevenue' => $totalRevenue,
         'totalSalesToday' => $totalSalesToday,
         'bestSeller' => $bestSeller,
-        'products' => $products, // Pass products for the dropdown
+        'categories' => $categories,
+        'products' => $products,
     ]);
 }
 
@@ -265,18 +266,32 @@ public function getRevenueData(Request $request)
     ]);
 }
 
-public function getProductSales($productId)
+public function getCategoryRevenue($categoryId, Request $request)
 {
-    // Fetch total revenue and times ordered for the product
-    $totalRevenue = OrderItem::where('product_id', $productId)
-                             ->sum(DB::raw('price * quantity'));
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+    ]);
 
-    $timesOrdered = OrderItem::where('product_id', $productId)
-                            ->sum('quantity');
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // Fetch revenue data for the selected category and date range
+    $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                            ->where('products.category_id', $categoryId)
+                            ->whereBetween('orders.created_at', [$startDate, $endDate])
+                            ->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
+                            ->groupBy('products.name')
+                            ->get();
+
+    // Prepare data for the chart
+    $labels = $revenueData->pluck('product_name');
+    $revenue = $revenueData->pluck('revenue');
 
     return response()->json([
-        'totalRevenue' => $totalRevenue,
-        'timesOrdered' => $timesOrdered,
+        'labels' => $labels,
+        'revenue' => $revenue,
     ]);
 }
 
