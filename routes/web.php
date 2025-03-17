@@ -102,4 +102,4 @@ Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('
 Route::get('/admin/revenue-data', [AuthController::class, 'getRevenueData']);
 
 
-Route::get('/admin/product-sales/{productId}', [AuthController::class, 'getProductSales']);
+Route::get('/admin/category-revenue/{categoryId}', [AuthController::class, 'getCategoryRevenue']);
