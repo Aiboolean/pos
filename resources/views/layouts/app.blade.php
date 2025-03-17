@@ -11,7 +11,7 @@
 <body class="bg-[#E6DDC6] flex flex-col min-h-screen">
 
     <!-- Navbar -->
-    <nav class="bg-[#f1eadc] text-black p-4 flex items-center justify-between shadow-md">
+    <nav class="bg-[#f1eadc] text-black p-4 flex items-center justify-between shadow-md border-b-2 border-black">
         <div class="flex items-center space-x-2">
         <img src="{{ asset('storage/images/cupstreetlogo.png') }}" alt="Logo" class="h-8">
             <a href="/products" class="text-lg font-bold">CupsStreet</a>

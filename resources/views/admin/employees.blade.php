@@ -54,7 +54,7 @@
 </div>
 
 <!-- Edit Employee Modal -->
-<div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+<div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 ">
     <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
         <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" onclick="closeModal()">&times;</button>
         <h3 class="text-2xl font-semibold mb-4">Edit Employee</h3>

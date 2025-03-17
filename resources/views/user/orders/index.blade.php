@@ -2,14 +2,14 @@
 
 @section('content')
 <!-- Full-screen center layout with background -->
-<div class="flex justify-center items-center min-h-screen bg-[#f1eadc] px-4 sm:px-0">
+<div class="flex justify-center items-center min-h-screen bg-[#e7d7c1] px-4 sm:px-0">
     <!-- Main container with shadow and responsiveness -->
-    <div class="bg-[#f1eadc] p-6 rounded-lg shadow-lg w-full sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2">
-        <div class="container bg-white p-6 rounded-xl shadow-lg relative" style="min-height: 700px; padding-bottom: 60px;">
-            <h1 class="text-2xl font-bold text-gray-700 mb-6">My Orders</h1>
+    <div class="bg-[#e7d7c1] p-6 rounded-lg shadow-xl w-full sm:w-4/5 md:w-3/4 lg:w-2/3 xl:w-1/2">
+        <div class="container bg-[#fdf8f2] p-6 rounded-xl shadow-xl relative" style="min-height: 700px; padding-bottom: 60px;">
+            <h1 class="text-3xl font-bold text-[#5a3825] mb-6 text-center">My Orders</h1>
             <div class="overflow-x-auto">
-                <table class="w-full border border-gray-300 rounded-lg shadow-sm">
-                    <thead class="bg-gray-100 text-gray-700">
+                <table class="w-full border border-[#d3a87c] rounded-lg shadow-md text-[#5a3825]">
+                    <thead class="bg-[#c9a380] text-white">
                         <tr>
                             <th class="border p-3">ID</th>
                             <th class="border p-3">Total Price</th>
@@ -21,18 +21,18 @@
                     <tbody>
                         @if ($orders->isEmpty())
                             <tr>
-                                <td colspan="5" class="border p-3 text-center text-gray-500">No orders found.</td>
+                                <td colspan="5" class="border p-3 text-center text-[#a67c52] italic">No orders found.</td>
                             </tr>
                         @else
                             @foreach($orders as $order)
-                                <tr class="border-t hover:bg-gray-50 transition">
+                                <tr class="border-t hover:bg-[#f4e7da] transition">
                                     <td class="border p-3">{{ $order->id }}</td>
-                                    <td class="border p-3 font-medium text-blue-600">{{ number_format($order->total_price, 2) }}</td>
-                                    <td class="border p-3 font-medium text-green-600">{{ number_format($order->amount_received, 2) }}</td>
-                                    <td class="border p-3 font-medium text-red-600">{{ number_format($order->change, 2) }}</td>
+                                    <td class="border p-3 font-medium text-[#8b5e3b]">₱{{ number_format($order->total_price, 2) }}</td>
+                                    <td class="border p-3 font-medium text-[#6d883e]">₱{{ number_format($order->amount_received, 2) }}</td>
+                                    <td class="border p-3 font-medium text-[#a94442]">₱{{ number_format($order->change, 2) }}</td>
                                     <td class="border p-3">
                                         <a href="{{ route('user.orders.show', $order) }}" 
-                                        class="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition hover:bg-blue-600 block text-center sm:inline">
+                                        class="bg-[#a67c52] text-white px-4 py-2 rounded-lg font-medium transition hover:bg-[#8c5c34] block text-center sm:inline">
                                             View
                                         </a>
                                     </td>
@@ -42,10 +42,10 @@
                     </tbody>
                 </table>
             </div>
-
+            
             <!-- Fixed Pagination Links -->
             @if ($orders->hasPages())
-                <div class="absolute bottom-4 right-4 bg-white p-2 rounded-lg shadow-lg">
+                <div class="absolute bottom-4 right-4 bg-[#fdf8f2] p-2 rounded-lg shadow-lg">
                     {{ $orders->links() }}
                 </div>
             @endif
