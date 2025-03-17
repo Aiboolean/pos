@@ -13,7 +13,7 @@
     <!-- Navbar -->
     <nav class="bg-[#f1eadc] text-black p-4 flex items-center justify-between shadow-md">
         <div class="flex items-center space-x-2">
-            <img src="{{ asset('storage/product_images/logocups1.png') }}" alt="Logo" class="h-8">
+        <img src="{{ asset('storage/images/cupstreetlogo.png') }}" alt="Logo" class="h-8">
             <a href="/products" class="text-lg font-bold">CupsStreet</a>
         </div>
 
@@ -132,9 +132,12 @@
 
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white p-4 text-center mt-auto">
-        &copy; {{ date('Y') }} Coffee Shop POS
+    <footer class="bg-gray-800 text-white p-4 text-center mt-auto w-full">
+        <div class="container mx-auto px-4">
+            <p class="text-sm md:text-base">&copy; {{ date('Y') }} Coffee Shop POS</p>
+        </div>
     </footer>
+
 
     <script>
         lucide.createIcons();

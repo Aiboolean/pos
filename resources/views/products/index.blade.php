@@ -13,109 +13,152 @@
         </button>
     </div>
 
+    
     <!-- Main Content (Now on the Right Side) -->
-    <div class="w-4/6 p-6">
-        <!-- Category Filter -->
-        <div class="mb-4">
-            <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
-            <select id="categoryFilter" class="p-2 border rounded-lg">
-                <option value="">All Categories</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                @endforeach
-                <option value="unavailable">Unavailable Products</option>
-            </select>
-        </div>
+<div class="w-full md:w-4/6 p-6">
+    <!-- Category Filter -->
+    <div class="mb-4">
+        <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
+        <select id="categoryFilter" class="w-full p-2 border rounded-lg">
+            <option value="">All Categories</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+            @endforeach
+            <option value="unavailable">Unavailable Products</option>
+        </select>
+    </div>
 
-        <!-- Scrollable Product Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto" style="max-height: 100vh;" id="productGrid">
-        @foreach($products as $product)
-    @if($product->is_available)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item" data-category="{{ $product->category_id }}" data-available="true">
+    
+    <!-- Scrollable Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 py-4 overflow-y-auto flex-grow" 
+     style="max-height: calc(100vh - 200px);" 
+     id="productGrid">
+
+    @foreach($products as $product)
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-5 product-item border border-gray-200 transition-transform transform hover:scale-105 
+                    {{ $product->is_available ? '' : 'hidden' }}" 
+             data-category="{{ $product->category_id }}" 
+             data-available="{{ $product->is_available ? 'true' : 'false' }}">
+
+            <!-- Product Image -->
+            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
+                 alt="{{ $product->name }}" 
+                 class="w-full h-36 object-cover rounded-lg">
+
             <!-- Product Details -->
-            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-            <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-            <p class="text-gray-500">Category: {{ $product->category->name }}</p>
-            <p class="text-sm font-semibold text-green-500">Available</p>
+            <div class="mt-4 space-y-1.5">
+    <h2 class="text-lg font-semibold text-gray-800">{{ $product->name }}</h2>
+    <p class="text-sm text-gray-600">Category: <span class="font-medium">{{ $product->category->name }}</span></p>
+    <p class="text-sm font-semibold transition 
+              {{ $product->is_available ? 'text-green-600' : 'text-red-500' }}">
+        {{ $product->is_available ? 'Available' : 'Not Available' }}
+    </p>
+</div>
 
-            <!-- Size Selection -->
-            <div class="mt-2">
-                <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
-                <select id="size-{{ $product->id }}" class="w-full p-2 border rounded-lg">
-                    @if($product->has_multiple_sizes)
-                        @if($product->price_small && $product->small_enabled)
-                            <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
-                        @endif
-                        @if($product->price_medium && $product->medium_enabled)
-                            <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
-                        @endif
-                        @if($product->price_large && $product->large_enabled)
-                            <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
-                        @endif
-                    @else
-                        <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
-                    @endif
-                </select>
-            </div>
-
-            <!-- Quantity Adjustment -->
-            <div class="mt-2">
-                <label class="block text-sm font-medium text-gray-700">Quantity</label>
-                <div class="flex items-center">
-                    <button class="px-2 py-1 bg-gray-300 rounded-l-lg" onclick="adjustQuantity('{{ $product->id }}', -1)">-</button>
-                    <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="w-16 text-center border-t border-b">
-                    <button class="px-2 py-1 bg-gray-300 rounded-r-lg" onclick="adjustQuantity('{{ $product->id }}', 1)">+</button>
-                </div>
-            </div>
-
-            <!-- Toggle Availability Checkbox -->
-            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
-                @csrf
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
-                    <span>Available</span>
-                </label>
-            </form>
-
-            <!-- Add to Order Button -->
-            <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
-                    data-id="{{ $product->id }}" 
-                    data-name="{{ $product->name }}"
-                    data-has-multiple-sizes="{{ $product->has_multiple_sizes }}"
-                    data-price-small="{{ $product->price_small }}"
-                    data-price-medium="{{ $product->price_medium }}"
-                    data-price-large="{{ $product->price_large }}"
-                    data-price="{{ $product->price }}">
-                Add to Order
-            </button>
-        </div>
-    @endif
-@endforeach
-
-<!-- Unavailable Products -->
-@foreach($products as $product)
-    @if(!$product->is_available)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item hidden" data-category="{{ $product->category_id }}" data-available="false">
-            <!-- Product Details -->
-            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-            <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-            <p class="text-gray-500">Category: {{ $product->category->name }}</p>
-            <p class="text-sm font-semibold text-red-500">Not Available</p>
-
-            <!-- Toggle Availability Checkbox -->
-            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
-                @csrf
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
-                    <span>Available</span>
-                </label>
-            </form>
-        </div>
-    @endif
-@endforeach
+            <!-- Size Selection (For Available Products) -->
+            @if($product->is_available)
+            <div class="mt-6">
+    <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+    <div class="relative">
+        <select id="size-{{ $product->id }}" 
+                class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition appearance-none">
+            @if($product->has_multiple_sizes)
+                @if($product->price_small && $product->small_enabled)
+                    <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
+                @endif
+                @if($product->price_medium && $product->medium_enabled)
+                    <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
+                @endif
+                @if($product->price_large && $product->large_enabled)
+                    <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
+                @endif
+            @else
+                <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
+            @endif
+        </select>
+        <!-- Custom dropdown icon -->
+        <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
         </div>
     </div>
 </div>
+
+
+                <!-- Quantity Adjustment -->
+                <div class="mt-4">
+    <label class="block text-sm font-medium text-gray-700">Quantity</label>
+    <div class="flex items-center space-x-2">
+        <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                      hover:bg-gray-200 transition" 
+                onclick="adjustQuantity('{{ $product->id }}', -1)">
+            –
+        </button>
+        <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" 
+               class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
+        <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                      hover:bg-gray-200 transition" 
+                onclick="adjustQuantity('{{ $product->id }}', 1)">
+            +
+        </button>
+    </div>
+</div>
+
+            @endif
+
+            <!-- Toggle Availability Checkbox -->
+            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-4">
+                @csrf
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="is_available" onchange="this.form.submit()" 
+                           {{ $product->is_available ? 'checked' : '' }} class="accent-blue-500">
+                    <span>Available</span>
+                </label>
+            </form>
+
+            <!-- Add to Order Button (For Available Products) -->
+            @if($product->is_available)
+                <button class="mt-4 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full transition shadow-md hover:shadow-lg add-to-order" 
+                        data-id="{{ $product->id }}" 
+                        data-name="{{ $product->name }}" 
+                        data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
+                        data-price-small="{{ $product->price_small }}" 
+                        data-price-medium="{{ $product->price_medium }}" 
+                        data-price-large="{{ $product->price_large }}" 
+                        data-price="{{ $product->price }}">
+                    Add to Order
+                </button>
+            @endif
+
+        </div>
+    @endforeach
+</div>
+
+        <!-- Unavailable Products -->
+        @foreach($products as $product)
+            @if(!$product->is_available)
+                <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item hidden" data-category="{{ $product->category_id }}" data-available="false">
+                    <!-- Product Details -->
+                    <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
+                    <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+                    <p class="text-gray-500">Category: {{ $product->category->name }}</p>
+                    <p class="text-sm font-semibold text-red-500">Not Available</p>
+
+                    <!-- Toggle Availability Checkbox -->
+                    <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
+                        @csrf
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
+                            <span>Available</span>
+                        </label>
+                    </form>
+                </div>
+            @endif
+        @endforeach
+    </div>
+</div>
+
 
 <!-- Confirmation Modal -->
 <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
