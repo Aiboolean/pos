@@ -6,37 +6,50 @@
     
 
     <!-- Analytics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-4 sm:mt-6">
         <!-- Total Orders -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-700">Total Orders</h3>
-            <p class="text-2xl font-bold text-blue-500">{{ $totalOrders }}</p>
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg flex items-center">
+            <i data-lucide="shopping-bag" class="w-6 sm:w-8 h-6 sm:h-8 text-blue-500 mr-3 sm:mr-4"></i>
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-700">Total Orders</h3>
+                <p class="text-xl sm:text-2xl font-bold text-blue-500">{{ $totalOrders }}</p>
+            </div>
         </div>
 
         <!-- Total Revenue -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-700">Total Revenue</h3>
-            <p class="text-2xl font-bold text-green-500">₱{{ number_format($totalRevenue, 2) }}</p>
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg flex items-center">
+            <i data-lucide="dollar-sign" class="w-6 sm:w-8 h-6 sm:h-8 text-green-500 mr-3 sm:mr-4"></i>
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-700">Total Revenue</h3>
+                <p class="text-xl sm:text-2xl font-bold text-green-500">₱{{ number_format($totalRevenue, 2) }}</p>
+            </div>
         </div>
 
         <!-- Total Sales Today -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-700">Total Sales Today</h3>
-            <p class="text-2xl font-bold text-purple-500">₱{{ number_format($totalSalesToday, 2) }}</p>
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg flex items-center">
+            <i data-lucide="activity" class="w-6 sm:w-8 h-6 sm:h-8 text-purple-500 mr-3 sm:mr-4"></i>
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-700">Total Sales Today</h3>
+                <p class="text-xl sm:text-2xl font-bold text-purple-500">₱{{ number_format($totalSalesToday, 2) }}</p>
+            </div>
         </div>
 
         <!-- Best Seller -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-700">Best Seller</h3>
-            @if ($bestSeller)
-                <p class="text-xl font-bold text-purple-500">
-                    {{ $bestSeller->product->name }} ({{ $bestSeller->total_quantity }} sold)
-                </p>
-            @else
-                <p class="text-xl font-bold text-purple-500">No sales yet</p>
-            @endif
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg flex items-center">
+            <i data-lucide="star" class="w-6 sm:w-8 h-6 sm:h-8 text-yellow-500 mr-3 sm:mr-4"></i>
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-700">Best Seller</h3>
+                @if ($bestSeller)
+                    <p class="text-lg sm:text-xl font-bold text-purple-500">
+                        {{ $bestSeller->product->name }} ({{ $bestSeller->total_quantity }} sold)
+                    </p>
+                @else
+                    <p class="text-lg sm:text-xl font-bold text-purple-500">No sales yet</p>
+                @endif
+            </div>
         </div>
     </div>
+
 
     <!-- Charts Section - Side by Side -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
@@ -283,5 +296,7 @@
             fetchCategoryRevenueData(categoryId, startDate, endDate);
         }
     });
+
+    lucide.createIcons();
 </script>
 @endsection
