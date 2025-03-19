@@ -261,7 +261,39 @@
     if (quantity < 1) quantity = 1;
     quantityInput.value = quantity;
 }
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    let quantity = parseInt(quantityInput.value);
+    quantity += change;
+    if (quantity < 1) quantity = 1;
+    quantityInput.value = quantity;
+}
 
+document.addEventListener("DOMContentLoaded", function () {
+    // Initialize state variables
+    let cart = [];
+    const cartItemsContainer = document.getElementById("cart-items");
+    const totalPriceElement = document.getElementById("total-price");
+    
+    // Make cart functions available globally
+    window.addToCart = function(productId, name, size, price, quantity) {
+        let existingProduct = cart.find(item => item.id === productId && item.size === size);
+        if (existingProduct) {
+            existingProduct.quantity += quantity;
+        } else {
+            cart.push({ id: productId, name, size, price, quantity });
+        }
+        updateCartUI();
+    };
+    
+    window.removeFromCart = function(index) {
+        cart.splice(index, 1);
+        updateCartUI();
+    };
+    
+    // Cart UI functions
+    function updateCartUI() {
+        cartItemsContainer.innerHTML = "";
+        let total = 0;
 document.addEventListener("DOMContentLoaded", function () {
     // Initialize state variables
     let cart = [];

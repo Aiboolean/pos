@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -66,8 +67,8 @@ public function adminIndex()
 
     // Fetch orders in descending order (latest first) with pagination
     $orders = Order::with('user', 'items.product')
-                   ->orderBy('created_at', 'desc')
-                   ->paginate(10); // Adjust the number of items per page as needed
+                ->orderBy('created_at', 'desc')
+                ->paginate(10); // Adjust the number of items per page as needed
 
     return view('admin.orders.index', compact('orders'));
 }
@@ -90,9 +91,9 @@ public function userOrders()
     // Fetch orders for the logged-in user in descending order (latest first) with pagination
     $userId = Session::get('user_id');
     $orders = Order::with('items.product')
-                   ->where('user_id', $userId)
-                   ->orderBy('created_at', 'desc')
-                   ->paginate(10); // Adjust the number of items per page as needed
+                ->where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10); // Adjust the number of items per page as needed
 
     return view('user.orders.index', compact('orders'));
 }

@@ -95,3 +95,11 @@ Route::get('/admin/orders/{order}', [OrderController::class, 'adminShow'])->name
 Route::get('/orders', [OrderController::class, 'userOrders'])->name('user.orders');
 
 Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('user.orders.show');
+
+
+// API endpoint for chart
+
+Route::get('/admin/revenue-data', [AuthController::class, 'getRevenueData']);
+
+
+Route::get('/admin/category-revenue/{categoryId}', [AuthController::class, 'getCategoryRevenue']);

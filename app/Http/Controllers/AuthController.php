@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use App\Models\OrderItem;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Category;
 
 class AuthController extends Controller
 {
@@ -83,13 +87,34 @@ public function logout()
     }
 
     public function dashboard()
-    {
-        if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
-            return redirect('/login')->with('error', 'Unauthorized access.');
-        }
-    
-        return view('admin.dashboard');
+{
+    if (!Session::has('user_id') || Session::get('user_role') !== 'Admin') {
+        return redirect('/login')->with('error', 'Unauthorized access.');
     }
+
+    // Fetch analytics data
+    $totalOrders = Order::count();
+    $totalRevenue = Order::sum('total_price');
+    $totalSalesToday = Order::whereDate('created_at', now()->toDateString())
+                            ->sum('total_price');
+    $bestSeller = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+                            ->groupBy('product_id')
+                            ->orderByDesc('total_quantity')
+                            ->with('product')
+                            ->first();
+//Fetch Categories and Products
+    $categories = Category::with('products')->get();
+    $products = Product::all();
+    // Pass analytics data to the view
+    return view('admin.dashboard', [
+        'totalOrders' => $totalOrders,
+        'totalRevenue' => $totalRevenue,
+        'totalSalesToday' => $totalSalesToday,
+        'bestSeller' => $bestSeller,
+        'categories' => $categories,
+        'products' => $products,
+    ]);
+}
 
 
 
@@ -122,8 +147,8 @@ public function storeEmployee(Request $request)
     $password = strtolower($request->first_name . $request->last_name);
 
     DB::table('users')->insert([
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,
         'username' => $username,
         'password' => Hash::make($password),
@@ -132,7 +157,7 @@ public function storeEmployee(Request $request)
         'updated_at' => now(),
     ]);
 
-    return redirect()->route('admin.dashboard')->with('success', "Employee added. Username: $username, Password: $password");
+    return redirect()->route('admin.employees')->with('success', "Employee added. Username: $username, Password: $password");
 }
 
 public function manageEmployees()
@@ -153,12 +178,16 @@ public function updateEmployee(Request $request, $id)
 
     // Validate the request data
     $request->validate([
+        'first_name' => 'required',
+        'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
         'phone' => 'required|unique:users,phone,' . $id,
     ]);
 
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
+        'first_name' => strtoupper($request->first_name),
+        'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
     ]);
@@ -203,6 +232,67 @@ public function resetPassword($id)
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
+}
+
+// Admin Dashboard chart data //
+//
+//
+//
+
+public function getRevenueData(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+    ]);
+
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // Fetch revenue data grouped by date
+    $revenueData = Order::whereBetween('created_at', [$startDate, $endDate])
+                        ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
+                        ->groupBy('date')
+                        ->orderBy('date')
+                        ->get();
+
+    // Prepare data for the chart
+    $labels = $revenueData->pluck('date');
+    $revenue = $revenueData->pluck('revenue');
+
+    return response()->json([
+        'labels' => $labels,
+        'revenue' => $revenue,
+    ]);
+}
+
+public function getCategoryRevenue($categoryId, Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+    ]);
+
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // Fetch revenue data for the selected category and date range
+    $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                            ->where('products.category_id', $categoryId)
+                            ->whereBetween('orders.created_at', [$startDate, $endDate])
+                            ->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
+                            ->groupBy('products.name')
+                            ->get();
+
+    // Prepare data for the chart
+    $labels = $revenueData->pluck('product_name');
+    $revenue = $revenueData->pluck('revenue');
+
+    return response()->json([
+        'labels' => $labels,
+        'revenue' => $revenue,
+    ]);
 }
 
 }
