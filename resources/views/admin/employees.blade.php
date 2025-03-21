@@ -73,7 +73,7 @@
 
 
 
-<!-- Edit Employee Modal -->
+<!-- Edit Employee Modal (Initially Hidden) -->
 <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
     <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
         <button class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" onclick="closeModal()">&times;</button>
@@ -112,6 +112,30 @@
         </form>
     </div>
 </div>
+
+<script>
+function showEditForm(id, firstName, lastName, username, phone) {
+    // Set values for the edit form
+    document.getElementById('editFirstName').value = firstName;
+    document.getElementById('editLastName').value = lastName;
+    document.getElementById('editUsername').value = username;
+    document.getElementById('editPhone').value = phone;
+
+    // Set the action for the edit form
+    document.getElementById('editForm').action = `/admin/employees/${id}/update`;
+
+    // Set the action for the reset password form
+    document.getElementById('resetPasswordForm').action = `/admin/employees/${id}/reset-password`;
+
+    // Show the modal by removing the 'hidden' class
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    // Hide the modal by adding the 'hidden' class
+    document.getElementById('editModal').classList.add('hidden');
+}
+</script>
 
 <script>
 function showEditForm(id, firstName, lastName, username, phone) {
