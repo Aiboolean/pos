@@ -17,8 +17,7 @@ class ProductController extends Controller
         }
 
         $categories = Category::all();
-        $products = Product::with('category')->paginate(12); // Pagination applied
-
+        $products = Product::with('category')->get(); 
 
         return view('products.index', compact('products', 'categories'));
     }
