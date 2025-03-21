@@ -166,7 +166,7 @@ public function manageEmployees()
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
 
-    $employees = DB::table('users')->where('role', 'Employee')->get();
+    $employees = DB::table('users')->where('role', 'Employee')->paginate(10); // Added pagination
     return view('admin.employees', compact('employees'));
 }
 

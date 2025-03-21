@@ -9,9 +9,22 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        /* Smooth transitions for sidebar and content */
+        .sidebar {
+            transition: width 0.3s ease-in-out;
+        }
+        .sidebar-content {
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        [x-cloak] { display: none !important; }
+    </style>
     <style>
         /* Smooth transitions for sidebar and content */
         .sidebar {

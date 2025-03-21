@@ -113,15 +113,14 @@
 
             @endif
 
-            <!-- Toggle Availability Checkbox -->
-            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-4">
-                @csrf
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" name="is_available" onchange="this.form.submit()" 
-                           {{ $product->is_available ? 'checked' : '' }} class="accent-blue-500">
-                    <span>Available</span>
-                </label>
-            </form>
+                            <!-- Toggle Availability Checkbox -->
+                            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
+                                @csrf
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
+                                    <span>Available</span>
+                                </label>
+                            </form>
 
             <!-- Add to Order Button (For Available Products) -->
             @if($product->is_available)
@@ -140,7 +139,30 @@
         </div>
     @endforeach
 </div>
+                            <!-- Add to Order Button -->
+                            <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full add-to-order"
+                                    data-id="{{ $product->id }}" 
+                                    data-name="{{ $product->name }}"
+                                    data-has-multiple-sizes="{{ $product->has_multiple_sizes }}"
+                                    data-price-small="{{ $product->price_small }}"
+                                    data-price-medium="{{ $product->price_medium }}"
+                                    data-price-large="{{ $product->price_large }}"
+                                    data-price="{{ $product->price }}">
+                                Add to Order
+                            </button>
+                        </div>
+                    @endif
+                @endforeach
 
+                <!-- Unavailable Products -->
+                @foreach($products as $product)
+                    @if(!$product->is_available)
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item hidden" data-category="{{ $product->category_id }}" data-available="false">
+                            <!-- Product Details -->
+                            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
+                            <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
+                            <p class="text-gray-500">Category: {{ $product->category->name }}</p>
+                            <p class="text-sm font-semibold text-red-500">Not Available</p>
         <!-- Unavailable Products -->
         @foreach($products as $product)
             @if(!$product->is_available)
@@ -151,6 +173,20 @@
                     <p class="text-gray-500">Category: {{ $product->category->name }}</p>
                     <p class="text-sm font-semibold text-red-500">Not Available</p>
 
+                            <!-- Toggle Availability Checkbox -->
+                            <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
+                                @csrf
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
+                                    <span>Available</span>
+                                </label>
+                            </form>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    </div>
                     <!-- Toggle Availability Checkbox -->
                     <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
                         @csrf
@@ -207,53 +243,58 @@
 </div>
 
 
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="cancelOrder" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Cancel</button>
+                <button id="confirmOrder" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Confirm</button>
+            </div>
+        </div>
+    </div>
 
 <!-- Receipt Modal -->
 <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-6 rounded-lg w-80 shadow-xl transform transition-all scale-95 border border-gray-300">
-        <!-- Receipt Header -->
-        <div class="text-center border-b pb-3">
-            <h2 class="text-lg font-bold text-gray-800 tracking-wide">Order Receipt</h2>
-            <p class="text-sm text-gray-600">Thank you for your purchase!</p>
-        </div>
-
-        <!-- Order Details -->
-        <div class="mt-4 text-sm text-gray-700 space-y-1">
-            <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
-            <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
-            <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
-            <hr class="border-gray-300 my-2">
-            <p class="flex justify-between text-lg font-semibold"><span>Total:</span> <span class="text-gray-900">₱<span id="receipt-total-price"></span></span></p>
-            <p class="flex justify-between"><span>Amount Received:</span> <span>₱<span id="receipt-amount-received"></span></span></p>
-            <p class="flex justify-between text-red-500"><span>Change:</span> <span>₱<span id="receipt-change"></span></span></p>
-        </div>
-
-        <hr class="my-3 border-gray-300">
-
-        <!-- Item List -->
-        <h3 class="text-md font-bold text-gray-800">Items:</h3>
-        <ul id="receipt-items" class="text-sm text-gray-700 list-disc list-inside space-y-1"></ul>
-
-        <!-- Footer Message -->
-        <div class="text-center text-xs text-gray-500 mt-4 italic border-t pt-2">
-            <p>“This receipt serves as an official record of your transaction.”</p>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="mt-4 flex justify-end space-x-3">
-            <button onclick="printReceipt()" 
-                    class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
-                Print Receipt
-            </button>
-            <button onclick="closeReceiptModal()" 
-                    class="px-4 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition">
-                Close
-            </button>
+    <div class="bg-white p-6 rounded-lg w-96">
+        <h2 class="text-xl font-bold mb-4">Order Receipt</h2>
+        <p class="text-lg">Order ID: <span id="receipt-order-id"></span></p>
+        <p class="text-lg">Total (without VAT): ₱<span id="receipt-total-without-vat"></span></p>
+        <p class="text-lg">VAT (12%): ₱<span id="receipt-vat"></span></p>
+        <p class="text-lg">Total: ₱<span id="receipt-total-price"></span></p>
+        <p class="text-lg">Amount Received: ₱<span id="receipt-amount-received"></span></p>
+        <p class="text-lg">Change: ₱<span id="receipt-change"></span></p>
+        <hr class="my-4">
+        <h3 class="text-lg font-bold">Items:</h3>
+        <ul id="receipt-items"></ul>
+        <div class="mt-6 flex justify-end space-x-4">
+            <button onclick="printReceipt()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Print Receipt</button>
+            <button onclick="closeReceiptModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
         </div>
     </div>
 </div>
 
+
+
 <script>
+
+document.getElementById('categoryFilter').addEventListener('change', function() {
+    let selectedCategory = this.value;
+    let products = document.querySelectorAll('.product-item');
+    let visibleProducts = 0;
+
+    products.forEach(product => {
+        if (selectedCategory === "" || product.dataset.category === selectedCategory || (selectedCategory === "unavailable" && product.dataset.available === "false")) {
+            product.classList.remove('hidden');
+            visibleProducts++;
+        } else {
+            product.classList.add('hidden');
+        }
+    });
+
+    // Hide pagination if there are 12 or fewer products in the selected category
+    let paginationContainer = document.getElementById('paginationContainer');
+    if (paginationContainer) {
+        paginationContainer.style.display = visibleProducts > 12 ? 'block' : 'none';
+    }
+});
+
     function adjustQuantity(productId, change) {
     const quantityInput = document.getElementById(`quantity-${productId}`);
     let quantity = parseInt(quantityInput.value);

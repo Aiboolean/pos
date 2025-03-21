@@ -9,49 +9,69 @@
     </a>
 
     <div class="overflow-x-auto mt-6">
-        <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
-            <thead class="bg-gray-100">
-                <tr class="text-left">
-                    <th class="px-4 py-2">Name</th>
-                    <th class="px-4 py-2">Username</th>
-                    <th class="px-4 py-2">Phone</th>
-                    <th class="px-4 py-2">Status</th>
-                    <th class="px-4 py-2">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($employees as $employee)
-                    <tr class="border-t hover:bg-gray-50">
-                        <td class="px-4 py-3">{{ $employee->first_name }} {{ $employee->last_name }}</td>
-                        <td class="px-4 py-3">{{ $employee->username }}</td>
-                        <td class="px-4 py-3">{{ $employee->phone }}</td>
-                        <td class="px-4 py-3">
-                            <span class="font-medium {{ $employee->is_active ? 'text-green-600' : 'text-red-600' }}">
-                                {{ $employee->is_active ? 'Active' : 'Disabled' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 flex space-x-2">
-                            <form action="{{ route('admin.employees.toggle', $employee->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition">
-                                    {{ $employee->is_active ? 'Disable' : 'Enable' }}
-                                </button>
-                            </form>
-                            <button class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition"
-                                onclick="showEditForm('{{ $employee->id }}', '{{ $employee->first_name }}', '{{ $employee->last_name }}', '{{ $employee->username }}', '{{ $employee->phone }}')">
-                                Edit
-                            </button>
-                        </td>
+        <div style="height: 630px; display: flex; flex-direction: column;"> <!-- Fixed height container -->
+            <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm" style="table-layout: fixed;">
+                <thead class="bg-gray-100">
+                    <tr class="text-left">
+                        <th class="px-4 py-2 w-1/5">Name</th>
+                        <th class="px-4 py-2 w-1/5">Username</th>
+                        <th class="px-4 py-2 w-1/5">Phone</th>
+                        <th class="px-4 py-2 w-1/5">Status</th>
+                        <th class="px-4 py-2 w-1/5">Actions</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-4 py-3 text-center text-gray-500">NO DATA FOUND</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+            </table>
+            <div style="flex: 1;"> <!-- Fixed body without scroll -->
+                <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm" style="table-layout: fixed;">
+                    <tbody>
+                        <!-- Display actual records -->
+                        @forelse ($employees as $employee)
+                            <tr class="border-t hover:bg-gray-50">
+                                <td class="px-4 py-3">{{ $employee->first_name }} {{ $employee->last_name }}</td>
+                                <td class="px-4 py-3">{{ $employee->username }}</td>
+                                <td class="px-4 py-3">{{ $employee->phone }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="font-medium {{ $employee->is_active ? 'text-green-600' : 'text-red-600' }}">
+                                        {{ $employee->is_active ? 'Active' : 'Disabled' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 flex space-x-2">
+                                    <form action="{{ route('admin.employees.toggle', $employee->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition">
+                                            {{ $employee->is_active ? 'Disable' : 'Enable' }}
+                                        </button>
+                                    </form>
+                                    <button class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition"
+                                        onclick="showEditForm('{{ $employee->id }}', '{{ $employee->first_name }}', '{{ $employee->last_name }}', '{{ $employee->username }}', '{{ $employee->phone }}')">
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <!-- Display "No Data Found" message -->
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-center text-gray-500">NO DATA FOUND</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
+    <!-- Pagination Links -->
+    <tr>
+        <td colspan="5" class="px-4 py-3 text-right border-t border-gray-300">
+            <div class="ml-auto bg-white p-2 rounded-lg shadow-lg w-fit">
+                {{ $employees->links() }}
+            </div>
+        </td>
+    </tr>
+
 </div>
+
+
 
 <!-- Edit Employee Modal (Initially Hidden) -->
 <div id="editModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
