@@ -294,5 +294,33 @@ public function getCategoryRevenue($categoryId, Request $request)
         'revenue' => $revenue,
     ]);
 }
+public function getAllCategoriesRevenue(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date',
+    ]);
+
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    // Fetch revenue data for all categories
+    $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                            ->join('categories', 'products.category_id', '=', 'categories.id')
+                            ->whereBetween('orders.created_at', [$startDate, $endDate])
+                            ->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
+                            ->groupBy('categories.name')
+                            ->get();
+
+    // Prepare data for the chart
+    $labels = $revenueData->pluck('category_name');
+    $revenue = $revenueData->pluck('revenue');
+
+    return response()->json([
+        'labels' => $labels,
+        'revenue' => $revenue,
+    ]);
+}
 
 }

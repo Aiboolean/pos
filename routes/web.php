@@ -103,3 +103,5 @@ Route::get('/admin/revenue-data', [AuthController::class, 'getRevenueData']);
 
 
 Route::get('/admin/category-revenue/{categoryId}', [AuthController::class, 'getCategoryRevenue']);
+
+Route::get('/admin/all-categories-revenue', [AuthController::class, 'getAllCategoriesRevenue']);
