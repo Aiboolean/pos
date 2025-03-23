@@ -34,7 +34,7 @@
         <!-- Search Product -->
         <div class="w-48">
             <label for="productSearch" class="block text-sm font-medium text-gray-700">Search Products</label>
-            <input type="text" id="productSearch" class="w-full p-2 border rounded-lg" placeholder="Search by product name...">
+            <input type="text" id="productSearch" class="w-full p-2 border rounded-lg" placeholder="Search product name">
         </div>
     </div>
 
@@ -105,13 +105,18 @@
                 <div class="mt-4">
     <label class="block text-sm font-medium text-gray-700">Quantity</label>
     <div class="flex items-center space-x-2">
+        <!-- Decrease Quantity Button -->
         <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
                       hover:bg-gray-200 transition" 
                 onclick="adjustQuantity('{{ $product->id }}', -1)">
             –
         </button>
-        <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" 
+
+        <!-- Quantity Input Field -->
+        <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" 
                class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
+
+        <!-- Increase Quantity Button -->
         <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
                       hover:bg-gray-200 transition" 
                 onclick="adjustQuantity('{{ $product->id }}', 1)">
@@ -267,8 +272,28 @@
     const quantityInput = document.getElementById(`quantity-${productId}`);
     let quantity = parseInt(quantityInput.value);
     quantity += change;
-    if (quantity < 1) quantity = 1;
+
+    // Ensure the quantity stays within the range of 1 to 100
+        if (quantity < 1) {
+            quantity = 1; // Minimum quantity is 1
+        } else if (quantity > 100) {
+            quantity = 100; // Maximum quantity is 100. 
+            alert("Maximum quantity per order is 100."); 
+        }
     quantityInput.value = quantity;
+
+    // Add event listener to enforce maximum value when typing manually
+    document.addEventListener('input', function(event) {
+        if (event.target.type === 'number' && event.target.hasAttribute('max')) {
+            const input = event.target;
+            const maxValue = parseInt(input.getAttribute('max'));
+
+            if (input.value > maxValue) {
+                input.value = 1; // It resets to 1 if the input number is > 100.
+                alert(`Maximum quantity per order is ${maxValue}.`); // Optional: Display a warning
+            }
+        }
+    });
 }
 // Product Search Feature
 document.getElementById('productSearch').addEventListener('input', function() {
