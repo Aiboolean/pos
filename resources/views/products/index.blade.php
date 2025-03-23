@@ -285,6 +285,42 @@ document.getElementById('productSearch').addEventListener('input', function() {
         });
     });
 
+    // Get references to the search input and category filter
+    const searchInput = document.getElementById('productSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    // Add event listeners for both search and category filter
+    searchInput.addEventListener('input', filterProducts);
+    categoryFilter.addEventListener('change', filterProducts);
+
+    function filterProducts() {
+        const searchQuery = searchInput.value.toLowerCase(); // Get the search query
+        const selectedCategory = categoryFilter.value; // Get the selected category
+        const productItems = document.querySelectorAll('.product-item'); // Get all product items
+
+        productItems.forEach(item => {
+            const productName = item.querySelector('h2').textContent.toLowerCase(); // Get product name
+            const productCategory = item.getAttribute('data-category'); // Get product category
+            const isAvailable = item.getAttribute('data-available'); // Get product availability
+
+            // Check if the product matches the search query
+            const matchesSearch = productName.includes(searchQuery);
+
+            // Check if the product matches the selected category
+            const matchesCategory = selectedCategory === '' || productCategory === selectedCategory;
+
+            // Check if the product matches the availability filter (if "unavailable" is selected)
+            const matchesAvailability = selectedCategory !== 'unavailable' || isAvailable === 'false';
+
+            // Show or hide the product based on the conditions
+            if (matchesSearch && matchesCategory && matchesAvailability) {
+                item.style.display = 'block'; // Show the product
+            } else {
+                item.style.display = 'none'; // Hide the product
+            }
+        });
+    }
+
 document.addEventListener("DOMContentLoaded", function () {
     // Initialize state variables
     let cart = [];
@@ -569,5 +605,7 @@ function printReceipt() {
     document.head.removeChild(style);
     parentElement.appendChild(receiptModal);
 }
+
+
 </script>
 @endsection
