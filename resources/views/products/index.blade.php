@@ -15,20 +15,29 @@
     </div>
 
     
-    <!-- Main Content (Now on the Right Side) -->
+  <!-- Main Content (Now on the Right Side) -->
 <div class="w-full md:w-4/6 p-6">
-    <!-- Category Filter -->
-    <div class="mb-4 w-48">  
-    <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
-    <select id="categoryFilter" class="w-full p-2 border rounded-lg">
+    <!-- Category Filter and Search Product (Side by Side) -->
+    <div class="mb-4 flex">
+        <!-- Category Filter -->
+        <div class="w-48 mr-4">  
+            <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Filter by Category</label>
+            <select id="categoryFilter" class="w-full p-2 border rounded-lg">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
+                <option value="unavailable">Unavailable Products</option>
+            </select>
+        </div>
 
-            <option value="">All Categories</option>
-            @foreach($categories as $category)
-                <option value="{{ $category->id }}">{{ $category->name }}</option>
-            @endforeach
-            <option value="unavailable">Unavailable Products</option>
-        </select>
+        <!-- Search Product -->
+        <div class="w-48">
+            <label for="productSearch" class="block text-sm font-medium text-gray-700">Search Products</label>
+            <input type="text" id="productSearch" class="w-full p-2 border rounded-lg" placeholder="Search by product name...">
+        </div>
     </div>
+
 
     
     <!-- Scrollable Product Grid -->
@@ -261,6 +270,20 @@
     if (quantity < 1) quantity = 1;
     quantityInput.value = quantity;
 }
+// Product Search Feature
+document.getElementById('productSearch').addEventListener('input', function() {
+        const searchQuery = this.value.toLowerCase();
+        const productItems = document.querySelectorAll('.product-item');
+
+        productItems.forEach(item => {
+            const productName = item.querySelector('h2').textContent.toLowerCase();
+            if (productName.includes(searchQuery)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
 
 document.addEventListener("DOMContentLoaded", function () {
     // Initialize state variables
