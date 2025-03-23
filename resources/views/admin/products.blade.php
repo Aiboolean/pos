@@ -67,7 +67,7 @@
 
         <!-- Pagination (Inside Container, No Overlap, Fixed in Bottom Right) -->
         <div class="absolute bottom-4 right-4 bg-white p-2 rounded-lg shadow-lg">
-            {{ $products->links() }}
+            {{ $products->appends(['category' => request('category')])->links() }}
         </div>
     </div>
 </div>
