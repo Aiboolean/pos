@@ -98,7 +98,7 @@
 </div>
 
 <script>
-    // Initialize Flatpickr for Global Date Range
+// Initialize Flatpickr for Global Date Range
 const globalDatePicker = flatpickr("#globalDateRangePicker", {
     mode: "range",
     dateFormat: "Y-m-d",
@@ -126,10 +126,15 @@ let revenueChart;
 
 // Function to fetch revenue data
 function fetchRevenueData(startDate, endDate) {
-    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`)
+    // Add cache-busting parameter to prevent browser caching
+    const cacheBuster = new Date().getTime();
+    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
             updateChart(data);
+        })
+        .catch(error => {
+            console.error('Error fetching revenue data:', error);
         });
 }
 
@@ -169,10 +174,15 @@ let categoryRevenueChart;
 
 // Function to fetch category revenue data
 function fetchCategoryRevenueData(categoryId, startDate, endDate) {
-    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`)
+    // Add cache-busting parameter
+    const cacheBuster = new Date().getTime();
+    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
             updateCategoryChart(data);
+        })
+        .catch(error => {
+            console.error('Error fetching category revenue data:', error);
         });
 }
 
@@ -243,10 +253,15 @@ let allCategoriesRevenueChart;
 
 // Function to fetch revenue data for all categories
 function fetchAllCategoriesRevenueData(startDate, endDate) {
-    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`)
+    // Add cache-busting parameter
+    const cacheBuster = new Date().getTime();
+    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
             updateAllCategoriesChart(data);
+        })
+        .catch(error => {
+            console.error('Error fetching all categories revenue data:', error);
         });
 }
 
@@ -288,6 +303,21 @@ startDate.setDate(endDate.getDate() - 30);
 // Set initial date range in the global date picker
 globalDatePicker.setDate([startDate, endDate]);
 
+// Function to refresh all charts
+function refreshAllCharts() {
+    const selectedDates = globalDatePicker.selectedDates;
+    if (selectedDates.length === 2) {
+        fetchRevenueData(selectedDates[0], selectedDates[1]);
+        fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1]);
+        
+        // Update Category Revenue Chart if a category is selected
+        const categoryId = document.getElementById('categoryDropdown').value;
+        if (categoryId) {
+            fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
+        }
+    }
+}
+
 // Fetch initial data for all charts
 fetchRevenueData(startDate, endDate); // Revenue Chart
 fetchAllCategoriesRevenueData(startDate, endDate); // All Categories Revenue Chart
@@ -301,6 +331,24 @@ document.getElementById('categoryDropdown').addEventListener('change', function(
     }
 });
 
+// Set up refresh interval (e.g., every 1 minutes)
+const REFRESH_INTERVAL = 1 * 60 * 1000; // 1 minutes in milliseconds
+setInterval(refreshAllCharts, REFRESH_INTERVAL);
+
+// Add refresh button to manually update charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Create refresh button
+    const refreshButton = document.createElement('button');
+    refreshButton.textContent = 'Refresh Charts';
+    refreshButton.className = 'mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none';
+    refreshButton.addEventListener('click', refreshAllCharts);
+    
+    // Insert before the charts section
+    const chartsSection = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
+    chartsSection.parentNode.insertBefore(refreshButton, chartsSection);
+});
+
+// Initialize Lucide icons
     lucide.createIcons();
 </script>
 @endsection

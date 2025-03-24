@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Category;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -234,35 +235,36 @@ public function resetPassword($id)
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
 }
 
-// Admin Dashboard chart data //
-//
-//
-//
-
+// Admin Dashboard chart data
 public function getRevenueData(Request $request)
 {
     $request->validate([
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data grouped by date
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data grouped by date - no caching
     $revenueData = Order::whereBetween('created_at', [$startDate, $endDate])
                         ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
                         ->groupBy('date')
                         ->orderBy('date')
                         ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('date');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
 
@@ -272,11 +274,14 @@ public function getCategoryRevenue($categoryId, Request $request)
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data for the selected category and date range
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data for the selected category and date range - no caching
     $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                             ->join('orders', 'order_items.order_id', '=', 'orders.id')
                             ->where('products.category_id', $categoryId)
@@ -284,27 +289,33 @@ public function getCategoryRevenue($categoryId, Request $request)
                             ->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('products.name')
                             ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('product_name');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
+
 public function getAllCategoriesRevenue(Request $request)
 {
     $request->validate([
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data for all categories
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data for all categories - no caching
     $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                             ->join('orders', 'order_items.order_id', '=', 'orders.id')
                             ->join('categories', 'products.category_id', '=', 'categories.id')
@@ -312,14 +323,16 @@ public function getAllCategoriesRevenue(Request $request)
                             ->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('categories.name')
                             ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('category_name');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
 
