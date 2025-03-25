@@ -142,9 +142,15 @@ public function storeEmployee(Request $request)
     $request->validate([
         'first_name' => 'required',
         'last_name' => 'required',
-        'phone' => 'required|unique:users',
+        'phone' => [
+            'required',
+            'regex:/^\+63\s9\d{2}\s\d{3}\s\d{4}$/',
+            'unique:users,phone'
+        ],
+    ], [
+        'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
+        'phone.unique' => 'The phone number is already registered.',
     ]);
-
     // Generate username
     $username = strtolower($request->first_name . '.' . $request->last_name);
     
@@ -191,7 +197,15 @@ public function updateEmployee(Request $request, $id)
         'first_name' => 'required',
         'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
-        'phone' => 'required|unique:users,phone,' . $id,
+        'phone' => [
+            'required',
+            'regex:/^\+63 9\d{2} \d{3} \d{4}$/',
+            'unique:users,phone,' . $id,
+        ],
+    ], [
+        'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
+        'phone.unique' => 'The phone number is already registered.',
+        'username.unique' => 'The username is already taken.',
     ]);
 
     // Find the employee
