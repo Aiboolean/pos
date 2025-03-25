@@ -32,7 +32,7 @@
                                     <td class="border p-3 font-medium text-[#a94442]">₱{{ number_format($order->change, 2) }}</td>
                                     <td class="border p-3">
                                         <a href="{{ route('user.orders.show', $order) }}" 
-                                        class="bg-[#a67c52] text-white px-4 py-2 rounded-lg font-medium transition hover:bg-[#8c5c34] block text-center sm:inline">
+                                        class="bg-[#e0c9a6] text-black px-4 py-2 rounded-lg font-medium transition hover:bg-[#d3b78c] block text-center sm:inline">
                                             View
                                         </a>
                                     </td>

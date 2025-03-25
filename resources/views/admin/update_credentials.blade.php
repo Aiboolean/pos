@@ -22,10 +22,10 @@
             </div>
 
             <div class="flex space-x-4">
-                <button type="submit" class="w-1/2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300">
+                <button type="submit" class="w-1/2 bg-[#e0c9a6] hover:bg-[#d3b78c] text-black py-3 rounded-lg font-semibold transition duration-300">
                     Update
                 </button>
-                <a href="{{ url()->previous() }}" class="w-1/2 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold text-center transition duration-300">
+                <a href="{{ url()->previous() }}" class="w-1/2 bg-[#e0c9a6] hover:bg-[#d3b78c] text-black py-3 rounded-lg font-semibold text-center transition duration-300">
                     Cancel
                 </a>
             </div>
