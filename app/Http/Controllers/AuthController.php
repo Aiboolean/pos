@@ -126,7 +126,11 @@ public function showCreateEmployeeForm()
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
     
-    return view('admin.add_employee');
+    // Generate the next 5-digit Employee ID
+    $lastEmployee = DB::table('users')->latest('id')->first();
+    $nextEmployeeId = $lastEmployee ? str_pad($lastEmployee->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+
+    return view('admin.add_employee', ['employee_id' => $nextEmployeeId]);
 }
 
 public function storeEmployee(Request $request)
@@ -147,7 +151,12 @@ public function storeEmployee(Request $request)
     // Generate password from first and last name
     $password = strtolower($request->first_name . $request->last_name);
 
+    // Get the next Employee ID (auto-incremented)
+    $lastEmployee = DB::table('users')->latest('id')->first();
+    $nextEmployeeId = $lastEmployee ? str_pad($lastEmployee->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+
     DB::table('users')->insert([
+        'employee_id' => $nextEmployeeId, // Store the generated Employee ID
         'first_name' => strtoupper($request->first_name),
         'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,
@@ -185,12 +194,41 @@ public function updateEmployee(Request $request, $id)
         'phone' => 'required|unique:users,phone,' . $id,
     ]);
 
+    // Find the employee
+    $employee = DB::table('users')->where('id', $id)->first();
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Employee not found.');
+    }
+
+    // Generate Employee ID Based on Creation Date if it doesn't exist
+    if (empty($employee->employee_id)) {
+        // Get all employees sorted by creation date
+        $employees = DB::table('users')
+            ->whereNotNull('created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Assign Employee IDs sequentially
+        foreach ($employees as $index => $emp) {
+            $newEmployeeId = str_pad($index + 1, 5, '0', STR_PAD_LEFT);
+            
+            // Update only if employee_id is null
+            if (empty($emp->employee_id)) {
+                DB::table('users')->where('id', $emp->id)->update([
+                    'employee_id' => $newEmployeeId,
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+    }
+
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
         'first_name' => strtoupper($request->first_name),
         'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
+        'updated_at' => now(),
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Employee updated successfully.');

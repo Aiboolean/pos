@@ -13,6 +13,7 @@
             <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm" style="table-layout: fixed;">
                 <thead class="bg-gray-100">
                     <tr class="text-left">
+                        <th class="px-4 py-2 w-1/6">Employee ID</th> <!-- Added Employee ID Column -->
                         <th class="px-4 py-2 w-1/5">Name</th>
                         <th class="px-4 py-2 w-1/5">Username</th>
                         <th class="px-4 py-2 w-1/5">Phone</th>
@@ -27,6 +28,7 @@
                         <!-- Display actual records -->
                         @forelse ($employees as $employee)
                             <tr class="border-t hover:bg-gray-50">
+                                <td class="px-4 py-3">{{ $employee->employee_id }}</td> <!-- Display Employee ID -->
                                 <td class="px-4 py-3">{{ $employee->first_name }} {{ $employee->last_name }}</td>
                                 <td class="px-4 py-3">{{ $employee->username }}</td>
                                 <td class="px-4 py-3">{{ $employee->phone }}</td>
@@ -82,6 +84,7 @@
         <!-- Form for Updating Username, Phone, First Name, and Last Name -->
         <form id="editForm" method="POST">
             @csrf
+
             <div class="mb-4">
                 <label for="editFirstName" class="block font-medium mb-1">First Name:</label>
                 <input type="text" id="editFirstName" name="first_name" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
@@ -116,6 +119,7 @@
 <script>
 function showEditForm(id, firstName, lastName, username, phone) {
     // Set values for the edit form
+    
     document.getElementById('editFirstName').value = firstName;
     document.getElementById('editLastName').value = lastName;
     document.getElementById('editUsername').value = username;
@@ -133,29 +137,6 @@ function showEditForm(id, firstName, lastName, username, phone) {
 
 function closeModal() {
     // Hide the modal by adding the 'hidden' class
-    document.getElementById('editModal').classList.add('hidden');
-}
-</script>
-
-<script>
-function showEditForm(id, firstName, lastName, username, phone) {
-    // Set values for the edit form
-    document.getElementById('editFirstName').value = firstName;
-    document.getElementById('editLastName').value = lastName;
-    document.getElementById('editUsername').value = username;
-    document.getElementById('editPhone').value = phone;
-
-    // Set the action for the edit form
-    document.getElementById('editForm').action = `/admin/employees/${id}/update`;
-
-    // Set the action for the reset password form
-    document.getElementById('resetPasswordForm').action = `/admin/employees/${id}/reset-password`;
-
-    // Show the modal
-    document.getElementById('editModal').classList.remove('hidden');
-}
-
-function closeModal() {
     document.getElementById('editModal').classList.add('hidden');
 }
 </script>

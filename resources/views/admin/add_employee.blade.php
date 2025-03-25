@@ -13,6 +13,13 @@
             <form action="{{ route('admin.employees.store') }}" method="POST" class="space-y-5">
                 @csrf
 
+                <!-- Employee ID (Read-Only) -->
+                <div>
+                    <label class="block text-gray-600 font-medium mb-1">Employee ID</label>
+                    <input type="text" name="employee_id" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none bg-gray-100" 
+                        value="{{ $employee_id }}" readonly>
+                </div>
+
                 <div>
                     <label class="block text-gray-600 font-medium mb-1">First Name</label>
                     <input type="text" name="first_name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none" required>

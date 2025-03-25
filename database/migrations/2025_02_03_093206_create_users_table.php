@@ -10,6 +10,7 @@ return new class extends Migration {
     if (!Schema::hasTable('users')) {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('employee_id')->unique(); // Employee ID with unique constraint
             $table->string('first_name');
             $table->string('last_name');
             $table->string('phone')->unique();
