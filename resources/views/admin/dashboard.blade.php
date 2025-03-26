@@ -1,12 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex flex-col h-full space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Admin Dashboard</h2>
-    </div>
-
+<div class="flex flex-col h-full">
+    <h2 class="text-2xl font-bold mb-4">Admin Dashboard</h2>
+    
     <!-- Analytics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Orders -->
@@ -68,32 +65,29 @@
         </div>
     </div>
 
-    <!-- Main Charts Section -->
+
+
+    <!-- Charts Section - Side by Side -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <!-- Single Date Range Picker -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-8 border-4 border-[#f1eadc]">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-700">Select Date Range</h3>
-                <button class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition">
-                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
-                </button>
-            </div>
-            <input type="text" id="globalDateRangePicker" 
-                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition" 
-                   placeholder="Select Date Range">
+        <div class="col-span-full bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Select Date Range</h3>
+            <input type="text" id="globalDateRangePicker" class="w-full p-2 border rounded-lg" placeholder="Select Date Range">
         </div>
 
         <!-- Revenue Chart -->
-        <div class="bg-white p-6 rounded-lg shadow-lg border-4 border-[#f1eadc]">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-semibold text-gray-700 mb-4">Revenue Chart</h3>
+            <!-- Chart Canvas with fixed height -->
             <div class="h-64">
                 <canvas id="revenueChart"></canvas>
             </div>
         </div>
 
         <!-- Category Revenue Chart -->
-        <div class="bg-white p-6 rounded-lg shadow-lg border-4 border-[#f1eadc]">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-semibold text-gray-700 mb-4">Revenue Per Category</h3>
+            <!-- Category Dropdown -->
             <div class="mb-4">
                 <select id="categoryDropdown" class="w-full p-2 border rounded-lg">
                     <option value="">Select a Category</option>
@@ -102,19 +96,22 @@
                     @endforeach
                 </select>
             </div>
+            <!-- Chart Canvas with fixed height -->
             <div class="h-64">
                 <canvas id="categoryRevenueChart"></canvas>
             </div>
         </div>
 
         <!-- All Categories Revenue Chart -->
-        <div class="col-span-full bg-white p-6 rounded-lg shadow-lg border-4 border-[#f1eadc]">
+        <div class="col-span-full bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-semibold text-gray-700 mb-4">Revenue by All Categories</h3>
+            <!-- Chart Canvas with fixed height -->
             <div class="h-64">
                 <canvas id="allCategoriesRevenueChart"></canvas>
             </div>
         </div>
     </div>
+</div>
 
 <script>
 // Initialize Flatpickr for Global Date Range
@@ -354,7 +351,20 @@ document.getElementById('categoryDropdown').addEventListener('change', function(
 const REFRESH_INTERVAL = 1 * 60 * 1000; // 1 minutes in milliseconds
 setInterval(refreshAllCharts, REFRESH_INTERVAL);
 
+// Add refresh button to manually update charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Create refresh button
+    const refreshButton = document.createElement('button');
+    refreshButton.textContent = 'Refresh Charts';
+    refreshButton.className = 'mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none';
+    refreshButton.addEventListener('click', refreshAllCharts);
+    
+    // Insert before the charts section
+    const chartsSection = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
+    chartsSection.parentNode.insertBefore(refreshButton, chartsSection);
+});
+
 // Initialize Lucide icons
-lucide.createIcons();
+    lucide.createIcons();
 </script>
 @endsection

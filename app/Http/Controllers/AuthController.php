@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Category;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -125,7 +126,11 @@ public function showCreateEmployeeForm()
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
     
-    return view('admin.add_employee');
+    // Generate the next 5-digit Employee ID
+    $lastEmployee = DB::table('users')->latest('id')->first();
+    $nextEmployeeId = $lastEmployee ? str_pad($lastEmployee->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+
+    return view('admin.add_employee', ['employee_id' => $nextEmployeeId]);
 }
 
 public function storeEmployee(Request $request)
@@ -137,16 +142,27 @@ public function storeEmployee(Request $request)
     $request->validate([
         'first_name' => 'required',
         'last_name' => 'required',
-        'phone' => 'required|unique:users',
+        'phone' => [
+            'required',
+            'regex:/^\+63\s9\d{2}\s\d{3}\s\d{4}$/',
+            'unique:users,phone'
+        ],
+    ], [
+        'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
+        'phone.unique' => 'The phone number is already registered.',
     ]);
-
     // Generate username
     $username = strtolower($request->first_name . '.' . $request->last_name);
     
     // Generate password from first and last name
     $password = strtolower($request->first_name . $request->last_name);
 
+    // Get the next Employee ID (auto-incremented)
+    $lastEmployee = DB::table('users')->latest('id')->first();
+    $nextEmployeeId = $lastEmployee ? str_pad($lastEmployee->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+
     DB::table('users')->insert([
+        'employee_id' => $nextEmployeeId, // Store the generated Employee ID
         'first_name' => strtoupper($request->first_name),
         'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,
@@ -181,8 +197,44 @@ public function updateEmployee(Request $request, $id)
         'first_name' => 'required',
         'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
-        'phone' => 'required|unique:users,phone,' . $id,
+        'phone' => [
+            'required',
+            'regex:/^\+63 9\d{2} \d{3} \d{4}$/',
+            'unique:users,phone,' . $id,
+        ],
+    ], [
+        'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
+        'phone.unique' => 'The phone number is already registered.',
+        'username.unique' => 'The username is already taken.',
     ]);
+
+    // Find the employee
+    $employee = DB::table('users')->where('id', $id)->first();
+    if (!$employee) {
+        return redirect()->back()->with('error', 'Employee not found.');
+    }
+
+    // Generate Employee ID Based on Creation Date if it doesn't exist
+    if (empty($employee->employee_id)) {
+        // Get all employees sorted by creation date
+        $employees = DB::table('users')
+            ->whereNotNull('created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Assign Employee IDs sequentially
+        foreach ($employees as $index => $emp) {
+            $newEmployeeId = str_pad($index + 1, 5, '0', STR_PAD_LEFT);
+            
+            // Update only if employee_id is null
+            if (empty($emp->employee_id)) {
+                DB::table('users')->where('id', $emp->id)->update([
+                    'employee_id' => $newEmployeeId,
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+    }
 
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
@@ -190,6 +242,7 @@ public function updateEmployee(Request $request, $id)
         'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
+        'updated_at' => now(),
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Employee updated successfully.');
@@ -234,35 +287,36 @@ public function resetPassword($id)
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
 }
 
-// Admin Dashboard chart data //
-//
-//
-//
-
+// Admin Dashboard chart data
 public function getRevenueData(Request $request)
 {
     $request->validate([
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data grouped by date
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data grouped by date - no caching
     $revenueData = Order::whereBetween('created_at', [$startDate, $endDate])
                         ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
                         ->groupBy('date')
                         ->orderBy('date')
                         ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('date');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
 
@@ -272,11 +326,14 @@ public function getCategoryRevenue($categoryId, Request $request)
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data for the selected category and date range
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data for the selected category and date range - no caching
     $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                             ->join('orders', 'order_items.order_id', '=', 'orders.id')
                             ->where('products.category_id', $categoryId)
@@ -284,27 +341,33 @@ public function getCategoryRevenue($categoryId, Request $request)
                             ->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('products.name')
                             ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('product_name');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
+
 public function getAllCategoriesRevenue(Request $request)
 {
     $request->validate([
         'start_date' => 'required|date',
         'end_date' => 'required|date',
     ]);
-
+    
     $startDate = $request->input('start_date');
     $endDate = $request->input('end_date');
-
-    // Fetch revenue data for all categories
+    
+    // Make sure the end date includes the entire day
+    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+    
+    // Fetch revenue data for all categories - no caching
     $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                             ->join('orders', 'order_items.order_id', '=', 'orders.id')
                             ->join('categories', 'products.category_id', '=', 'categories.id')
@@ -312,14 +375,16 @@ public function getAllCategoriesRevenue(Request $request)
                             ->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('categories.name')
                             ->get();
-
+    
     // Prepare data for the chart
     $labels = $revenueData->pluck('category_name');
     $revenue = $revenueData->pluck('revenue');
-
+    
+    // Include a timestamp to help with debugging
     return response()->json([
         'labels' => $labels,
         'revenue' => $revenue,
+        'generated_at' => now()->toDateTimeString()
     ]);
 }
 
