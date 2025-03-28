@@ -1,8 +1,54 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-lg mx-auto bg-white shadow-lg rounded-xl p-6 mt-6">
-    <h1 class="text-2xl font-bold mb-4">Edit Product</h1>
+<style>
+    /* Coffee Shop Theme Styles */
+    .coffee-card {
+        background-color: #fff;
+        border: 1px solid #e0d6c2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .coffee-btn-primary {
+        background-color: #6f4e37;
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .coffee-btn-primary:hover {
+        background-color: #5c3d2a;
+        transform: translateY(-1px);
+    }
+    
+    .coffee-btn-secondary {
+        background-color: #e0d6c2;
+        color: #5c4d3c;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .coffee-btn-secondary:hover {
+        background-color: #d4c9b5;
+    }
+    
+    .coffee-border {
+        border-color: #e0d6c2;
+    }
+    
+    .coffee-text {
+        color: #5c4d3c;
+    }
+    
+    .coffee-focus:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: #8c7b6b;
+    }
+</style>
+
+<div class="max-w-lg mx-auto coffee-card rounded-xl p-6 mt-6">
+    <h1 class="text-2xl font-bold mb-4 coffee-text">Edit Product</h1>
     
     <form method="POST" action="{{ route('products.update', $product->id) }}" enctype="multipart/form-data" class="space-y-4">
         @csrf
@@ -10,8 +56,8 @@
 
         <!-- Category -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Category:</label>
-            <select name="category_id" id="category_id" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium coffee-text">Category:</label>
+            <select name="category_id" id="category_id" class="w-full p-2 coffee-border border rounded-lg coffee-focus">
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ $product->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                 @endforeach
@@ -20,60 +66,83 @@
 
         <!-- Name -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Name:</label>
-            <input type="text" name="name" value="{{ $product->name }}" required class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium coffee-text">Name:</label>
+            <input type="text" name="name" value="{{ $product->name }}" required 
+                   class="w-full p-2 coffee-border border rounded-lg coffee-focus">
         </div>
 
         <!-- Toggle for Multiple Sizes -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Has Multiple Sizes:</label>
+        <div class="flex items-center">
+            <label class="block text-sm font-medium coffee-text mr-2">Has Multiple Sizes:</label>
             <input type="hidden" name="has_multiple_sizes" value="0"> 
-            <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="mt-2" onchange="toggleSizeFields()" value="1" {{ $product->has_multiple_sizes ? 'checked' : '' }}>
+            <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" 
+                   class="h-5 w-5 coffee-border rounded focus:ring-[#8c7b6b]" 
+                   onchange="toggleSizeFields()" value="1" {{ $product->has_multiple_sizes ? 'checked' : '' }}>
         </div>
 
         <!-- Prices for Sizes (Hidden by Default) -->
-        <div id="size-prices" class="{{ $product->has_multiple_sizes ? 'block' : 'hidden' }}">
-            <label class="block text-sm font-medium text-gray-700">Prices:</label>
-            <div class="space-y-2">
+        <div id="size-prices" class="{{ $product->has_multiple_sizes ? 'block' : 'hidden' }} space-y-3 mt-3">
+            <label class="block text-sm font-medium coffee-text">Prices:</label>
+            <div class="space-y-3">
                 <!-- Small Size -->
-                <div class="flex items-center space-x-2">
-                    <label class="w-20">Small:</label>
-                    <input type="number" step="0.01" name="price_small" id="price_small" value="{{ $product->price_small }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="hidden" name="small_enabled" value="0"> <!-- Hidden field for unchecked state -->
-                    <input type="checkbox" name="small_enabled" id="small_enabled" value="1" {{ $product->small_enabled ? 'checked' : '' }}>
-                    <label for="small_enabled">Enable</label>
+                <div class="flex items-center space-x-3">
+                    <label class="w-20 coffee-text">Small:</label>
+                    <input type="number" step="0.01" name="price_small" id="price_small" 
+                           value="{{ $product->price_small }}" 
+                           class="flex-1 p-2 coffee-border border rounded-lg coffee-focus">
+                    <div class="flex items-center">
+                        <input type="hidden" name="small_enabled" value="0">
+                        <input type="checkbox" name="small_enabled" id="small_enabled" 
+                               class="h-5 w-5 coffee-border rounded focus:ring-[#8c7b6b]" 
+                               value="1" {{ $product->small_enabled ? 'checked' : '' }}>
+                        <label for="small_enabled" class="ml-2 text-sm coffee-text">Enable</label>
+                    </div>
                 </div>
 
                 <!-- Medium Size -->
-                <div class="flex items-center space-x-2">
-                    <label class="w-20">Medium:</label>
-                    <input type="number" step="0.01" name="price_medium" id="price_medium" value="{{ $product->price_medium }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="hidden" name="medium_enabled" value="0"> <!-- Hidden field for unchecked state -->
-                    <input type="checkbox" name="medium_enabled" id="medium_enabled" value="1" {{ $product->medium_enabled ? 'checked' : '' }}>
-                    <label for="medium_enabled">Enable</label>
+                <div class="flex items-center space-x-3">
+                    <label class="w-20 coffee-text">Medium:</label>
+                    <input type="number" step="0.01" name="price_medium" id="price_medium" 
+                           value="{{ $product->price_medium }}" 
+                           class="flex-1 p-2 coffee-border border rounded-lg coffee-focus">
+                    <div class="flex items-center">
+                        <input type="hidden" name="medium_enabled" value="0">
+                        <input type="checkbox" name="medium_enabled" id="medium_enabled" 
+                               class="h-5 w-5 coffee-border rounded focus:ring-[#8c7b6b]" 
+                               value="1" {{ $product->medium_enabled ? 'checked' : '' }}>
+                        <label for="medium_enabled" class="ml-2 text-sm coffee-text">Enable</label>
+                    </div>
                 </div>
 
                 <!-- Large Size -->
-                <div class="flex items-center space-x-2">
-                    <label class="w-20">Large:</label>
-                    <input type="number" step="0.01" name="price_large" id="price_large" value="{{ $product->price_large }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="hidden" name="large_enabled" value="0"> <!-- Hidden field for unchecked state -->
-                    <input type="checkbox" name="large_enabled" id="large_enabled" value="1" {{ $product->large_enabled ? 'checked' : '' }}>
-                    <label for="large_enabled">Enable</label>
+                <div class="flex items-center space-x-3">
+                    <label class="w-20 coffee-text">Large:</label>
+                    <input type="number" step="0.01" name="price_large" id="price_large" 
+                           value="{{ $product->price_large }}" 
+                           class="flex-1 p-2 coffee-border border rounded-lg coffee-focus">
+                    <div class="flex items-center">
+                        <input type="hidden" name="large_enabled" value="0">
+                        <input type="checkbox" name="large_enabled" id="large_enabled" 
+                               class="h-5 w-5 coffee-border rounded focus:ring-[#8c7b6b]" 
+                               value="1" {{ $product->large_enabled ? 'checked' : '' }}>
+                        <label for="large_enabled" class="ml-2 text-sm coffee-text">Enable</label>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Single Price (Hidden by Default) -->
         <div id="single-price" class="{{ !$product->has_multiple_sizes ? 'block' : 'hidden' }}">
-            <label class="block text-sm font-medium text-gray-700">Price:</label>
-            <input type="number" step="0.01" name="price" id="price" value="{{ $product->price }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium coffee-text">Price:</label>
+            <input type="number" step="0.01" name="price" id="price" 
+                   value="{{ $product->price }}" 
+                   class="w-full p-2 coffee-border border rounded-lg coffee-focus">
         </div>
 
         <!-- Availability -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Status:</label>
-            <select name="is_available" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-sm font-medium coffee-text">Status:</label>
+            <select name="is_available" class="w-full p-2 coffee-border border rounded-lg coffee-focus">
                 <option value="1" {{ $product->is_available ? 'selected' : '' }}>Available</option>
                 <option value="0" {{ !$product->is_available ? 'selected' : '' }}>Not Available</option>
             </select>
@@ -81,23 +150,29 @@
 
         <!-- Image -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Image:</label>
-            <input type="file" name="image" accept="image/*" class="w-full p-2 border rounded-lg">
+            <label class="block text-sm font-medium coffee-text">Image:</label>
+            <input type="file" name="image" accept="image/*" 
+                   class="w-full p-2 coffee-border border rounded-lg coffee-focus">
             @if($product->image)
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="mt-2 w-32 h-32 object-cover rounded">
+                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" 
+                     class="mt-2 w-32 h-32 object-cover rounded border coffee-border">
             @endif
         </div>
 
         <!-- Buttons -->
-        <div class="flex justify-between mt-4">
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Update</button>
-            <a href="{{ route('products.index') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Cancel</a>
-            
+        <div class="flex justify-between mt-6">
+            <button type="submit" 
+                    class="px-4 py-2 coffee-btn-primary rounded-lg shadow-sm">
+                Update Product
+            </button>
+            <a href="{{ route('products.index') }}" 
+               class="px-4 py-2 coffee-btn-secondary rounded-lg shadow-sm">
+                Cancel
+            </a>
         </div>
     </form>
 </div>
 
-<!-- JavaScript to Toggle Size Fields -->
 <script>
     function toggleSizeFields() {
         const hasMultipleSizes = document.getElementById('has_multiple_sizes').checked;
@@ -105,15 +180,14 @@
         const singlePriceDiv = document.getElementById('single-price');
 
         if (hasMultipleSizes) {
-            sizePricesDiv.style.display = 'block';
-            singlePriceDiv.style.display = 'none';
+            sizePricesDiv.classList.remove('hidden');
+            singlePriceDiv.classList.add('hidden');
         } else {
-            sizePricesDiv.style.display = 'none';
-            singlePriceDiv.style.display = 'block';
+            sizePricesDiv.classList.add('hidden');
+            singlePriceDiv.classList.remove('hidden');
         }
     }
 
-    // Initialize the form based on the current state
     document.addEventListener('DOMContentLoaded', function () {
         toggleSizeFields();
     });
