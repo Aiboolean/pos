@@ -88,8 +88,6 @@
     
     /* Pagination responsive styles */
     .pagination-container {
-        display: flex;
-        justify-content: center;
         margin-top: 1.5rem;
     }
     
@@ -97,7 +95,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-        justify-content: center;
+        justify-content: flex-end; 
     }
     
     .page-link {
