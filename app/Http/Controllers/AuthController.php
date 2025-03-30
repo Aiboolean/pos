@@ -162,7 +162,6 @@ public function storeEmployee(Request $request)
     $nextEmployeeId = $lastEmployee ? str_pad($lastEmployee->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
 
     DB::table('users')->insert([
-        'employee_id' => $nextEmployeeId, // Store the generated Employee ID
         'first_name' => strtoupper($request->first_name),
         'last_name' => strtoupper($request->last_name),
         'phone' => $request->phone,

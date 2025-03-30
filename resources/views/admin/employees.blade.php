@@ -151,7 +151,7 @@
                 <tbody>
                     @forelse ($employees as $employee)
                         <tr class="border-t coffee-border coffee-table-row">
-                            <td class="p-3 coffee-text-primary">{{ $employee->employee_id }}</td>
+                            <td class="p-3 coffee-text-primary">{{ $employee->id }}</td>
                             <td class="p-3 coffee-text-primary">{{ $employee->first_name }} {{ $employee->last_name }}</td>
                             <td class="p-3 coffee-text-primary">{{ $employee->username }}</td>
                             <td class="p-3 coffee-text-primary">{{ $employee->phone }}</td>

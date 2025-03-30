@@ -10,7 +10,6 @@ return new class extends Migration {
     if (!Schema::hasTable('users')) {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('employee_id')->unique(); // Employee ID with unique constraint
             $table->string('first_name');
             $table->string('last_name');
             $table->string('phone')->unique();
@@ -20,6 +19,9 @@ return new class extends Migration {
             $table->boolean('is_active')->default(true); // Default to active
             $table->timestamps();
         });
+
+         // Set AUTO_INCREMENT to start from 10000
+         DB::statement('ALTER TABLE users AUTO_INCREMENT = 10000;');
     }
 }
 
