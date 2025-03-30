@@ -168,27 +168,7 @@
         @endforeach
     </div>
 
-            <!-- Unavailable Products -->
-            @foreach($products as $product)
-                @if(!$product->is_available)
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden p-4 product-item hidden" data-category="{{ $product->category_id }}" data-available="false">
-                        <!-- Product Details -->
-                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="w-full h-32 object-cover rounded">
-                        <h2 class="text-lg font-semibold mt-2">{{ $product->name }}</h2>
-                        <p class="text-gray-500">Category: {{ $product->category->name }}</p>
-                        <p class="text-sm font-semibold text-red-500">Not Available</p>
-
-                        <!-- Toggle Availability Checkbox -->
-                        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-2">
-                            @csrf
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="is_available" onchange="this.form.submit()" {{ $product->is_available ? 'checked' : '' }}>
-                                <span>Available</span>
-                            </label>
-                        </form>
-                    </div>
-                @endif
-            @endforeach
+           
         </div>
     </div>
 

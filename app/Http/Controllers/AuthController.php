@@ -196,44 +196,8 @@ public function updateEmployee(Request $request, $id)
         'first_name' => 'required',
         'last_name' => 'required',
         'username' => 'required|unique:users,username,' . $id,
-        'phone' => [
-            'required',
-            'regex:/^\+63 9\d{2} \d{3} \d{4}$/',
-            'unique:users,phone,' . $id,
-        ],
-    ], [
-        'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
-        'phone.unique' => 'The phone number is already registered.',
-        'username.unique' => 'The username is already taken.',
+        'phone' => 'required|unique:users,phone,' . $id,
     ]);
-
-    // Find the employee
-    $employee = DB::table('users')->where('id', $id)->first();
-    if (!$employee) {
-        return redirect()->back()->with('error', 'Employee not found.');
-    }
-
-    // Generate Employee ID Based on Creation Date if it doesn't exist
-    if (empty($employee->employee_id)) {
-        // Get all employees sorted by creation date
-        $employees = DB::table('users')
-            ->whereNotNull('created_at')
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // Assign Employee IDs sequentially
-        foreach ($employees as $index => $emp) {
-            $newEmployeeId = str_pad($index + 1, 5, '0', STR_PAD_LEFT);
-            
-            // Update only if employee_id is null
-            if (empty($emp->employee_id)) {
-                DB::table('users')->where('id', $emp->id)->update([
-                    'employee_id' => $newEmployeeId,
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-    }
 
     // Update the employee's details
     DB::table('users')->where('id', $id)->update([
@@ -241,7 +205,6 @@ public function updateEmployee(Request $request, $id)
         'last_name' => strtoupper($request->last_name),
         'username' => $request->username,
         'phone' => $request->phone,
-        'updated_at' => now(),
     ]);
 
     return redirect()->route('admin.employees')->with('success', 'Employee updated successfully.');

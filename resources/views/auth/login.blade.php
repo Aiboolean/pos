@@ -3,7 +3,7 @@
 @section('content')
 <style>
     .auth-background {
-        background-image: url("{{ asset('images/auth-bg.jpg') }}");
+        background-image: url("{{ asset('images/cupstreet login background.png') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;

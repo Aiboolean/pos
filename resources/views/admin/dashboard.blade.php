@@ -252,7 +252,7 @@
                             <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
                             <path d="M22 12A10 10 0 0 0 12 2v10z"/>
                         </svg>
-                        Revenue Per Category
+                        Product Revenue Per Category
                     </h3>
                     <select id="categoryDropdown" class="w-full sm:w-48 p-2 border coffee-border rounded-lg text-sm">
                         <option value="">Select a Category</option>
