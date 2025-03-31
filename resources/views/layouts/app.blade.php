@@ -125,8 +125,8 @@
                     
                     <!-- Sidebar Toggle Button -->
                     <button @click="open = !open"
-                        class="flex items-center justify-center p-3 rounded mb-4 bg-gray-700 text-white w-full hover:bg-gray-600 transition-all duration-300">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
+                        class="flex items-center p-3 rounded mb-4 bg-gray-700 text-white w-full hover:bg-gray-600 transition-all duration-300">
+                        <i data-lucide="menu" class="w-6 h-6 flex-shrink-0"></i>
                         <span x-show="open" 
                               x-transition:enter="transition ease-out duration-300"
                               x-transition:enter-start="opacity-0 transform translate-x-4"

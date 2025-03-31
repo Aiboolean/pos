@@ -125,17 +125,6 @@
                             <p class="mt-1 text-sm coffee-error">{{ $message }}</p>
                         @enderror
                     </div>
-
-                    <!-- Description Field (Optional) -->
-                    <div>
-                        <label for="description" class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                            <i data-lucide="file-text" class="w-4 h-4 mr-1"></i>
-                            Description (Optional)
-                        </label>
-                        <textarea id="description" name="description" rows="3"
-                                  class="w-full p-3 coffee-input coffee-textarea rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]"
-                                  placeholder="Brief description of this coffee category"></textarea>
-                    </div>
                 </div>
 
                 <div class="flex justify-end space-x-3">
