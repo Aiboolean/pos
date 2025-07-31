@@ -237,6 +237,14 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a href="{{ route('ingredients.index') }}" 
+                                        class="flex items-center p-2 rounded hover:bg-gray-300 transition-all duration-300
+                                        {{ request()->routeIs('ingredients.*') ? 'bg-green-500 text-white' : '' }}">
+                                            <i data-lucide="warehouse" class="w-6 h-6 mr-2 flex-shrink-0"></i>
+                                            <span class="text-transition">Ingredients</span>
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a href="{{ route('admin.employees') }}" 
                                            class="flex items-center p-2 rounded hover:bg-gray-300 transition-all duration-300
                                            {{ request()->routeIs('admin.employees') ? 'bg-green-500 text-white' : '' }}">

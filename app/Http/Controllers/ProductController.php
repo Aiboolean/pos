@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Ingredient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -30,7 +31,10 @@ class ProductController extends Controller
         }
 
         $categories = Category::all(); // Fetch all categories
-        return view('products.create', compact('categories'));
+        $ingredients = Ingredient::all(); // fetch all ingredients
+        // Pass both categories and ingredients to the view
+        return view('products.create', compact('categories', 'ingredients'));
+        
     }
 
     public function store(Request $request)
@@ -68,6 +72,21 @@ class ProductController extends Controller
 
         // Create the product
         Product::create($validatedData);
+
+        // ========== NEW INVENTORY LOGIC STARTS HERE ==========
+        $product = Product::create($validatedData);
+
+        // Attach ingredients if provided
+        if ($request->has('ingredients')) {
+            foreach ($request->ingredients as $index => $ingredientId) {
+                if (!empty($ingredientId) && !empty($request->quantities[$index])) {
+                    $product->ingredients()->attach($ingredientId, [
+                        'quantity' => $request->quantities[$index]
+                    ]);
+                }
+            }
+        }
+        // ========== NEW INVENTORY LOGIC ENDS HERE ==========
 
         return redirect()->route('admin.products')->with('success', 'Product added successfully.');
     }

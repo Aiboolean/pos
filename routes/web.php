@@ -4,6 +4,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\IngredientController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +96,10 @@ Route::get('/admin/orders/{order}', [OrderController::class, 'adminShow'])->name
 Route::get('/orders', [OrderController::class, 'userOrders'])->name('user.orders');
 
 Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('user.orders.show');
+
+// inredient route
+Route::resource('ingredients', IngredientController::class)->except(['show']);
+
 
 
 // API endpoint for chart

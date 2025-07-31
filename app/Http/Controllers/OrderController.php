@@ -24,41 +24,70 @@ class OrderController extends Controller
         'items.*.size' => 'required|string',
     ]);
 
-    // Create the order
-    $order = Order::create([
-        'total_price' => $request->total_price,
-        'amount_received' => $request->amount_received,
-        'change' => $request->change,
-        'user_id' => Session::get('user_id'), // Assign the logged-in user's ID
-    ]);
+    // Start database transaction for atomic operations
+    DB::beginTransaction();
 
-    // Add order items
-    $orderItems = [];
-    foreach ($request->items as $item) {
-        $product = Product::find($item['id']); // Fetch the product
-        $orderItem = OrderItem::create([
-            'order_id' => $order->id,
-            'product_id' => $item['id'],
-            'user_id' => Session::get('user_id'), // Assign the logged-in user's ID
-            'quantity' => $item['quantity'],
-            'price' => $item['price'],
-            'size' => $item['size'],
+    try {
+        // Create the order
+        $order = Order::create([
+            'total_price' => $request->total_price,
+            'amount_received' => $request->amount_received,
+            'change' => $request->change,
+            'user_id' => Session::get('user_id'),
         ]);
-        $orderItems[] = [
-            'name' => $product->name, // Include product name
-            'size' => $item['size'],
-            'quantity' => $item['quantity'],
-            'price' => $item['price'],
-        ];
+
+        // Add order items and process inventory
+        $orderItems = [];
+        foreach ($request->items as $item) {
+            $product = Product::with('ingredients')->find($item['id']);
+            
+            // ========== INVENTORY DEDUCTION START ==========
+            foreach ($product->ingredients as $ingredient) {
+                $quantityNeeded = $ingredient->pivot->quantity * $item['quantity'];
+                
+                // Check stock availability
+                if ($ingredient->stock < $quantityNeeded) {
+                    throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
+                }
+                
+                // Deduct from inventory
+                $ingredient->decrement('stock', $quantityNeeded);
+            }
+            // ========== INVENTORY DEDUCTION END ==========
+            
+            $orderItem = OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $item['id'],
+                'user_id' => Session::get('user_id'),
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'size' => $item['size'],
+            ]);
+            
+            $orderItems[] = [
+                'name' => $product->name,
+                'size' => $item['size'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ];
+        }
+
+        // Commit transaction if all operations succeed
+        DB::commit();
+
+        return response()->json([
+            'order' => $order,
+            'items' => $orderItems,
+        ], 201);
+
+    } catch (\Exception $e) {
+        // Rollback transaction on error
+        DB::rollBack();
+        return response()->json([
+            'error' => 'Order processing failed: ' . $e->getMessage()
+        ], 400);
     }
-
-    // Return the order and items
-    return response()->json([
-        'order' => $order,
-        'items' => $orderItems,
-    ], 201);
 }
-
 public function adminIndex()
 {
     if (!Session::has('admin_logged_in')) {
