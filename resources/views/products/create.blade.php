@@ -245,24 +245,29 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Ingredients</label>
+            <div class="form-group mt-4">
+                <h4>Ingredients</h4>
                 <div id="ingredient-fields">
-                    @foreach($ingredients as $ingredient)
-                    <div class="flex mb-2">
-                        <select name="ingredients[]" class="form-control mr-2">
+                    @foreach($ingredients as $index => $ingredient)
+                    <div class="flex items-center mb-2 ingredient-row">
+                        <select name="ingredients[]" class="form-control mr-2 w-1/2">
                             <option value="">Select Ingredient</option>
                             @foreach($ingredients as $i)
-                            <option value="{{ $i->id }}">{{ $i->name }}</option>
+                            <option value="{{ $i->id }}">{{ $i->name }} ({{ $i->unit }})</option>
                             @endforeach
                         </select>
-                        <input type="number" step="0.01" name="quantities[]" placeholder="Quantity" class="form-control">
+                        <input type="number" step="0.01" name="quantities[]" 
+                            placeholder="Quantity" class="form-control mr-2 w-1/4">
+                        <button type="button" class="remove-ingredient bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-ingredient" class="btn btn-sm btn-secondary mt-2">+ Add More</button>
+                <button type="button" id="add-ingredient" class="btn btn-sm btn-secondary mt-2">
+                    + Add Ingredient
+                </button>
             </div>
-
             <!-- Buttons -->
             <div class="flex justify-end space-x-3 pt-6">
                 <button type="submit" class="px-5 py-2.5 coffee-btn-success rounded-xl coffee-shadow text-sm font-medium flex items-center">
@@ -309,19 +314,35 @@
         toggleSizeFields();
     });
 
+    
+    // Add new ingredient row
     document.getElementById('add-ingredient').addEventListener('click', function() {
-    const container = document.getElementById('ingredient-fields');
-    const newField = `
-    <div class="flex mb-2">
-        <select name="ingredients[]" class="form-control mr-2">
-            <option value="">Select Ingredient</option>
-            @foreach($ingredients as $i)
-            <option value="{{ $i->id }}">{{ $i->name }}</option>
-            @endforeach
-        </select>
-        <input type="number" step="0.01" name="quantities[]" placeholder="Quantity" class="form-control">
-    </div>`;
-    container.insertAdjacentHTML('beforeend', newField);
-});
+        const container = document.getElementById('ingredient-fields');
+        const newField = `
+        <div class="flex items-center mb-2 ingredient-row">
+            <select name="ingredients[]" class="form-control mr-2 w-1/2">
+                <option value="">Select Ingredient</option>
+                @foreach($ingredients as $i)
+                <option value="{{ $i->id }}">{{ $i->name }} ({{ $i->unit }})</option>
+                @endforeach
+            </select>
+            <input type="number" step="0.01" name="quantities[]" 
+                   placeholder="Quantity" class="form-control mr-2 w-1/4">
+            <button type="button" class="remove-ingredient bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', newField);
+        lucide.createIcons(); // Refresh icons for new elements
+    });
+
+    // Remove ingredient row
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-ingredient') || 
+            e.target.closest('.remove-ingredient')) {
+            e.target.closest('.ingredient-row').remove();
+        }
+    });
+
 </script>
 @endsection
