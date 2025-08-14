@@ -3,134 +3,158 @@
 @section('content')
 <style>
     /* Coffee Shop Theme CSS - Responsive */
+   <style>
+    /* Coffee Theme Base */
     .coffee-bg {
         background-color: #f5f1ea;
     }
-    
+
     .coffee-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 1rem;
+        background-color: #f5f1ea;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    
+
     .coffee-card {
-        background-color: #fdf8f2;
+        background-color: white;
         border: 1px solid #e0d6c2;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         border-radius: 0.75rem;
         padding: 1.5rem;
         margin-top: 1rem;
     }
-    
+
     .coffee-text-primary {
         color: #5c4d3c;
     }
-    
-    .coffee-table-header {
-        background-color: #8c7b6b;
-        color: white;
+
+    .coffee-text-secondary {
+        color: #8c7b6b;
     }
-    
+
+    .coffee-border {
+        border-color: #e0d6c2;
+    }
+
+    .coffee-table-header {
+        background-color: #f5f1ea;
+        color: #5c4d3c;
+    }
+
     .coffee-table-row:hover {
         background-color: #f9f7f3;
     }
-    
+
     .coffee-btn-view {
-        background-color: #e0d6c2;
-        color: #5c4d3c;
+        background-color: #6f4e37;
+        color: white;
         transition: all 0.2s ease;
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
         font-size: 0.875rem;
     }
-    
+
     .coffee-btn-view:hover {
-        background-color: #d4c9b5;
+        background-color: #5c3d2a;
     }
-    
+
+    .coffee-empty-state {
+        color: #a67c52;
+    }
+
+    .coffee-pagination {
+        background-color: white;
+        border: 1px solid #e0d6c2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
     /* Responsive table container */
     .table-container {
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     /* Table styles */
     .orders-table {
         width: 100%;
         min-width: 600px;
         border-collapse: collapse;
     }
-    
-    .orders-table th, 
+
+    .orders-table th,
     .orders-table td {
         padding: 1rem;
         text-align: left;
         border-bottom: 1px solid #e0d6c2;
     }
-    
+
     /* Responsive text sizes */
     .responsive-text {
         font-size: clamp(0.875rem, 2vw, 1rem);
     }
-    
+
     /* Header styles */
     .page-header {
         font-size: clamp(1.5rem, 4vw, 2rem);
         margin-bottom: 1.5rem;
     }
-    
+
     /* Empty state styling */
     .empty-state {
         padding: 2rem;
         text-align: center;
     }
-    
+
     /* Pagination responsive styles */
     .pagination-container {
         margin-top: 1.5rem;
     }
-    
+
     .pagination {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-        justify-content: flex-end; 
+        justify-content: flex-end;
     }
-    
+
     .page-link {
         padding: 0.5rem 0.75rem;
         min-width: 2.5rem;
         text-align: center;
     }
-    
+
     /* Mobile-specific styles */
     @media (max-width: 640px) {
         .coffee-container {
             padding: 0.5rem;
         }
-        
+
         .coffee-card {
             padding: 1rem;
             border-radius: 0.5rem;
         }
-        
-        .orders-table th, 
+
+        .orders-table th,
         .orders-table td {
             padding: 0.75rem 0.5rem;
         }
-        
+
         .page-header {
             flex-direction: column;
             text-align: center;
         }
-        
+
         .page-header svg {
             margin-bottom: 0.5rem;
             margin-right: 0;
         }
     }
 </style>
+
 
 <div class="min-h-screen coffee-bg">
     <main class="p-6">
