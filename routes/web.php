@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\IngredientController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 
 // 🔹 Redirect Home to Login
 Route::get('/', function () {
@@ -110,3 +111,8 @@ Route::get('/admin/revenue-data', [AuthController::class, 'getRevenueData']);
 Route::get('/admin/category-revenue/{categoryId}', [AuthController::class, 'getCategoryRevenue']);
 
 Route::get('/admin/all-categories-revenue', [AuthController::class, 'getAllCategoriesRevenue']);
+
+// Div routes in Admin Dashboard
+// Make sure this goes inside the 'admin' group or has the appropriate middleware
+// This should be placed with your other admin routes, likely inside a group
+Route::get('/admin/orders/report/pdf', [App\Http\Controllers\OrderController::class, 'generatePDFReport'])->name('admin.orders.report.pdf');

@@ -28,5 +28,19 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    //For filtering in Order Management
+    public function scopeFilterByDate($query, $filters)
+{
+    if (!empty($filters['date'])) {
+        $query->whereDate('created_at', $filters['date']);
+    }
+    if (!empty($filters['month'])) {
+        $query->whereMonth('created_at', $filters['month']);
+    }
+    if (!empty($filters['year'])) {
+        $query->whereYear('created_at', $filters['year']);
+    }
+    return $query;
+}
 }
 
