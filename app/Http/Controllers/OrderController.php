@@ -43,14 +43,13 @@ class OrderController extends Controller
             
             // ========== INVENTORY DEDUCTION START ==========
             foreach ($product->ingredients as $ingredient) {
-                $quantityNeeded = $ingredient->pivot->quantity * $item['quantity'];
+                $multiplier = match($item['size']) {
+                    'small' => $ingredient->pivot->small_multiplier,
+                    'medium' => $ingredient->pivot->medium_multiplier,
+                    'large' => $ingredient->pivot->large_multiplier,
+                };
                 
-                // Check stock availability
-                if ($ingredient->stock < $quantityNeeded) {
-                    throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
-                }
-                
-                // Deduct from inventory
+                $quantityNeeded = $ingredient->pivot->quantity * $multiplier * $item['quantity'];
                 $ingredient->decrement('stock', $quantityNeeded);
             }
             // ========== INVENTORY DEDUCTION END ==========
