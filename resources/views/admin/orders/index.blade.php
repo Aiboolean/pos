@@ -62,49 +62,140 @@
     }
 </style>
 
-<div class="min-h-screen coffee-bg flex justify-center items-center px-4 sm:px-6 md:px-8 py-8">
-    <div class="coffee-container p-4 sm:p-6 w-full max-w-7xl">
-        <div class="coffee-card p-4 sm:p-6 relative" style="min-height: 700px; padding-bottom: 60px;">
-            <!-- Header with icon -->
-            <div class="flex items-center mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                     viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag mr-2">
-                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                    <path d="M3 6h18"/>
-                    <path d="M16 10a4 4 0 0 1-8 0"/>
-                </svg>
-                <h1 class="text-xl sm:text-2xl font-bold coffee-text-primary">Sales</h1>
+<div class="min-h-screen coffee-bg flex justify-center items-center px-4 sm:px-0 py-8">
+    <div class="coffee-container p-6 w-full max-w-6xl"> <!-- Increased max width for better layout -->
+        <div class="coffee-card p-6 relative" style="min-height: 700px; padding-bottom: 60px;">
+            
+            <!-- Header Section with Actions -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag mr-2">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M3 6h18"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <h1 class="text-2xl font-bold coffee-text-primary">Orders Management</h1>
+                </div>
+
+                <!-- PDF Export Button - Moved to top right -->
+                <form method="GET" action="{{ route('admin.orders.report.pdf') }}" class="w-full sm:w-auto">
+                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                    <button type="submit" class="coffee-btn-pdf px-4 py-2 rounded-lg font-medium flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                            <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>
+                        </svg>
+                        Export PDF
+                    </button>
+                </form>
             </div>
 
-            <!-- Table Wrapper -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full coffee-border rounded-lg shadow-sm">
-                    <thead class="coffee-table-header">
+            <!-- Filter Card -->
+            <div class="bg-[#f8f3e9] border border-[#d9c7b3] rounded-xl p-4 mb-6 shadow-sm">
+                <h2 class="text-lg font-semibold coffee-text-primary mb-3 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                    </svg>
+                    Filter Orders
+                </h2>
+                
+                <form method="GET" action="{{ route('admin.orders') }}" class="flex flex-col lg:flex-row gap-4 items-end">
+                    @csrf
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                        <div class="flex flex-col">
+                            <label for="start_date" class="text-sm font-medium coffee-text-secondary mb-2">Start Date</label>
+                            <input type="date" name="start_date" id="start_date" value="{{ request('start_date') }}" 
+                                   class="coffee-input rounded-lg px-4 py-2 border border-[#d9c7b3] focus:ring-2 focus:ring-[#a67c52] focus:border-transparent">
+                        </div>
+                        
+                        <div class="flex flex-col">
+                            <label for="end_date" class="text-sm font-medium coffee-text-secondary mb-2">End Date</label>
+                            <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}" 
+                                   class="coffee-input rounded-lg px-4 py-2 border border-[#d9c7b3] focus:ring-2 focus:ring-[#a67c52] focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 w-full lg:w-auto">
+                        <button type="submit" class="coffee-btn-filter px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors hover:bg-[#8b5d3c]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                            </svg>
+                            Apply Filters
+                        </button>
+                        <a href="{{ route('admin.orders') }}" class="px-6 py-2 rounded-lg font-medium border border-[#d9c7b3] text-[#5c4d3c] hover:bg-[#f0e6d8] transition-colors flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"/>
+                                <path d="M19 12H5"/>
+                                <path d="M6 18h12"/>
+                            </svg>
+                            Clear
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Active Filters Badge -->
+                @if(request('start_date') || request('end_date'))
+                <div class="mt-4 pt-3 border-t border-[#d9c7b3]">
+                    <span class="text-sm coffee-text-secondary mr-2">Active filters:</span>
+                    @if(request('start_date'))
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6d7c1] text-[#5c4d3c] mr-2">
+                        From: {{ request('start_date') }}
+                    </span>
+                    @endif
+                    @if(request('end_date'))
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6d7c1] text-[#5c4d3c]">
+                        To: {{ request('end_date') }}
+                    </span>
+                    @endif
+                </div>
+                @endif
+            </div>
+
+            <!-- Results Summary -->
+            @if($orders->total() > 0)
+            <div class="mb-4 flex justify-between items-center">
+                <p class="text-sm coffee-text-secondary">
+                    Showing {{ $orders->firstItem() }} - {{ $orders->lastItem() }} of {{ $orders->total() }} orders
+                </p>
+                <span class="px-3 py-1 rounded-full text-sm font-medium bg-[#f0e6d8] text-[#5c4d3c]">
+                    {{ $orders->total() }} {{ Str::plural('order', $orders->total()) }}
+                </span>
+            </div>
+            @endif
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto rounded-lg shadow-sm border border-[#d9c7b3]">
+                <table class="w-full">
+                    <thead class="bg-[#f0e6d8]">
                         <tr>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">ID</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">User</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">Total Price</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">Amount Received</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">Change</th>
-                            <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-medium uppercase tracking-wider border-b coffee-border">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Order ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Received</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Change</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y coffee-border">
+                    <tbody class="divide-y divide-[#e6d7c1]">
                         @forelse($orders as $order)
-                        <tr class="coffee-table-row">
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium coffee-text-primary">{{ $order->id }}</td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm coffee-text-primary">{{ $order->user->username }}</td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-blue-600">₱{{ number_format($order->total_price, 2) }}</td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600">₱{{ number_format($order->amount_received, 2) }}</td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-red-600">₱{{ number_format($order->change, 2) }}</td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm coffee-text-primary">
+                        <tr class="hover:bg-[#faf7f2] transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium coffee-text-primary">#{{ $order->id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm coffee-text-primary">{{ $order->user->username }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                                ₱{{ number_format($order->total_price, 2) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                ₱{{ number_format($order->amount_received, 2) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                                ₱{{ number_format($order->change, 2) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('admin.orders.show', $order) }}" 
-                                   class="coffee-btn-view px-3 sm:px-4 py-2 rounded-lg font-medium shadow-sm inline-flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                         class="lucide lucide-eye mr-1">
+                                   class="coffee-btn-view px-3 py-1 rounded-lg text-sm font-medium shadow-sm inline-flex items-center hover:shadow-md transition-shadow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye mr-1">
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
@@ -114,18 +205,16 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-4 sm:px-6 py-4 text-center coffee-empty-state">
-                                <div class="flex flex-col items-center justify-center py-8">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
-                                         viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="1.5"
-                                         stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package mb-2">
+                            <td colspan="6" class="px-6 py-8 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package mb-4 opacity-60">
                                         <path d="M16.5 9.4 7.5 4.21"/>
                                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                                         <path d="m3.27 6.96 8.73 5.05 8.85-5.06"/>
                                         <path d="M12 22.08V12"/>
                                     </svg>
-                                    <p class="text-lg font-medium coffee-text-primary">No orders found</p>
-                                    <p class="text-sm coffee-text-secondary">There are currently no orders to display</p>
+                                    <p class="text-lg font-medium coffee-text-primary mb-2">No orders found</p>
+                                    <p class="text-sm coffee-text-secondary">Try adjusting your filters or check back later</p>
                                 </div>
                             </td>
                         </tr>
@@ -134,10 +223,14 @@
                 </table>
             </div>
 
-            <!-- Fixed Pagination Links -->
-            <div class="absolute bottom-4 right-4 coffee-pagination p-2 rounded-lg">
-                {{ $orders->links() }}
+            <!-- Pagination -->
+            @if($orders->hasPages())
+            <div class="mt-6 flex justify-center">
+                <div class="coffee-pagination p-3 rounded-lg">
+                    {{ $orders->appends(request()->except('page'))->links() }}
+                </div>
             </div>
+            @endif
         </div>
     </div>
 </div>
