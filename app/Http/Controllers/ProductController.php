@@ -74,16 +74,20 @@ class ProductController extends Controller
         // ========== NEW INVENTORY LOGIC STARTS HERE ==========
         $product = Product::create($validatedData);
 
-        // Attach ingredients if provided
-        // Attach ingredients if provided
+        // Attach ingredients with size multipliers
         if ($request->has('ingredients')) {
             $ingredientsData = [];
             foreach ($request->ingredients as $index => $ingredientId) {
                 if (!empty($ingredientId) && !empty($request->quantities[$index])) {
-                    $ingredientsData[$ingredientId] = ['quantity' => $request->quantities[$index]];
+                    $ingredientsData[$ingredientId] = [
+                        'quantity' => $request->quantities[$index],
+                        'small_multiplier' => $request->small_multipliers[$index] ?? 0.75,
+                        'medium_multiplier' => $request->medium_multipliers[$index] ?? 1.00,
+                        'large_multiplier' => $request->large_multipliers[$index] ?? 1.50
+                    ];
                 }
             }
-            $product->ingredients()->sync($ingredientsData); // Use sync instead of attach
+            $product->ingredients()->sync($ingredientsData);
         }
 
         return redirect()->route('admin.products')->with('success', 'Product added successfully.');

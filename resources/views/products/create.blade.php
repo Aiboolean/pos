@@ -244,28 +244,59 @@
                     hover:file:bg-[#d4c9b5] transition duration-200 coffee-file-input">
                 </div>
             </div>
-
+            <!-- Ingredients -->
             <div class="form-group mt-4">
-                <h4>Ingredients</h4>
+                <h4 class="text-lg font-medium coffee-text-primary mb-3">Ingredients</h4>
                 <div id="ingredient-fields">
                     @foreach($ingredients as $index => $ingredient)
-                    <div class="flex items-center mb-2 ingredient-row">
-                        <select name="ingredients[]" class="form-control mr-2 w-1/2">
-                            <option value="">Select Ingredient</option>
-                            @foreach($ingredients as $i)
-                            <option value="{{ $i->id }}">{{ $i->name }} ({{ $i->unit }})</option>
-                            @endforeach
-                        </select>
-                        <input type="number" step="0.01" name="quantities[]" 
-                            placeholder="Quantity" class="form-control mr-2 w-1/4">
-                        <button type="button" class="remove-ingredient bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
+                    <div class="ingredient-row mb-4 p-4 coffee-toggle-bg rounded-xl">
+                        <div class="flex items-center mb-2">
+                            <select name="ingredients[]" class="form-control mr-2 flex-1 coffee-input ingredient-select" 
+                                    onchange="updateIngredientUnit(this)">
+                                <option value="">Select Ingredient</option>
+                                @foreach($ingredients as $i)
+                                <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-1 rounded-lg">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-5 gap-2 mt-2">
+                            <div>
+                                <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
+                                <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
+                                    class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
+                                    oninput="calculateSizeQuantities(this)">
+                            </div>
+                            <div>
+                                <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
+                                <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
+                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity">0.00</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
+                                <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
+                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity">0.00</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
+                                <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
+                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity">0.00</div>
+                            </div>
+                            <div class="flex items-end">
+                                <span class="ingredient-unit text-xs coffee-text-primary">-</span>
+                            </div>
+                        </div>
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-ingredient" class="btn btn-sm btn-secondary mt-2">
-                    + Add Ingredient
+                <button type="button" id="add-ingredient" class="coffee-btn-secondary mt-2 px-4 py-2 rounded-lg flex items-center">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add Ingredient
                 </button>
             </div>
             <!-- Buttons -->
@@ -315,26 +346,92 @@
     });
 
     
-    // Add new ingredient row
-    document.getElementById('add-ingredient').addEventListener('click', function() {
-        const container = document.getElementById('ingredient-fields');
-        const newField = `
-        <div class="flex items-center mb-2 ingredient-row">
-            <select name="ingredients[]" class="form-control mr-2 w-1/2">
-                <option value="">Select Ingredient</option>
-                @foreach($ingredients as $i)
-                <option value="{{ $i->id }}">{{ $i->name }} ({{ $i->unit }})</option>
-                @endforeach
-            </select>
-            <input type="number" step="0.01" name="quantities[]" 
-                   placeholder="Quantity" class="form-control mr-2 w-1/4">
-            <button type="button" class="remove-ingredient bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-        </div>`;
-        container.insertAdjacentHTML('beforeend', newField);
-        lucide.createIcons(); // Refresh icons for new elements
+    // Add new ingredient row with multipliers
+    // Calculate size quantities when base quantity changes
+function calculateSizeQuantities(input) {
+    const row = input.closest('.ingredient-row');
+    const baseQty = parseFloat(input.value) || 0;
+    
+    const smallQty = (baseQty * 0.75).toFixed(2);
+    const mediumQty = (baseQty * 1.00).toFixed(2);
+    const largeQty = (baseQty * 1.50).toFixed(2);
+    
+    row.querySelector('.small-quantity').textContent = smallQty;
+    row.querySelector('.medium-quantity').textContent = mediumQty;
+    row.querySelector('.large-quantity').textContent = largeQty;
+}
+
+// Update ingredient unit when ingredient is selected
+function updateIngredientUnit(select) {
+    const row = select.closest('.ingredient-row');
+    const selectedOption = select.options[select.selectedIndex];
+    const unit = selectedOption.getAttribute('data-unit') || '-';
+    
+    row.querySelector('.ingredient-unit').textContent = unit;
+}
+
+// Initialize calculations for existing rows
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.base-quantity').forEach(input => {
+        calculateSizeQuantities(input);
     });
+    
+    document.querySelectorAll('.ingredient-select').forEach(select => {
+        updateIngredientUnit(select);
+    });
+});
+
+// Update the add-ingredient function to include the new structure
+document.getElementById('add-ingredient').addEventListener('click', function() {
+    const container = document.getElementById('ingredient-fields');
+    const newField = `
+        <div class="ingredient-row mb-4 p-4 coffee-toggle-bg rounded-xl">
+            <div class="flex items-center mb-2">
+                <select name="ingredients[]" class="form-control mr-2 flex-1 coffee-input ingredient-select" 
+                        onchange="updateIngredientUnit(this)">
+                    <option value="">Select Ingredient</option>
+                    @foreach($ingredients as $i)
+                    <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
+                    @endforeach
+                </select>
+                <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-1 rounded-lg">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-5 gap-2 mt-2">
+                <div>
+                    <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
+                    <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
+                        class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
+                        oninput="calculateSizeQuantities(this)">
+                </div>
+                <div>
+                    <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
+                    <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
+                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity">0.00</div>
+                </div>
+                <div>
+                    <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
+                    <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
+                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity">0.00</div>
+                </div>
+                <div>
+                    <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
+                    <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
+                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity">0.00</div>
+                </div>
+                <div class="flex items-end">
+                    <span class="ingredient-unit text-xs coffee-text-primary">-</span>
+                </div>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', newField);
+    lucide.createIcons();
+});
 
     // Remove ingredient row
     document.addEventListener('click', function(e) {
