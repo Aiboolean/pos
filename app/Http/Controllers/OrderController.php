@@ -8,33 +8,37 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; 
+
+
 
 class OrderController extends Controller
 {
     public function store(Request $request)
-{
-    $request->validate([
-        'total_price' => 'required|numeric',
-        'amount_received' => 'required|numeric',
-        'change' => 'required|numeric',
-        'items' => 'required|array',
-        'items.*.id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|integer|min:1',
-        'items.*.price' => 'required|numeric',
-        'items.*.size' => 'required|string',
-    ]);
-
-    // Start database transaction for atomic operations
-    DB::beginTransaction();
-
-    try {
-        // Create the order
-        $order = Order::create([
-            'total_price' => $request->total_price,
-            'amount_received' => $request->amount_received,
-            'change' => $request->change,
-            'user_id' => Session::get('user_id'),
+    {
+        // ... YOUR EXISTING store METHOD (NO CHANGES) ...
+        $request->validate([
+            'total_price' => 'required|numeric',
+            'amount_received' => 'required|numeric',
+            'change' => 'required|numeric',
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric',
+            'items.*.size' => 'required|string',
         ]);
+
+        // Start database transaction for atomic operations
+        DB::beginTransaction();
+
+        try {
+            // Create the order
+            $order = Order::create([
+                'total_price' => $request->total_price,
+                'amount_received' => $request->amount_received,
+                'change' => $request->change,
+                'user_id' => Session::get('user_id'),
+            ]);
 
         // Add order items and process inventory
         $orderItems = [];
@@ -71,46 +75,63 @@ class OrderController extends Controller
             ];
         }
 
-        // Commit transaction if all operations succeed
-        DB::commit();
+            // Commit transaction if all operations succeed
+            DB::commit();
 
-        return response()->json([
-            'order' => $order,
-            'items' => $orderItems,
-        ], 201);
+            return response()->json([
+                'order' => $order,
+                'items' => $orderItems,
+            ], 201);
 
-    } catch (\Exception $e) {
-        // Rollback transaction on error
-        DB::rollBack();
-        return response()->json([
-            'error' => 'Order processing failed: ' . $e->getMessage()
-        ], 400);
+        } catch (\Exception $e) {
+            // Rollback transaction on error
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Order processing failed: ' . $e->getMessage()
+            ], 400);
+        }
     }
-}
-public function adminIndex()
+
+    // MODIFIED METHOD: Added filtering functionality
+   public function adminIndex(Request $request)
 {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'You must log in first.');
     }
 
-    // Fetch orders in descending order (latest first) with pagination
-    $orders = Order::with('user', 'items.product')
-                ->orderBy('created_at', 'desc')
-                ->paginate(10); // Adjust the number of items per page as needed
+    // Start building the query with relationships and descending order
+    $query = Order::with('user', 'items.product')->orderBy('created_at', 'desc');
 
-    return view('admin.orders.index', compact('orders'));
-}
-
-public function adminShow(Order $order)
-{
-    if (!Session::has('admin_logged_in')) {
-        return redirect('/login')->with('error', 'You must log in first.');
+    // ===== NEW DATE RANGE FILTERING LOGIC =====
+    // Filter by start date
+    if ($request->filled('start_date')) {
+        $query->whereDate('created_at', '>=', $request->input('start_date'));
     }
 
-    $order->load('user', 'items.product');
-    return view('admin.orders.show', compact('order'));
+    // Filter by end date
+    if ($request->filled('end_date')) {
+        $query->whereDate('created_at', '<=', $request->input('end_date'));
+    }
+    // ===== END FILTERING LOGIC =====
+
+    // Execute the query and paginate the results
+    $orders = $query->paginate(10);
+
+    // Pass the request object to the view to pre-fill the filter form inputs
+    return view('admin.orders.index', compact('orders', 'request'));
 }
-public function userOrders()
+
+    public function adminShow(Order $order)
+    {
+        if (!Session::has('admin_logged_in')) {
+            return redirect('/login')->with('error', 'You must log in first.');
+        }
+
+        $order->load('user', 'items.product');
+        return view('admin.orders.show', compact('order'));
+    }
+
+    public function userOrders(Request $request)
 {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'You must log in first.');
@@ -118,28 +139,112 @@ public function userOrders()
 
     // Fetch orders for the logged-in user in descending order (latest first) with pagination
     $userId = Session::get('user_id');
-    $orders = Order::with('items.product')
-                ->where('user_id', $userId)
-                ->orderBy('created_at', 'desc')
-                ->paginate(10); // Adjust the number of items per page as needed
+    
+    // Start with your original query
+    $query = Order::with('items.product')
+                ->where('user_id', $userId);
+    
+    // ADDED: Time-based filtering (preserves all existing functionality)
+    $filter = $request->query('filter', 'all');
+    switch ($filter) {
+        case 'daily':
+            $query->whereDate('created_at', today());
+            break;
+        case 'weekly':
+            // Sunday to Saturday week
+            $query->whereBetween('created_at', [
+                now()->startOfWeek(), // Sunday
+                now()->endOfWeek()    // Saturday
+            ]);
+            break;
+        case 'monthly':
+            $query->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+            break;
+        case 'yearly':
+            $query->whereYear('created_at', now()->year);
+            break;
+        // No 'default' case needed - when filter is 'all' or anything else,
+        // it will just use your original query without additional filters
+    }
+    
+    // YOUR ORIGINAL CODE - completely unchanged
+    $orders = $query->orderBy('created_at', 'desc')->paginate(10);
 
     return view('user.orders.index', compact('orders'));
 }
-public function userOrderShow(Order $order)
-{
-    if (!Session::has('admin_logged_in')) {
-        return redirect('/login')->with('error', 'You must log in first.');
+    public function userOrderShow(Order $order)
+    {
+        if (!Session::has('admin_logged_in')) {
+            return redirect('/login')->with('error', 'You must log in first.');
+        }
+
+        // Ensure the order belongs to the logged-in user
+        $userId = Session::get('user_id');
+        if ($order->user_id !== $userId) {
+            return redirect('/orders')->with('error', 'Unauthorized access.');
+        }
+
+        $order->load('items.product');
+        return view('user.orders.show', compact('order'));
     }
 
-    // Ensure the order belongs to the logged-in user
-    $userId = Session::get('user_id');
-    if ($order->user_id !== $userId) {
-        return redirect('/orders')->with('error', 'Unauthorized access.');
+    // NEW METHOD: Handles generating the PDF report
+    public function generatePDFReport(Request $request)
+    {
+        if (!Session::has('admin_logged_in')) {
+            return redirect('/login')->with('error', 'You must log in first.');
+        }
+
+        // 1. Fetch orders with filters
+        $query = Order::with('user', 'items.product');
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->input('start_date'));
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->input('end_date'));
+        }
+        $filteredOrders = $query->get();
+
+        // 2. Calculate Product Sales Data - COMPLETELY REWRITTEN
+        // First, get all order IDs that match our date filter
+        $filteredOrderIds = Order::when($request->filled('start_date'), function ($query) use ($request) {
+                $query->whereDate('created_at', '>=', $request->input('start_date'));
+            })
+            ->when($request->filled('end_date'), function ($query) use ($request) {
+                $query->whereDate('created_at', '<=', $request->input('end_date'));
+            })
+            ->pluck('id');
+
+        // Now get product performance for those order IDs
+        $productPerformance = OrderItem::with('product')
+            ->whereIn('order_id', $filteredOrderIds)
+            ->select('product_id', 
+                    DB::raw('SUM(quantity) as total_quantity'), 
+                    DB::raw('SUM(price * quantity) as total_revenue'))
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->get();
+
+        // 3. Calculate report statistics
+        $totalSales = $filteredOrders->sum('total_price');
+        $totalOrders = $filteredOrders->count();
+        $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
+
+        // 4. Load a PDF view, pass the data
+        $pdf = PDF::loadView('admin.reports.pdf', [
+            'orders' => $filteredOrders,
+            'totalSales' => $totalSales,
+            'totalOrders' => $totalOrders,
+            'averageOrderValue' => $averageOrderValue,
+            'productPerformance' => $productPerformance,
+            'filters' => $request->all()
+        ]);
+
+        // 5. Generate a filename
+        $fileName = 'sales-report-' . now()->format('Y-m-d_H-i') . '.pdf';
+
+        // 6. Download the PDF
+        return $pdf->download($fileName);
     }
-
-    $order->load('items.product');
-    return view('user.orders.show', compact('order'));
-}
-
-
 }
