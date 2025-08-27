@@ -132,22 +132,48 @@ class OrderController extends Controller
         return view('admin.orders.show', compact('order'));
     }
 
-    public function userOrders()
-    {
-        if (!Session::has('admin_logged_in')) {
-            return redirect('/login')->with('error', 'You must log in first.');
-        }
-
-        // Fetch orders for the logged-in user in descending order (latest first) with pagination
-        $userId = Session::get('user_id');
-        $orders = Order::with('items.product')
-                    ->where('user_id', $userId)
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10); // Adjust the number of items per page as needed
-
-        return view('user.orders.index', compact('orders'));
+    public function userOrders(Request $request)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
     }
 
+    // Fetch orders for the logged-in user in descending order (latest first) with pagination
+    $userId = Session::get('user_id');
+    
+    // Start with your original query
+    $query = Order::with('items.product')
+                ->where('user_id', $userId);
+    
+    // ADDED: Time-based filtering (preserves all existing functionality)
+    $filter = $request->query('filter', 'all');
+    switch ($filter) {
+        case 'daily':
+            $query->whereDate('created_at', today());
+            break;
+        case 'weekly':
+            // Sunday to Saturday week
+            $query->whereBetween('created_at', [
+                now()->startOfWeek(), // Sunday
+                now()->endOfWeek()    // Saturday
+            ]);
+            break;
+        case 'monthly':
+            $query->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+            break;
+        case 'yearly':
+            $query->whereYear('created_at', now()->year);
+            break;
+        // No 'default' case needed - when filter is 'all' or anything else,
+        // it will just use your original query without additional filters
+    }
+    
+    // YOUR ORIGINAL CODE - completely unchanged
+    $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+
+    return view('user.orders.index', compact('orders'));
+}
     public function userOrderShow(Order $order)
     {
         if (!Session::has('admin_logged_in')) {
