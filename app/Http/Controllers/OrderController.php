@@ -40,41 +40,40 @@ class OrderController extends Controller
                 'user_id' => Session::get('user_id'),
             ]);
 
-            // Add order items and process inventory
-            $orderItems = [];
-            foreach ($request->items as $item) {
-                $product = Product::with('ingredients')->find($item['id']);
+        // Add order items and process inventory
+        $orderItems = [];
+        foreach ($request->items as $item) {
+            $product = Product::with('ingredients')->find($item['id']);
+            
+            // ========== INVENTORY DEDUCTION START ==========
+            foreach ($product->ingredients as $ingredient) {
+                $multiplier = match($item['size']) {
+                    'small' => $ingredient->pivot->small_multiplier,
+                    'medium' => $ingredient->pivot->medium_multiplier,
+                    'large' => $ingredient->pivot->large_multiplier,
+                };
                 
-                // ========== INVENTORY DEDUCTION START ==========
-                foreach ($product->ingredients as $ingredient) {
-                    $quantityNeeded = $ingredient->pivot->quantity * $item['quantity'];
-                    
-                    // Check stock availability
-                    if ($ingredient->stock < $quantityNeeded) {
-                        throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
-                    }
-                    
-                    // Deduct from inventory
-                    $ingredient->decrement('stock', $quantityNeeded);
-                }
-                // ========== INVENTORY DEDUCTION END ==========
-                
-                $orderItem = OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['id'],
-                    'user_id' => Session::get('user_id'),
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'size' => $item['size'],
-                ]);
-                
-                $orderItems[] = [
-                    'name' => $product->name,
-                    'size' => $item['size'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ];
+                $quantityNeeded = $ingredient->pivot->quantity * $multiplier * $item['quantity'];
+                $ingredient->decrement('stock', $quantityNeeded);
             }
+            // ========== INVENTORY DEDUCTION END ==========
+            
+            $orderItem = OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $item['id'],
+                'user_id' => Session::get('user_id'),
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'size' => $item['size'],
+            ]);
+            
+            $orderItems[] = [
+                'name' => $product->name,
+                'size' => $item['size'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ];
+        }
 
             // Commit transaction if all operations succeed
             DB::commit();
@@ -132,22 +131,48 @@ class OrderController extends Controller
         return view('admin.orders.show', compact('order'));
     }
 
-    public function userOrders()
-    {
-        if (!Session::has('admin_logged_in')) {
-            return redirect('/login')->with('error', 'You must log in first.');
-        }
-
-        // Fetch orders for the logged-in user in descending order (latest first) with pagination
-        $userId = Session::get('user_id');
-        $orders = Order::with('items.product')
-                    ->where('user_id', $userId)
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10); // Adjust the number of items per page as needed
-
-        return view('user.orders.index', compact('orders'));
+    public function userOrders(Request $request)
+{
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
     }
 
+    // Fetch orders for the logged-in user in descending order (latest first) with pagination
+    $userId = Session::get('user_id');
+    
+    // Start with your original query
+    $query = Order::with('items.product')
+                ->where('user_id', $userId);
+    
+    // ADDED: Time-based filtering (preserves all existing functionality)
+    $filter = $request->query('filter', 'all');
+    switch ($filter) {
+        case 'daily':
+            $query->whereDate('created_at', today());
+            break;
+        case 'weekly':
+            // Sunday to Saturday week
+            $query->whereBetween('created_at', [
+                now()->startOfWeek(), // Sunday
+                now()->endOfWeek()    // Saturday
+            ]);
+            break;
+        case 'monthly':
+            $query->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year);
+            break;
+        case 'yearly':
+            $query->whereYear('created_at', now()->year);
+            break;
+        // No 'default' case needed - when filter is 'all' or anything else,
+        // it will just use your original query without additional filters
+    }
+    
+    // YOUR ORIGINAL CODE - completely unchanged
+    $orders = $query->orderBy('created_at', 'desc')->paginate(10);
+
+    return view('user.orders.index', compact('orders'));
+}
     public function userOrderShow(Order $order)
     {
         if (!Session::has('admin_logged_in')) {

@@ -70,7 +70,41 @@
         border: 1px solid #e0d6c2;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-
+    
+    /* Filter section styles */
+    .filter-section {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .filter-label {
+        color: #5c4d3c;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    
+    .filter-select {
+        border: 1px solid #e0d6c2;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        background-color: white;
+        color: #5c4d3c;
+        min-width: 150px;
+    }
+    
+    .period-display {
+        background-color: #e0d6c2;
+        color: #5c4d3c;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        margin-left: auto;
+    }
+    
     /* Responsive table container */
     .table-container {
         width: 100%;
@@ -152,6 +186,17 @@
             margin-bottom: 0.5rem;
             margin-right: 0;
         }
+        
+        .filter-section {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .period-display {
+            margin-left: 0;
+            width: 100%;
+            text-align: center;
+        }
     }
 </style>
 
@@ -161,16 +206,53 @@
         <div class="coffee-container">
             <div class="coffee-card">
                 <!-- Header with icon -->
-                <div class="flex flex-col sm:flex-row items-center justify-center mb-6 page-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list mr-0 sm:mr-3 mb-2 sm:mb-0">
-                        <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                        <path d="M12 11h4"/>
-                        <path d="M12 16h4"/>
-                        <path d="M8 11h.01"/>
-                        <path d="M8 16h.01"/>
-                    </svg>
-                    <h1 class="text-2xl sm:text-3xl font-bold coffee-text-primary text-center sm:text-left">My Orders</h1>
+                <div class="flex flex-col sm:flex-row items-center justify-between mb-6 page-header">
+                    <div class="flex items-center justify-center sm:justify-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list mr-0 sm:mr-3 mb-2 sm:mb-0">
+                            <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                            <path d="M12 11h4"/>
+                            <path d="M12 16h4"/>
+                            <path d="M8 11h.01"/>
+                            <path d="M8 16h.01"/>
+                        </svg>
+                        <h1 class="text-2xl sm:text-3xl font-bold coffee-text-primary text-center sm:text-left">My Orders</h1>
+                    </div>
+
+                    <!-- Filter Section - Fixed in the top right -->
+                    <div class="filter-section">
+                        <span class="filter-label">Filter by:</span>
+                        <select id="timeFilter" class="filter-select" onchange="updateFilter()">
+                            <option value="all" {{ request('filter') == 'all' || !request('filter') ? 'selected' : '' }}>All Orders</option>
+                            <option value="daily" {{ request('filter') == 'daily' ? 'selected' : '' }}>Daily</option>
+                            <option value="weekly" {{ request('filter') == 'weekly' ? 'selected' : '' }}>Weekly</option>
+                            <option value="monthly" {{ request('filter') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                            <option value="yearly" {{ request('filter') == 'yearly' ? 'selected' : '' }}>Yearly</option>
+                        </select>
+                        
+                        @php
+                            $filter = request('filter', 'all');
+                            $periodText = '';
+                            
+                            if ($filter === 'daily') {
+                                $periodText = 'Today: ' . now()->format('F j, Y');
+                            } elseif ($filter === 'weekly') {
+                                $startOfWeek = now()->startOfWeek(); // Sunday
+                                $endOfWeek = now()->endOfWeek(); // Saturday
+                                $periodText = 'This Week: ' . $startOfWeek->format('M j') . ' - ' . $endOfWeek->format('M j, Y');
+                            } elseif ($filter === 'monthly') {
+                                $periodText = 'This Month: ' . now()->format('F Y');
+                            } elseif ($filter === 'yearly') {
+                                $periodText = 'This Year: ' . now()->format('Y');
+                            }
+                        @endphp
+                        
+                        @if($filter !== 'all')
+                            <div class="period-display">
+                                {{ $periodText }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Responsive table container -->
@@ -219,13 +301,24 @@
                                         Change
                                     </div>
                                 </th>
+                                <th class="p-3 responsive-text">
+                                    <div class="flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar mr-2">
+                                            <path d="M8 2v4"/>
+                                            <path d="M16 2v4"/>
+                                            <rect width="18" height="18" x="3" y="4" rx="2"/>
+                                            <path d="M3 10h18"/>
+                                        </svg>
+                                        Date
+                                    </div>
+                                </th>
                                 <th class="p-3 responsive-text text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if ($orders->isEmpty())
                                 <tr>
-                                    <td colspan="5" class="empty-state coffee-text-primary italic">
+                                    <td colspan="6" class="empty-state coffee-text-primary italic">
                                         <div class="flex flex-col items-center justify-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-x mb-3">
                                                 <path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/>
@@ -234,7 +327,7 @@
                                                 <line x1="12" x2="12" y1="22" y2="12"/>
                                                 <path d="m17 13 5 5m-5 0 5-5"/>
                                             </svg>
-                                            No orders found.
+                                            No orders found for the selected period.
                                         </div>
                                     </td>
                                 </tr>
@@ -245,6 +338,7 @@
                                         <td class="p-3 font-semibold text-[#8b5e3b] responsive-text">₱{{ number_format($order->total_price, 2) }}</td>
                                         <td class="p-3 font-semibold text-[#6d883e] responsive-text">₱{{ number_format($order->amount_received, 2) }}</td>
                                         <td class="p-3 font-semibold text-[#a94442] responsive-text">₱{{ number_format($order->change, 2) }}</td>
+                                        <td class="p-3 coffee-text-primary responsive-text">{{ $order->created_at->format('M j, Y g:i A') }}</td>
                                         <td class="p-3 text-center">
                                             <a href="{{ route('user.orders.show', $order) }}" 
                                             class="inline-flex items-center coffee-btn-view">
@@ -266,7 +360,7 @@
                 @if ($orders->hasPages())
                     <div class="pagination-container">
                         <div class="pagination">
-                            {{ $orders->links() }}
+                            {{ $orders->appends(['filter' => request('filter')])->links() }}
                         </div>
                     </div>
                 @endif
@@ -274,4 +368,19 @@
         </div>
     </main>
 </div>
+
+<script>
+    function updateFilter() {
+        const filter = document.getElementById('timeFilter').value;
+        const url = new URL(window.location.href);
+        
+        if (filter === 'all') {
+            url.searchParams.delete('filter');
+        } else {
+            url.searchParams.set('filter', filter);
+        }
+        
+        window.location.href = url.toString();
+    }
+</script>
 @endsection
