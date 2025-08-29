@@ -164,6 +164,7 @@
 
 
         <!-- Total Revenue -->
+          <a href="{{ route('user.orders') }}" class="block">
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
             <div class="flex items-center space-x-3">
                 <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
@@ -180,6 +181,7 @@
         </div>
 
         <!-- Today's Sales -->
+         <a href="{{ route('admin.reports') }}" class="block">
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
             <div class="flex items-center space-x-3">
                 <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
