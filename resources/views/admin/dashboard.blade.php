@@ -291,18 +291,7 @@ const globalDatePicker = flatpickr("#globalDateRangePicker", {
     dateFormat: "Y-m-d",
     onChange: function(selectedDates, dateStr, instance) {
         if (selectedDates.length === 2) {
-            const startDate = selectedDates[0];
-            const endDate = selectedDates[1];
-
-            // Update all charts with the selected date range
-            fetchRevenueData(startDate, endDate); // Update Revenue Chart
-            fetchAllCategoriesRevenueData(startDate, endDate); // Update All Categories Revenue Chart
-
-            // Update Category Revenue Chart if a category is selected
-            const categoryId = document.getElementById('categoryDropdown').value;
-            if (categoryId) {
-                fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
-            }
+            refreshAllCharts();
         }
     }
 });
@@ -311,45 +300,47 @@ const globalDatePicker = flatpickr("#globalDateRangePicker", {
 const ctx = document.getElementById('revenueChart').getContext('2d');
 let revenueChart;
 
-// Function to fetch revenue data
+// Function to fetch revenue data with proper daily points
 function fetchRevenueData(startDate, endDate) {
-    // Add cache-busting parameter to prevent browser caching
     const cacheBuster = new Date().getTime();
     fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateChart(data);
+            updateChart(data, startDate, endDate);
         })
         .catch(error => {
             console.error('Error fetching revenue data:', error);
         });
 }
 
-// Function to update the Revenue Chart
-function updateChart(data) {
+// Fixed chart update function with daily points
+function updateChart(data, startDate, endDate) {
     if (revenueChart) {
         revenueChart.destroy();
     }
 
+    // Ensure we have proper daily data
+    const dailyData = ensureDailyData(data, startDate, endDate);
+
     revenueChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue',
-            data: data.revenue,
-            backgroundColor: 'rgba(166, 123, 91, 0.2)',  // Soft coffee brown with transparency
-            borderColor: '#A67B5B',                      // Warm coffee brown
-            borderWidth: 2,
-            tension: 0.1,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#A67B5B',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: true
-        }]
-    },
+        type: 'line',
+        data: {
+            labels: dailyData.labels,
+            datasets: [{
+                label: 'Daily Revenue',
+                data: dailyData.revenue,
+                backgroundColor: 'rgba(166, 123, 91, 0.2)',
+                borderColor: '#A67B5B',
+                borderWidth: 3,
+                tension: 0.1, // Less curve for better daily points visibility
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#A67B5B',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                fill: true
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -360,7 +351,10 @@ function updateChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
                     }
                 },
                 x: {
@@ -368,7 +362,17 @@ function updateChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        maxRotation: 45,
+                        minRotation: 45,
+                        callback: function(value, index, values) {
+                            // Format date for better readability
+                            const date = new Date(this.getLabelForValue(value));
+                            return date.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric' 
+                            });
+                        }
                     }
                 }
             },
@@ -377,19 +381,65 @@ function updateChart(data) {
                     labels: {
                         color: '#5c4d3c'
                     }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Revenue: ₱${context.raw.toLocaleString()}`;
+                        },
+                        title: function(context) {
+                            const date = new Date(context[0].label);
+                            return date.toLocaleDateString('en-US', { 
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        }
+                    }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
 }
 
-// Initialize Category Revenue Chart
+// Function to ensure we have data for every day in the range
+function ensureDailyData(data, startDate, endDate) {
+    const result = {
+        labels: [],
+        revenue: []
+    };
+
+    // Create a map of existing data for quick lookup
+    const existingDataMap = {};
+    data.labels.forEach((label, index) => {
+        existingDataMap[label] = data.revenue[index] || 0;
+    });
+
+    // Generate all dates in the range
+    const currentDate = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (currentDate <= end) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        result.labels.push(dateString);
+        result.revenue.push(existingDataMap[dateString] || 0);
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return result;
+}
+
+// Initialize other charts (keep your existing code for these)
 const categoryCtx = document.getElementById('categoryRevenueChart').getContext('2d');
 let categoryRevenueChart;
 
-// Function to fetch category revenue data
 function fetchCategoryRevenueData(categoryId, startDate, endDate) {
-    // Add cache-busting parameter
     const cacheBuster = new Date().getTime();
     fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
@@ -401,44 +451,31 @@ function fetchCategoryRevenueData(categoryId, startDate, endDate) {
         });
 }
 
-// Function to update the Category Revenue Chart
 function updateCategoryChart(data) {
     if (categoryRevenueChart) {
         categoryRevenueChart.destroy();
     }
 
     categoryRevenueChart = new Chart(categoryCtx, {
-    type: 'pie',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue by Product',
-            data: data.revenue,
-            backgroundColor: [
-                '#A67B5B',  // Warm coffee brown
-                '#C9A87C',  // Light latte
-                '#E3C16F',  // Golden cream
-                '#8D6E63',  // Muted clay
-                '#D4B483',  // Soft beige
-                '#BC8A5F',  // Medium roast
-                '#E6C39A',  // Light foam
-                '#9C7E56'   // Dark caramel
-            ],
-            borderColor: '#f5f1ea', // Light cream border
-            borderWidth: 1.5,        // Slightly thicker border
-            hoverBackgroundColor: [   // Slightly darker on hover
-                '#956A4F',
-                '#B5976B',
-                '#D3B15F',
-                '#7D5E54',
-                '#C4A472',
-                '#AA754D',
-                '#D6B288',
-                '#8B6D4A'
-            ],
-            hoverBorderWidth: 2
-        }]
-    },
+        type: 'pie',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Revenue by Product',
+                data: data.revenue,
+                backgroundColor: [
+                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
+                    '#D4B483', '#BC8A5F', '#E6C39A', '#9C7E56'
+                ],
+                borderColor: '#f5f1ea',
+                borderWidth: 1.5,
+                hoverBackgroundColor: [
+                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54',
+                    '#C4A472', '#AA754D', '#D6B288', '#8B6D4A'
+                ],
+                hoverBorderWidth: 2
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -460,7 +497,7 @@ function updateCategoryChart(data) {
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
                             const percentage = Math.round((value / total) * 100);
-                            return `${label}: ₱${value} (${percentage}%)`;
+                            return `${label}: ₱${value.toLocaleString()} (${percentage}%)`;
                         }
                     }
                 }
@@ -469,13 +506,10 @@ function updateCategoryChart(data) {
     });
 }
 
-// Initialize All Categories Revenue Chart
 const allCategoriesCtx = document.getElementById('allCategoriesRevenueChart').getContext('2d');
 let allCategoriesRevenueChart;
 
-// Function to fetch revenue data for all categories
 function fetchAllCategoriesRevenueData(startDate, endDate) {
-    // Add cache-busting parameter
     const cacheBuster = new Date().getTime();
     fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
         .then(response => response.json())
@@ -487,40 +521,29 @@ function fetchAllCategoriesRevenueData(startDate, endDate) {
         });
 }
 
-// Function to update the All Categories Revenue Chart
 function updateAllCategoriesChart(data) {
     if (allCategoriesRevenueChart) {
         allCategoriesRevenueChart.destroy();
     }
 
     allCategoriesRevenueChart = new Chart(allCategoriesCtx, {
-    type: 'bar',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue by Category',
-            data: data.revenue,
-            backgroundColor: [
-                '#A67B5B',  // Warm coffee brown
-                '#C9A87C',  // Light latte
-                '#E3C16F',  // Golden cream
-                '#8D6E63',  // Muted clay
-                '#D4B483',  // Soft beige
-                '#BC8A5F'   // Medium roast
-            ],
-            borderColor: '#f5f1ea',
-            borderWidth: 1.5,
-            hoverBackgroundColor: [
-                '#956A4F',
-                '#B5976B',
-                '#D3B15F',
-                '#7D5E54',
-                '#C4A472',
-                '#AA754D'
-            ],
-            hoverBorderWidth: 2
-        }]
-    },
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Revenue by Category',
+                data: data.revenue,
+                backgroundColor: [
+                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', '#D4B483', '#BC8A5F'
+                ],
+                borderColor: '#f5f1ea',
+                borderWidth: 1.5,
+                hoverBackgroundColor: [
+                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54', '#C4A472', '#AA754D'
+                ],
+                hoverBorderWidth: 2
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -531,7 +554,10 @@ function updateAllCategoriesChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
                     }
                 },
                 x: {
@@ -554,14 +580,6 @@ function updateAllCategoriesChart(data) {
     });
 }
 
-// Fetch initial data for all charts (e.g., last 30 days)
-const endDate = new Date();
-const startDate = new Date();
-startDate.setDate(endDate.getDate() - 30);
-
-// Set initial date range in the global date picker
-globalDatePicker.setDate([startDate, endDate]);
-
 // Function to refresh all charts
 function refreshAllCharts() {
     const selectedDates = globalDatePicker.selectedDates;
@@ -569,7 +587,6 @@ function refreshAllCharts() {
         fetchRevenueData(selectedDates[0], selectedDates[1]);
         fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1]);
         
-        // Update Category Revenue Chart if a category is selected
         const categoryId = document.getElementById('categoryDropdown').value;
         if (categoryId) {
             fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
@@ -577,9 +594,22 @@ function refreshAllCharts() {
     }
 }
 
-// Fetch initial data for all charts
-fetchRevenueData(startDate, endDate); // Revenue Chart
-fetchAllCategoriesRevenueData(startDate, endDate); // All Categories Revenue Chart
+// Set initial date range (last 30 days)
+const endDate = new Date();
+const startDate = new Date();
+startDate.setDate(endDate.getDate() - 30);
+globalDatePicker.setDate([startDate, endDate]);
+
+// Fetch initial data
+fetchRevenueData(startDate, endDate);
+fetchAllCategoriesRevenueData(startDate, endDate);
+
+// Set up refresh interval (5 minutes)
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+setInterval(refreshAllCharts, REFRESH_INTERVAL);
+
+// Add click handler for refresh button
+document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
 
 // Fetch category revenue data when a category is selected
 document.getElementById('categoryDropdown').addEventListener('change', function() {
@@ -589,13 +619,6 @@ document.getElementById('categoryDropdown').addEventListener('change', function(
         fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
     }
 });
-
-// Set up refresh interval (e.g., every 1 minutes)
-const REFRESH_INTERVAL = 1 * 60 * 1000; // 1 minutes in milliseconds
-setInterval(refreshAllCharts, REFRESH_INTERVAL);
-
-// Add click handler for refresh button
-document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
 
 // Initialize Lucide icons
 lucide.createIcons();
