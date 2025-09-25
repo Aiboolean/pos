@@ -223,8 +223,14 @@
                     </svg>
                     Revenue Chart
                 </h3>
-                <!-- Excel-Style Compact Controls -->
+                <!-- Excel-Style Compact Controls with Period Filter -->
                 <div class="compact-controls w-full sm:w-auto">
+                    <select id="periodFilter" class="border coffee-border rounded-lg p-2 text-sm">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
                     <input type="text" id="globalDateRangePicker" class="border coffee-border rounded-lg w-full">
                     <button id="refreshChartsBtn" class="coffee-btn-primary rounded-lg font-medium inline-flex items-center whitespace-nowrap">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -300,45 +306,46 @@ const globalDatePicker = flatpickr("#globalDateRangePicker", {
 const ctx = document.getElementById('revenueChart').getContext('2d');
 let revenueChart;
 
-// Function to fetch revenue data with proper daily points
-function fetchRevenueData(startDate, endDate) {
+// Global variables to track current period and dates
+let currentPeriod = 'daily';
+let currentStartDate, currentEndDate;
+
+// Function to fetch revenue data with period filtering
+function fetchRevenueData(startDate, endDate, period = 'daily') {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateChart(data, startDate, endDate);
+            updateChart(data, startDate, endDate, period);
         })
         .catch(error => {
             console.error('Error fetching revenue data:', error);
         });
 }
 
-// Fixed chart update function with daily points
-function updateChart(data, startDate, endDate) {
+// Enhanced chart update function with period support
+function updateChart(data, startDate, endDate, period) {
     if (revenueChart) {
         revenueChart.destroy();
     }
 
-    // Ensure we have proper daily data
-    const dailyData = ensureDailyData(data, startDate, endDate);
-
     revenueChart = new Chart(ctx, {
-        type: 'line',
+        type: period === 'daily' ? 'line' : 'bar',
         data: {
-            labels: dailyData.labels,
+            labels: data.labels,
             datasets: [{
-                label: 'Daily Revenue',
-                data: dailyData.revenue,
-                backgroundColor: 'rgba(166, 123, 91, 0.2)',
+                label: `${period.charAt(0).toUpperCase() + period.slice(1)} Revenue`,
+                data: data.revenue,
+                backgroundColor: period === 'daily' ? 'rgba(166, 123, 91, 0.2)' : '#A67B5B',
                 borderColor: '#A67B5B',
-                borderWidth: 3,
-                tension: 0.1, // Less curve for better daily points visibility
+                borderWidth: period === 'daily' ? 3 : 1,
+                tension: 0.1,
                 pointBackgroundColor: '#fff',
                 pointBorderColor: '#A67B5B',
                 pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                fill: true
+                pointRadius: period === 'daily' ? 5 : 0,
+                pointHoverRadius: period === 'daily' ? 8 : 4,
+                fill: period === 'daily'
             }]
         },
         options: {
@@ -363,16 +370,8 @@ function updateChart(data, startDate, endDate) {
                     },
                     ticks: {
                         color: '#5c4d3c',
-                        maxRotation: 45,
-                        minRotation: 45,
-                        callback: function(value, index, values) {
-                            // Format date for better readability
-                            const date = new Date(this.getLabelForValue(value));
-                            return date.toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric' 
-                            });
-                        }
+                        maxRotation: period === 'daily' ? 45 : 0,
+                        minRotation: period === 'daily' ? 45 : 0
                     }
                 }
             },
@@ -388,13 +387,7 @@ function updateChart(data, startDate, endDate) {
                             return `Revenue: ₱${context.raw.toLocaleString()}`;
                         },
                         title: function(context) {
-                            const date = new Date(context[0].label);
-                            return date.toLocaleDateString('en-US', { 
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            });
+                            return context[0].label;
                         }
                     }
                 }
@@ -407,51 +400,23 @@ function updateChart(data, startDate, endDate) {
     });
 }
 
-// Function to ensure we have data for every day in the range
-function ensureDailyData(data, startDate, endDate) {
-    const result = {
-        labels: [],
-        revenue: []
-    };
-
-    // Create a map of existing data for quick lookup
-    const existingDataMap = {};
-    data.labels.forEach((label, index) => {
-        existingDataMap[label] = data.revenue[index] || 0;
-    });
-
-    // Generate all dates in the range
-    const currentDate = new Date(startDate);
-    const end = new Date(endDate);
-    
-    while (currentDate <= end) {
-        const dateString = currentDate.toISOString().split('T')[0];
-        result.labels.push(dateString);
-        result.revenue.push(existingDataMap[dateString] || 0);
-        
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return result;
-}
-
-// Initialize other charts (keep your existing code for these)
+// Initialize other charts
 const categoryCtx = document.getElementById('categoryRevenueChart').getContext('2d');
 let categoryRevenueChart;
 
-function fetchCategoryRevenueData(categoryId, startDate, endDate) {
+function fetchCategoryRevenueData(categoryId, startDate, endDate, period = 'daily') {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateCategoryChart(data);
+            updateCategoryChart(data, period);
         })
         .catch(error => {
             console.error('Error fetching category revenue data:', error);
         });
 }
 
-function updateCategoryChart(data) {
+function updateCategoryChart(data, period) {
     if (categoryRevenueChart) {
         categoryRevenueChart.destroy();
     }
@@ -461,7 +426,7 @@ function updateCategoryChart(data) {
         data: {
             labels: data.labels,
             datasets: [{
-                label: 'Revenue by Product',
+                label: `Revenue by Product (${period})`,
                 data: data.revenue,
                 backgroundColor: [
                     '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
@@ -509,19 +474,19 @@ function updateCategoryChart(data) {
 const allCategoriesCtx = document.getElementById('allCategoriesRevenueChart').getContext('2d');
 let allCategoriesRevenueChart;
 
-function fetchAllCategoriesRevenueData(startDate, endDate) {
+function fetchAllCategoriesRevenueData(startDate, endDate, period = 'daily') {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateAllCategoriesChart(data);
+            updateAllCategoriesChart(data, period);
         })
         .catch(error => {
             console.error('Error fetching all categories revenue data:', error);
         });
 }
 
-function updateAllCategoriesChart(data) {
+function updateAllCategoriesChart(data, period) {
     if (allCategoriesRevenueChart) {
         allCategoriesRevenueChart.destroy();
     }
@@ -531,7 +496,7 @@ function updateAllCategoriesChart(data) {
         data: {
             labels: data.labels,
             datasets: [{
-                label: 'Revenue by Category',
+                label: `Revenue by Category (${period})`,
                 data: data.revenue,
                 backgroundColor: [
                     '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', '#D4B483', '#BC8A5F'
@@ -583,13 +548,19 @@ function updateAllCategoriesChart(data) {
 // Function to refresh all charts
 function refreshAllCharts() {
     const selectedDates = globalDatePicker.selectedDates;
+    const period = document.getElementById('periodFilter').value;
+    
     if (selectedDates.length === 2) {
-        fetchRevenueData(selectedDates[0], selectedDates[1]);
-        fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1]);
+        currentPeriod = period;
+        currentStartDate = selectedDates[0];
+        currentEndDate = selectedDates[1];
+        
+        fetchRevenueData(selectedDates[0], selectedDates[1], period);
+        fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1], period);
         
         const categoryId = document.getElementById('categoryDropdown').value;
         if (categoryId) {
-            fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
+            fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1], period);
         }
     }
 }
@@ -600,23 +571,30 @@ const startDate = new Date();
 startDate.setDate(endDate.getDate() - 30);
 globalDatePicker.setDate([startDate, endDate]);
 
+// Store initial dates
+currentStartDate = startDate;
+currentEndDate = endDate;
+
 // Fetch initial data
-fetchRevenueData(startDate, endDate);
-fetchAllCategoriesRevenueData(startDate, endDate);
+fetchRevenueData(startDate, endDate, 'daily');
+fetchAllCategoriesRevenueData(startDate, endDate, 'daily');
 
 // Set up refresh interval (5 minutes)
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 setInterval(refreshAllCharts, REFRESH_INTERVAL);
 
-// Add click handler for refresh button
+// Add event listeners
 document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
+document.getElementById('periodFilter').addEventListener('change', refreshAllCharts);
 
 // Fetch category revenue data when a category is selected
 document.getElementById('categoryDropdown').addEventListener('change', function() {
     const categoryId = this.value;
     const selectedDates = globalDatePicker.selectedDates;
+    const period = document.getElementById('periodFilter').value;
+    
     if (categoryId && selectedDates.length === 2) {
-        fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
+        fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1], period);
     }
 });
 

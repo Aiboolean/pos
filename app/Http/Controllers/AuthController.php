@@ -249,105 +249,145 @@ public function resetPassword($id)
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
 }
 
-// Admin Dashboard chart data
-public function getRevenueData(Request $request)
-{
-    $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date',
-    ]);
-    
-    $startDate = $request->input('start_date');
-    $endDate = $request->input('end_date');
-    
-    // Make sure the end date includes the entire day
-    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
-    
-    // Fetch revenue data grouped by date - no caching
-    $revenueData = Order::whereBetween('created_at', [$startDate, $endDate])
-                        ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
-                        ->groupBy('date')
-                        ->orderBy('date')
-                        ->get();
-    
-    // Prepare data for the chart
-    $labels = $revenueData->pluck('date');
-    $revenue = $revenueData->pluck('revenue');
-    
-    // Include a timestamp to help with debugging
-    return response()->json([
-        'labels' => $labels,
-        'revenue' => $revenue,
-        'generated_at' => now()->toDateTimeString()
-    ]);
-}
+    // Admin Dashboard chart data with period filtering
+    public function getRevenueData(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'period' => 'sometimes|in:daily,weekly,monthly,yearly'
+        ]);
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $period = $request->input('period', 'daily');
+        
+        // Make sure the end date includes the entire day
+        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+        
+        $query = Order::whereBetween('created_at', [$startDate, $endDate]);
+        
+        // Group by different periods
+        switch ($period) {
+            case 'weekly':
+                $revenueData = $query->selectRaw('YEAR(created_at) as year, WEEK(created_at) as week, SUM(total_price) as revenue')
+                                    ->groupBy('year', 'week')
+                                    ->orderBy('year')
+                                    ->orderBy('week')
+                                    ->get();
+                
+                $labels = $revenueData->map(function($item) {
+                    return "Week {$item->week}, {$item->year}";
+                });
+                break;
+                
+            case 'monthly':
+                $revenueData = $query->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(total_price) as revenue')
+                                    ->groupBy('year', 'month')
+                                    ->orderBy('year')
+                                    ->orderBy('month')
+                                    ->get();
+                
+                $labels = $revenueData->map(function($item) {
+                    return Carbon::create()->month($item->month)->format('F') . " {$item->year}";
+                });
+                break;
+                
+            case 'yearly':
+                $revenueData = $query->selectRaw('YEAR(created_at) as year, SUM(total_price) as revenue')
+                                    ->groupBy('year')
+                                    ->orderBy('year')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('year');
+                break;
+                
+            default: // daily
+                $revenueData = $query->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
+                                    ->groupBy('date')
+                                    ->orderBy('date')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('date');
+                break;
+        }
+        
+        $revenue = $revenueData->pluck('revenue');
+        
+        return response()->json([
+            'labels' => $labels,
+            'revenue' => $revenue,
+            'period' => $period,
+            'generated_at' => now()->toDateTimeString()
+        ]);
+    }
 
-public function getCategoryRevenue($categoryId, Request $request)
-{
-    $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date',
-    ]);
-    
-    $startDate = $request->input('start_date');
-    $endDate = $request->input('end_date');
-    
-    // Make sure the end date includes the entire day
-    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
-    
-    // Fetch revenue data for the selected category and date range - no caching
-    $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
-                            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                            ->where('products.category_id', $categoryId)
-                            ->whereBetween('orders.created_at', [$startDate, $endDate])
-                            ->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
+    public function getCategoryRevenue($categoryId, Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'period' => 'sometimes|in:daily,weekly,monthly,yearly'
+        ]);
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $period = $request->input('period', 'daily');
+        
+        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+        
+        $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->where('products.category_id', $categoryId)
+                        ->whereBetween('orders.created_at', [$startDate, $endDate]);
+        
+        // For category revenue, we'll keep it as product breakdown but you can modify as needed
+        $revenueData = $query->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('products.name')
                             ->get();
-    
-    // Prepare data for the chart
-    $labels = $revenueData->pluck('product_name');
-    $revenue = $revenueData->pluck('revenue');
-    
-    // Include a timestamp to help with debugging
-    return response()->json([
-        'labels' => $labels,
-        'revenue' => $revenue,
-        'generated_at' => now()->toDateTimeString()
-    ]);
-}
+        
+        $labels = $revenueData->pluck('product_name');
+        $revenue = $revenueData->pluck('revenue');
+        
+        return response()->json([
+            'labels' => $labels,
+            'revenue' => $revenue,
+            'period' => $period,
+            'generated_at' => now()->toDateTimeString()
+        ]);
+    }
 
-public function getAllCategoriesRevenue(Request $request)
-{
-    $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date',
-    ]);
-    
-    $startDate = $request->input('start_date');
-    $endDate = $request->input('end_date');
-    
-    // Make sure the end date includes the entire day
-    $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
-    
-    // Fetch revenue data for all categories - no caching
-    $revenueData = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
-                            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                            ->join('categories', 'products.category_id', '=', 'categories.id')
-                            ->whereBetween('orders.created_at', [$startDate, $endDate])
-                            ->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
+    public function getAllCategoriesRevenue(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'period' => 'sometimes|in:daily,weekly,monthly,yearly'
+        ]);
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $period = $request->input('period', 'daily');
+        
+        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+        
+        $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                        ->join('categories', 'products.category_id', '=', 'categories.id')
+                        ->whereBetween('orders.created_at', [$startDate, $endDate]);
+        
+        $revenueData = $query->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
                             ->groupBy('categories.name')
                             ->get();
-    
-    // Prepare data for the chart
-    $labels = $revenueData->pluck('category_name');
-    $revenue = $revenueData->pluck('revenue');
-    
-    // Include a timestamp to help with debugging
-    return response()->json([
-        'labels' => $labels,
-        'revenue' => $revenue,
-        'generated_at' => now()->toDateTimeString()
-    ]);
-}
-
+        
+        $labels = $revenueData->pluck('category_name');
+        $revenue = $revenueData->pluck('revenue');
+        
+        return response()->json([
+            'labels' => $labels,
+            'revenue' => $revenue,
+            'period' => $period,
+            'generated_at' => now()->toDateTimeString()
+        ]);
+    }
 }
