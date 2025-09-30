@@ -200,7 +200,6 @@
                     <option value="" disabled selected>Select Payment Method</option>
                     <option value="Cash">Cash</option>
                     <option value="Gcash">Gcash</option>
-                    <option value="CreditCard">Credit Card</option>
                 </select>
             </div>
 

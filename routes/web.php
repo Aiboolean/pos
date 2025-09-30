@@ -23,6 +23,7 @@ Route::resource('products', ProductController::class);
 // 🔹 Order Processing - Requires Login
 Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 
+
 // 🔹 Admin Authentication Routes
  Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login'); // Show login form
  Route::post('/login', [AuthController::class, 'login']); // Handle login logic
@@ -116,3 +117,6 @@ Route::get('/admin/all-categories-revenue', [AuthController::class, 'getAllCateg
 // Make sure this goes inside the 'admin' group or has the appropriate middleware
 // This should be placed with your other admin routes, likely inside a group
 Route::get('/admin/orders/report/pdf', [App\Http\Controllers\OrderController::class, 'generatePDFReport'])->name('admin.orders.report.pdf');
+
+// Route for saving late transactions
+Route::post('/admin/orders/late', [OrderController::class, 'storeLate'])->name('orders.storeLate');

@@ -89,8 +89,8 @@
     }
 </style>
 
-<div class="min-h-screen coffee-bg py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md mx-auto coffee-card overflow-hidden p-8">
+<div class="min-h-screen coffee-bg py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto coffee-card overflow-hidden p-8">
         <div class="flex items-center mb-8">
             <a href="{{ route('admin.products') }}" class="mr-4 text-[#6f4e37] hover:text-[#5c3d2a] transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left">
@@ -101,206 +101,232 @@
             <h1 class="text-2xl font-bold coffee-text-primary">Add New Product</h1>
         </div>
 
-        <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data" class="space-y-6">
+        <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
             @csrf
-
-            <!-- Category -->
-            <div class="space-y-2">
-                <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag mr-2">
-                        <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
-                        <path d="M7 7h.01"/>
-                    </svg>
-                    Category
-                </label>
-                <select name="category_id" id="category_id" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
-                    <option value="" selected disabled hidden>Select a Category</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Name -->
-            <div class="space-y-2">
-                <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-plus mr-2">
-                        <path d="M16 16h6m-3-3v6M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/>
-                        <path d="m7.5 4.27 9 5.15"/>
-                        <polyline points="3.29 7 12 12 20.71 7"/>
-                        <line x1="12" x2="12" y1="22" y2="12"/>
-                    </svg>
-                    Product Name
-                </label>
-                <input type="text" name="name" required class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
-            </div>
-
-            <!-- Toggle for Multiple Sizes -->
-            <div class="flex items-center space-x-3 p-4 coffee-toggle-bg rounded-xl">
-                <label class="block text-sm font-medium coffee-text-primary flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ruler mr-2">
-                        <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/>
-                        <path d="m14.5 12.5 2-2"/>
-                        <path d="m11.5 9.5 2-2"/>
-                        <path d="m8.5 6.5 2-2"/>
-                        <path d="m17.5 15.5 2-2"/>
-                    </svg>
-                    Multiple Sizes
-                </label>
-                <input type="hidden" name="has_multiple_sizes" value="0">
-                <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="h-5 w-5 text-[#8c7b6b] focus:ring-[#8c7b6b] coffee-border rounded transition duration-200" onchange="toggleSizeFields()" value="1">
-            </div>
-
-            <!-- Prices for Sizes (Hidden by Default) -->
-            <div id="size-prices" class="hidden space-y-4 coffee-toggle-bg p-6 rounded-xl coffee-border">
-                <label class="block text-sm font-medium coffee-text-primary flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-currency-circle-dollar mr-2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-                        <path d="M12 18V6"/>
-                    </svg>
-                    Size Prices
-                </label>
-                <div class="space-y-4">
-                    <!-- Small -->
-                    <div class="flex items-center space-x-3">
-                        <label class="w-20 coffee-text-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-left mr-1">
-                                <path d="m11 17-5-5 5-5"/>
-                                <path d="m18 17-5-5 5-5"/>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Category -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag mr-2">
+                                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
+                                <path d="M7 7h.01"/>
                             </svg>
-                            Small
+                            Category
                         </label>
-                        <input type="number" step="0.01" name="price_small" id="price_small" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                        <select name="category_id" id="category_id" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            <option value="" selected disabled hidden>Select a Category</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <!-- Medium -->
-                    <div class="flex items-center space-x-3">
-                        <label class="w-20 coffee-text-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus mr-1">
+
+                    <!-- Name -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-plus mr-2">
+                                <path d="M16 16h6m-3-3v6M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/>
+                                <path d="m7.5 4.27 9 5.15"/>
+                                <polyline points="3.29 7 12 12 20.71 7"/>
+                                <line x1="12" x2="12" y1="22" y2="12"/>
+                            </svg>
+                            Product Name
+                        </label>
+                        <input type="text" name="name" required class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                    </div>
+
+                    <!-- Toggle for Multiple Sizes -->
+                    <div class="flex items-center space-x-3 p-4 coffee-toggle-bg rounded-xl">
+                        <label class="block text-sm font-medium coffee-text-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ruler mr-2">
+                                <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/>
+                                <path d="m14.5 12.5 2-2"/>
+                                <path d="m11.5 9.5 2-2"/>
+                                <path d="m8.5 6.5 2-2"/>
+                                <path d="m17.5 15.5 2-2"/>
+                            </svg>
+                            Multiple Sizes
+                        </label>
+                        <input type="hidden" name="has_multiple_sizes" value="0">
+                        <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="h-5 w-5 text-[#8c7b6b] focus:ring-[#8c7b6b] coffee-border rounded transition duration-200" onchange="toggleSizeFields()" value="1">
+                    </div>
+
+                    <!-- Prices for Sizes (Hidden by Default) -->
+                    <div id="size-prices" class="hidden space-y-4 coffee-toggle-bg p-6 rounded-xl coffee-border">
+                        <label class="block text-sm font-medium coffee-text-primary flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-currency-circle-dollar mr-2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                                <path d="M12 18V6"/>
+                            </svg>
+                            Size Prices
+                        </label>
+                        <div class="space-y-4">
+                            <!-- Small -->
+                            <div class="flex items-center space-x-3">
+                                <label class="w-20 coffee-text-primary flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-left mr-1">
+                                        <path d="m11 17-5-5 5-5"/>
+                                        <path d="m18 17-5-5 5-5"/>
+                                    </svg>
+                                    Small
+                                </label>
+                                <input type="number" step="0.01" name="price_small" id="price_small" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            </div>
+                            <!-- Medium -->
+                            <div class="flex items-center space-x-3">
+                                <label class="w-20 coffee-text-primary flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus mr-1">
+                                        <path d="M5 12h14"/>
+                                    </svg>
+                                    Medium
+                                </label>
+                                <input type="number" step="0.01" name="price_medium" id="price_medium" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            </div>
+                            <!-- Large -->
+                            <div class="flex items-center space-x-3">
+                                <label class="w-20 coffee-text-primary flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-right mr-1">
+                                        <path d="m6 17 5-5-5-5"/>
+                                        <path d="m13 17 5-5-5-5"/>
+                                    </svg>
+                                    Large
+                                </label>
+                                <input type="number" step="0.01" name="price_large" id="price_large" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Single Price (Hidden by Default) -->
+                    <div id="single-price" class="hidden space-y-2">
+                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-currency-circle-dollar mr-2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                                <path d="M12 18V6"/>
+                            </svg>
+                            Price
+                        </label>
+                        <input type="number" step="0.01" name="price" id="price" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check mr-2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                            Status
+                        </label>
+                        <select name="is_available" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            <option value="1">Available</option>
+                            <option value="0">Not Available</option>
+                        </select>
+                    </div>
+
+                    <!-- Image -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image mr-2">
+                                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                <circle cx="9" cy="9" r="2"/>
+                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                            </svg>
+                            Product Image
+                        </label>
+                        <div class="mt-1 flex items-center">
+                            <input type="file" name="image" accept="image/*" class="block w-full text-sm text-[#5c4d3c]
+                            file:mr-4 file:py-2.5 file:px-4
+                            file:rounded-xl file:border-0
+                            file:text-sm file:font-medium
+                            file:bg-[#e0d6c2] file:text-[#5c4d3c]
+                            hover:file:bg-[#d4c9b5] transition duration-200 coffee-file-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Ingredients -->
+                <div class="space-y-6">
+                    <div class="form-group">
+                        <h4 class="text-lg font-medium coffee-text-primary mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-beef mr-2">
+                                <circle cx="12.5" cy="8.5" r="2.5"/>
+                                <path d="M12.5 2a6.5 6.5 0 0 0-6.22 4.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3A6.5 6.5 0 0 0 12.5 2Z"/>
+                                <path d="m18.5 6 2.19 4.5a6.48 6.48 0 0 1 .31 2 6.49 6.49 0 0 1-2.6 5.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5"/>
+                            </svg>
+                            Ingredients
+                        </h4>
+                        <div id="ingredient-fields" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                            @foreach($ingredients as $index => $ingredient)
+                            <div class="ingredient-row p-4 coffee-toggle-bg rounded-xl">
+                                <div class="flex items-center mb-3">
+                                    <select name="ingredients[]" class="form-control mr-2 flex-1 coffee-input ingredient-select rounded-lg" 
+                                            onchange="updateIngredientUnit(this)">
+                                        <option value="">Select Ingredient</option>
+                                        @foreach($ingredients as $i)
+                                        <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-2 rounded-lg flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2">
+                                            <path d="M3 6h18"/>
+                                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                            <line x1="10" x2="10" y1="11" y2="17"/>
+                                            <line x1="14" x2="14" y1="11" y2="17"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="grid grid-cols-5 gap-3">
+                                    <div>
+                                        <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
+                                        <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
+                                            class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
+                                            oninput="calculateSizeQuantities(this)">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
+                                        <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
+                                            class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                        <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity text-center">0.00</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
+                                        <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
+                                            class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                        <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity text-center">0.00</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
+                                        <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
+                                            class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
+                                        <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity text-center">0.00</div>
+                                    </div>
+                                    <div class="flex items-end justify-center">
+                                        <span class="ingredient-unit text-sm coffee-text-primary font-medium">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        <button type="button" id="add-ingredient" class="coffee-btn-secondary mt-4 px-4 py-2 rounded-lg flex items-center justify-center w-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus mr-1">
                                 <path d="M5 12h14"/>
+                                <path d="M12 5v14"/>
                             </svg>
-                            Medium
-                        </label>
-                        <input type="number" step="0.01" name="price_medium" id="price_medium" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
-                    </div>
-                    <!-- Large -->
-                    <div class="flex items-center space-x-3">
-                        <label class="w-20 coffee-text-primary flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-right mr-1">
-                                <path d="m6 17 5-5-5-5"/>
-                                <path d="m13 17 5-5-5-5"/>
-                            </svg>
-                            Large
-                        </label>
-                        <input type="number" step="0.01" name="price_large" id="price_large" class="flex-1 px-4 py-2 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                            Add Ingredient
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Single Price (Hidden by Default) -->
-            <div id="single-price" class="hidden space-y-2">
-                <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-currency-circle-dollar mr-2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-                        <path d="M12 18V6"/>
-                    </svg>
-                    Price
-                </label>
-                <input type="number" step="0.01" name="price" id="price" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
-            </div>
-
-            <!-- Availability -->
-            <div class="space-y-2">
-                <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check mr-2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="m9 12 2 2 4-4"/>
-                    </svg>
-                    Status
-                </label>
-                <select name="is_available" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
-                    <option value="1">Available</option>
-                    <option value="0">Not Available</option>
-                </select>
-            </div>
-
-            <!-- Image -->
-            <div class="space-y-2">
-                <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image mr-2">
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                        <circle cx="9" cy="9" r="2"/>
-                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                    </svg>
-                    Product Image
-                </label>
-                <div class="mt-1 flex items-center">
-                    <input type="file" name="image" accept="image/*" class="block w-full text-sm text-[#5c4d3c]
-                    file:mr-4 file:py-2.5 file:px-4
-                    file:rounded-xl file:border-0
-                    file:text-sm file:font-medium
-                    file:bg-[#e0d6c2] file:text-[#5c4d3c]
-                    hover:file:bg-[#d4c9b5] transition duration-200 coffee-file-input">
-                </div>
-            </div>
-            <!-- Ingredients -->
-            <div class="form-group mt-4">
-                <h4 class="text-lg font-medium coffee-text-primary mb-3">Ingredients</h4>
-                <div id="ingredient-fields">
-                    @foreach($ingredients as $index => $ingredient)
-                    <div class="ingredient-row mb-4 p-4 coffee-toggle-bg rounded-xl">
-                        <div class="flex items-center mb-2">
-                            <select name="ingredients[]" class="form-control mr-2 flex-1 coffee-input ingredient-select" 
-                                    onchange="updateIngredientUnit(this)">
-                                <option value="">Select Ingredient</option>
-                                @foreach($ingredients as $i)
-                                <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-1 rounded-lg">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="grid grid-cols-5 gap-2 mt-2">
-                            <div>
-                                <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
-                                <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
-                                    class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
-                                    oninput="calculateSizeQuantities(this)">
-                            </div>
-                            <div>
-                                <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
-                                <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
-                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity">0.00</div>
-                            </div>
-                            <div>
-                                <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
-                                <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
-                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity">0.00</div>
-                            </div>
-                            <div>
-                                <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
-                                <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
-                                    class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                                <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity">0.00</div>
-                            </div>
-                            <div class="flex items-end">
-                                <span class="ingredient-unit text-xs coffee-text-primary">-</span>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                <button type="button" id="add-ingredient" class="coffee-btn-secondary mt-2 px-4 py-2 rounded-lg flex items-center">
-                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add Ingredient
-                </button>
-            </div>
+            
             <!-- Buttons -->
-            <div class="flex justify-end space-x-3 pt-6">
+            <div class="flex justify-end space-x-3 pt-8 mt-6 border-t border-[#d4c9b5]">
                 <button type="submit" class="px-5 py-2.5 coffee-btn-success rounded-xl coffee-shadow text-sm font-medium flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check mr-1">
                         <path d="M20 6 9 17l-5-5"/>
@@ -385,50 +411,50 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('add-ingredient').addEventListener('click', function() {
     const container = document.getElementById('ingredient-fields');
     const newField = `
-        <div class="ingredient-row mb-4 p-4 coffee-toggle-bg rounded-xl">
-            <div class="flex items-center mb-2">
-                <select name="ingredients[]" class="form-control mr-2 flex-1 coffee-input ingredient-select" 
-                        onchange="updateIngredientUnit(this)">
-                    <option value="">Select Ingredient</option>
-                    @foreach($ingredients as $i)
-                    <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
-                    @endforeach
-                </select>
-                <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-1 rounded-lg">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-5 gap-2 mt-2">
-                <div>
-                    <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
-                    <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
-                        class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
-                        oninput="calculateSizeQuantities(this)">
-                </div>
-                <div>
-                    <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
-                    <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
-                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity">0.00</div>
-                </div>
-                <div>
-                    <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
-                    <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
-                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity">0.00</div>
-                </div>
-                <div>
-                    <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
-                    <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
-                        class="w-full px-3 py-2 coffee-input rounded-lg" readonly>
-                    <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity">0.00</div>
-                </div>
-                <div class="flex items-end">
-                    <span class="ingredient-unit text-xs coffee-text-primary">-</span>
-                </div>
-            </div>
-        </div>`;
+       <div class="ingredient-row mb-4 p-4 coffee-toggle-bg rounded-xl">
+    <div class="flex flex-col sm:flex-row sm:items-center mb-3 gap-2 sm:gap-0">
+        <select name="ingredients[]" class="form-control mr-0 sm:mr-2 flex-1 coffee-input ingredient-select rounded-lg px-3 py-2" 
+                onchange="updateIngredientUnit(this)">
+            <option value="">Select Ingredient</option>
+            @foreach($ingredients as $i)
+            <option value="{{ $i->id }}" data-unit="{{ $i->unit }}">{{ $i->name }} ({{ $i->unit }})</option>
+            @endforeach
+        </select>
+        <button type="button" class="remove-ingredient coffee-btn-danger px-3 py-2 rounded-lg mt-2 sm:mt-0 flex items-center justify-center sm:w-auto w-full">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+    </div>
+    
+    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-3 items-end">
+        <div class="md:col-span-1">
+            <label class="block text-xs coffee-text-primary mb-1">Base Qty (Medium)</label>
+            <input type="number" step="0.01" name="quantities[]" placeholder="0.00" 
+                class="w-full px-3 py-2 coffee-input rounded-lg base-quantity" 
+                oninput="calculateSizeQuantities(this)">
+        </div>
+        <div class="md:col-span-1">
+            <label class="block text-xs coffee-text-primary mb-1">Small (x0.75)</label>
+            <input type="number" step="0.01" name="small_multipliers[]" value="0.75" 
+                class="w-full px-3 py-2 coffee-input rounded-lg text-center" readonly>
+            <div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity text-center">0.00</div>
+        </div>
+        <div class="md:col-span-1">
+            <label class="block text-xs coffee-text-primary mb-1">Medium (x1.0)</label>
+            <input type="number" step="0.01" name="medium_multipliers[]" value="1.00" 
+                class="w-full px-3 py-2 coffee-input rounded-lg text-center" readonly>
+            <div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity text-center">0.00</div>
+        </div>
+        <div class="md:col-span-1">
+            <label class="block text-xs coffee-text-primary mb-1">Large (x1.5)</label>
+            <input type="number" step="0.01" name="large_multipliers[]" value="1.50" 
+                class="w-full px-3 py-2 coffee-input rounded-lg text-center" readonly>
+            <div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity text-center">0.00</div>
+        </div>
+        <div class="md:col-span-1 flex items-center justify-center h-full pt-2 md:pt-0">
+            <span class="ingredient-unit text-sm coffee-text-primary font-medium">-</span>
+        </div>
+    </div>
+</div>`;
     container.insertAdjacentHTML('beforeend', newField);
     lucide.createIcons();
 });
