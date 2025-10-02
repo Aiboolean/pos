@@ -249,51 +249,25 @@ public function resetPassword($id)
     return redirect()->route('admin.employees')->with('success', 'Password reset successfully. New password: ' . $initialPassword);
 }
 
-    // Admin Dashboard chart data with period filtering
+    // Admin Dashboard chart data with year-based filtering
     public function getRevenueData(Request $request)
     {
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'year' => 'required|integer|min:2020|max:' . (date('Y') + 1),
             'period' => 'sometimes|in:daily,weekly,monthly,yearly'
         ]);
         
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $period = $request->input('period', 'daily');
+        $year = $request->input('year');
+        $period = $request->input('period', 'monthly');
         
-        // Make sure the end date includes the entire day
-        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
-        
-        $query = Order::whereBetween('created_at', [$startDate, $endDate]);
+        $query = Order::whereYear('created_at', $year);
         
         // Group by different periods
         switch ($period) {
-            case 'weekly':
-                $revenueData = $query->selectRaw('YEAR(created_at) as year, WEEK(created_at) as week, SUM(total_price) as revenue')
-                                    ->groupBy('year', 'week')
-                                    ->orderBy('year')
-                                    ->orderBy('week')
-                                    ->get();
-                
-                $labels = $revenueData->map(function($item) {
-                    return "Week {$item->week}, {$item->year}";
-                });
-                break;
-                
-            case 'monthly':
-                $revenueData = $query->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(total_price) as revenue')
-                                    ->groupBy('year', 'month')
-                                    ->orderBy('year')
-                                    ->orderBy('month')
-                                    ->get();
-                
-                $labels = $revenueData->map(function($item) {
-                    return Carbon::create()->month($item->month)->format('F') . " {$item->year}";
-                });
-                break;
-                
             case 'yearly':
+                // Show multiple years (selected year and previous 4 years)
+                $query = Order::whereYear('created_at', '>=', $year - 4)
+                            ->whereYear('created_at', '<=', $year);
                 $revenueData = $query->selectRaw('YEAR(created_at) as year, SUM(total_price) as revenue')
                                     ->groupBy('year')
                                     ->orderBy('year')
@@ -302,13 +276,38 @@ public function resetPassword($id)
                 $labels = $revenueData->pluck('year');
                 break;
                 
-            default: // daily
+            case 'weekly':
+                $revenueData = $query->selectRaw('WEEK(created_at) as week, SUM(total_price) as revenue')
+                                    ->groupBy('week')
+                                    ->orderBy('week')
+                                    ->get();
+                
+                $labels = $revenueData->map(function($item) use ($year) {
+                    return "Week {$item->week}, {$year}";
+                });
+                break;
+                
+            case 'daily':
                 $revenueData = $query->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
                                     ->groupBy('date')
                                     ->orderBy('date')
                                     ->get();
                 
-                $labels = $revenueData->pluck('date');
+                $labels = $revenueData->map(function($item) {
+                    return Carbon::parse($item->date)->format('M j');
+                });
+                break;
+                
+            case 'monthly':
+            default:
+                $revenueData = $query->selectRaw('MONTH(created_at) as month, SUM(total_price) as revenue')
+                                    ->groupBy('month')
+                                    ->orderBy('month')
+                                    ->get();
+                
+                $labels = $revenueData->map(function($item) {
+                    return Carbon::create()->month($item->month)->format('F');
+                });
                 break;
         }
         
@@ -318,6 +317,7 @@ public function resetPassword($id)
             'labels' => $labels,
             'revenue' => $revenue,
             'period' => $period,
+            'year' => $year,
             'generated_at' => now()->toDateTimeString()
         ]);
     }
@@ -325,34 +325,56 @@ public function resetPassword($id)
     public function getCategoryRevenue($categoryId, Request $request)
     {
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'year' => 'required|integer|min:2020|max:' . (date('Y') + 1),
             'period' => 'sometimes|in:daily,weekly,monthly,yearly'
         ]);
         
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $period = $request->input('period', 'daily');
-        
-        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+        $year = $request->input('year');
+        $period = $request->input('period', 'monthly');
         
         $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                         ->join('orders', 'order_items.order_id', '=', 'orders.id')
                         ->where('products.category_id', $categoryId)
-                        ->whereBetween('orders.created_at', [$startDate, $endDate]);
+                        ->whereYear('orders.created_at', $year);
         
-        // For category revenue, we'll keep it as product breakdown but you can modify as needed
-        $revenueData = $query->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
-                            ->groupBy('products.name')
-                            ->get();
-        
-        $labels = $revenueData->pluck('product_name');
-        $revenue = $revenueData->pluck('revenue');
+        // For category product breakdown, we can also apply period filtering
+        switch ($period) {
+            case 'yearly':
+                $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                                ->where('products.category_id', $categoryId)
+                                ->whereYear('orders.created_at', '>=', $year - 4)
+                                ->whereYear('orders.created_at', '<=', $year);
+                break;
+                
+            case 'monthly':
+                // For monthly view, we can show monthly breakdown per product
+                $revenueData = $query->selectRaw('products.name as product_name, MONTH(orders.created_at) as month, SUM(order_items.price * order_items.quantity) as revenue')
+                                    ->groupBy('products.name', 'month')
+                                    ->orderBy('month')
+                                    ->get();
+                
+                // You might want to adjust this based on how you want to display monthly category data
+                $labels = $revenueData->pluck('product_name');
+                $revenue = $revenueData->pluck('revenue');
+                break;
+                
+            default:
+                // For daily, weekly, and default - show product breakdown
+                $revenueData = $query->selectRaw('products.name as product_name, SUM(order_items.price * order_items.quantity) as revenue')
+                                    ->groupBy('products.name')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('product_name');
+                $revenue = $revenueData->pluck('revenue');
+                break;
+        }
         
         return response()->json([
             'labels' => $labels,
             'revenue' => $revenue,
             'period' => $period,
+            'year' => $year,
             'generated_at' => now()->toDateTimeString()
         ]);
     }
@@ -360,33 +382,60 @@ public function resetPassword($id)
     public function getAllCategoriesRevenue(Request $request)
     {
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'year' => 'required|integer|min:2020|max:' . (date('Y') + 1),
             'period' => 'sometimes|in:daily,weekly,monthly,yearly'
         ]);
         
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $period = $request->input('period', 'daily');
-        
-        $endDate = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+        $year = $request->input('year');
+        $period = $request->input('period', 'monthly');
         
         $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
                         ->join('orders', 'order_items.order_id', '=', 'orders.id')
                         ->join('categories', 'products.category_id', '=', 'categories.id')
-                        ->whereBetween('orders.created_at', [$startDate, $endDate]);
+                        ->whereYear('orders.created_at', $year);
         
-        $revenueData = $query->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
-                            ->groupBy('categories.name')
-                            ->get();
+        // Apply period filtering to categories chart as well
+        switch ($period) {
+            case 'yearly':
+                $query = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+                                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                                ->join('categories', 'products.category_id', '=', 'categories.id')
+                                ->whereYear('orders.created_at', '>=', $year - 4)
+                                ->whereYear('orders.created_at', '<=', $year);
+                
+                $revenueData = $query->selectRaw('categories.name as category_name, YEAR(orders.created_at) as year, SUM(order_items.price * order_items.quantity) as revenue')
+                                    ->groupBy('categories.name', 'year')
+                                    ->orderBy('year')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('category_name');
+                break;
+                
+            case 'monthly':
+                $revenueData = $query->selectRaw('categories.name as category_name, MONTH(orders.created_at) as month, SUM(order_items.price * order_items.quantity) as revenue')
+                                    ->groupBy('categories.name', 'month')
+                                    ->orderBy('month')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('category_name');
+                break;
+                
+            default:
+                $revenueData = $query->selectRaw('categories.name as category_name, SUM(order_items.price * order_items.quantity) as revenue')
+                                    ->groupBy('categories.name')
+                                    ->get();
+                
+                $labels = $revenueData->pluck('category_name');
+                break;
+        }
         
-        $labels = $revenueData->pluck('category_name');
         $revenue = $revenueData->pluck('revenue');
         
         return response()->json([
             'labels' => $labels,
             'revenue' => $revenue,
             'period' => $period,
+            'year' => $year,
             'generated_at' => now()->toDateTimeString()
         ]);
     }

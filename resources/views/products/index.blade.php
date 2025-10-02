@@ -3,7 +3,7 @@
     @section('content')
         <div class="flex h-screen">
         <!-- Order Summary (Now on the Left Side) -->
-        <div class="w-2/6 bg-gray-100 p-4">
+        <div class="w-2/6 bg-gray-100 p-4 sticky top-0 h-screen overflow-y-auto">
             <h2 class="text-xl font-bold mb-4">Order Summary</h2>
             <div id="cart-items" class="space-y-2"></div>
             <hr class="my-4">
@@ -17,8 +17,8 @@
         
     <!-- Main Content (Now on the Right Side) -->
     <div class="w-full md:w-4/6 p-6">
-                <!-- Category Filter and Search Product (Stacked on Small Screens, Side by Side on Medium+) -->
-                <div class="mb-6 flex flex-wrap gap-4">
+    <!-- Category Filter and Search Product (Stacked on Small Screens, Side by Side on Medium+) -->
+    <div class="mb-6 flex flex-wrap gap-4">
         <!-- Category Filter -->
         <div class="w-full sm:w-60">
             <label for="categoryFilter" class="block text-sm font-semibold text-gray-700 mb-1">Filter by Category</label>
@@ -54,9 +54,7 @@
 
         
         <!-- Scrollable Product Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 py-4 overflow-y-auto flex-grow" 
-        style="max-height: calc(100vh - 200px);" 
-        id="productGrid">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 py-4 overflow-y-auto" style="max-height: calc(500vh - 200px);" id="productGrid">
 
         @foreach($products as $product)
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-5 product-item border border-gray-200 transition-transform transform hover:scale-105 
@@ -72,7 +70,7 @@
                 <!-- Product Details -->
                 <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
         <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
-        <p class="text-sm text-gray-600 sm:text-base">
+        <p class="text-sm text-gray-600 sm:text-sm">
             Category: <span class="font-medium">{{ $product->category->name }}</span>
         </p>
         <p class="text-sm font-semibold transition sm:text-base md:text-lg 
@@ -166,11 +164,11 @@
 
             </div>
         @endforeach
-    </div>
-
-           
         </div>
+
     </div>
+    </div>
+    
 
 
     <!-- Confirmation Modal -->
@@ -192,7 +190,7 @@
                     placeholder="Enter amount received">
             </div>
 
-             <!-- Payment Method Dropdown -->
+            <!-- Payment Method Dropdown -->
             <!-- <div class="mt-4">
                 <label for="paymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
                 <select id="paymentMethod" 

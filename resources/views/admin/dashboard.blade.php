@@ -211,8 +211,6 @@
         </div>
     </div>
 
-    <!-- ===== Main Content ===== -->
-    <div class="space-y-4 sm:space-y-6">
         <!-- Revenue Chart -->
         <div class="coffee-card p-4 sm:p-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 chart-header">
@@ -223,15 +221,23 @@
                     </svg>
                     Revenue Chart
                 </h3>
-                <!-- Excel-Style Compact Controls with Period Filter -->
+                <!-- Simplified Year and Period Controls -->
                 <div class="compact-controls w-full sm:w-auto">
+                    <select id="yearFilter" class="border coffee-border rounded-lg p-2 text-sm">
+                        @php
+                            $currentYear = date('Y');
+                            $startYear = 2020; // You can change this to your business start year
+                        @endphp
+                        @for($year = $currentYear; $year >= $startYear; $year--)
+                            <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
+                        @endfor
+                    </select>
                     <select id="periodFilter" class="border coffee-border rounded-lg p-2 text-sm">
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
+                        <option value="monthly" selected>Monthly</option>
                         <option value="yearly">Yearly</option>
                     </select>
-                    <input type="text" id="globalDateRangePicker" class="border coffee-border rounded-lg w-full">
                     <button id="refreshChartsBtn" class="coffee-btn-primary rounded-lg font-medium inline-flex items-center whitespace-nowrap">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -291,50 +297,45 @@
 </div>
 
 <script>
-// Initialize Flatpickr for Global Date Range
-const globalDatePicker = flatpickr("#globalDateRangePicker", {
-    mode: "range",
-    dateFormat: "Y-m-d",
-    onChange: function(selectedDates, dateStr, instance) {
-        if (selectedDates.length === 2) {
-            refreshAllCharts();
-        }
-    }
-});
-
 // Initialize Chart.js for Revenue Chart
 const ctx = document.getElementById('revenueChart').getContext('2d');
 let revenueChart;
 
-// Global variables to track current period and dates
-let currentPeriod = 'daily';
-let currentStartDate, currentEndDate;
+// Global variables to track current period and year
+let currentPeriod = 'monthly';
+let currentYear = new Date().getFullYear();
 
-// Function to fetch revenue data with period filtering
-function fetchRevenueData(startDate, endDate, period = 'daily') {
+// Function to fetch revenue data
+function fetchRevenueData(year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
+    
+    fetch(`/admin/revenue-data?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateChart(data, startDate, endDate, period);
+            updateChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching revenue data:', error);
         });
 }
 
-// Enhanced chart update function with period support
-function updateChart(data, startDate, endDate, period) {
+// Enhanced chart update function
+function updateChart(data, year, period) {
     if (revenueChart) {
         revenueChart.destroy();
     }
 
+    // Determine chart type based on period
+    let chartType = 'bar';
+    if (period === 'daily') chartType = 'line';
+    if (period === 'yearly') chartType = 'bar';
+
     revenueChart = new Chart(ctx, {
-        type: period === 'daily' ? 'line' : 'bar',
+        type: chartType,
         data: {
             labels: data.labels,
             datasets: [{
-                label: `${period.charAt(0).toUpperCase() + period.slice(1)} Revenue`,
+                label: `${period.charAt(0).toUpperCase() + period.slice(1)} Revenue - ${year}`,
                 data: data.revenue,
                 backgroundColor: period === 'daily' ? 'rgba(166, 123, 91, 0.2)' : '#A67B5B',
                 borderColor: '#A67B5B',
@@ -385,9 +386,6 @@ function updateChart(data, startDate, endDate, period) {
                     callbacks: {
                         label: function(context) {
                             return `Revenue: ₱${context.raw.toLocaleString()}`;
-                        },
-                        title: function(context) {
-                            return context[0].label;
                         }
                     }
                 }
@@ -404,19 +402,19 @@ function updateChart(data, startDate, endDate, period) {
 const categoryCtx = document.getElementById('categoryRevenueChart').getContext('2d');
 let categoryRevenueChart;
 
-function fetchCategoryRevenueData(categoryId, startDate, endDate, period = 'daily') {
+function fetchCategoryRevenueData(categoryId, year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
+    fetch(`/admin/category-revenue/${categoryId}?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateCategoryChart(data, period);
+            updateCategoryChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching category revenue data:', error);
         });
 }
 
-function updateCategoryChart(data, period) {
+function updateCategoryChart(data, year, period) {
     if (categoryRevenueChart) {
         categoryRevenueChart.destroy();
     }
@@ -426,7 +424,7 @@ function updateCategoryChart(data, period) {
         data: {
             labels: data.labels,
             datasets: [{
-                label: `Revenue by Product (${period})`,
+                label: `Revenue by Product (${period} - ${year})`,
                 data: data.revenue,
                 backgroundColor: [
                     '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
@@ -474,19 +472,19 @@ function updateCategoryChart(data, period) {
 const allCategoriesCtx = document.getElementById('allCategoriesRevenueChart').getContext('2d');
 let allCategoriesRevenueChart;
 
-function fetchAllCategoriesRevenueData(startDate, endDate, period = 'daily') {
+function fetchAllCategoriesRevenueData(year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&period=${period}&_=${cacheBuster}`)
+    fetch(`/admin/all-categories-revenue?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateAllCategoriesChart(data, period);
+            updateAllCategoriesChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching all categories revenue data:', error);
         });
 }
 
-function updateAllCategoriesChart(data, period) {
+function updateAllCategoriesChart(data, year, period) {
     if (allCategoriesRevenueChart) {
         allCategoriesRevenueChart.destroy();
     }
@@ -496,7 +494,7 @@ function updateAllCategoriesChart(data, period) {
         data: {
             labels: data.labels,
             datasets: [{
-                label: `Revenue by Category (${period})`,
+                label: `Revenue by Category (${period} - ${year})`,
                 data: data.revenue,
                 backgroundColor: [
                     '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', '#D4B483', '#BC8A5F'
@@ -547,54 +545,47 @@ function updateAllCategoriesChart(data, period) {
 
 // Function to refresh all charts
 function refreshAllCharts() {
-    const selectedDates = globalDatePicker.selectedDates;
+    const year = parseInt(document.getElementById('yearFilter').value);
     const period = document.getElementById('periodFilter').value;
     
-    if (selectedDates.length === 2) {
-        currentPeriod = period;
-        currentStartDate = selectedDates[0];
-        currentEndDate = selectedDates[1];
-        
-        fetchRevenueData(selectedDates[0], selectedDates[1], period);
-        fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1], period);
-        
-        const categoryId = document.getElementById('categoryDropdown').value;
-        if (categoryId) {
-            fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1], period);
-        }
+    currentYear = year;
+    currentPeriod = period;
+    
+    // Update all charts with the same year and period
+    fetchRevenueData(year, period);
+    fetchAllCategoriesRevenueData(year, period);
+    
+    const categoryId = document.getElementById('categoryDropdown').value;
+    if (categoryId) {
+        fetchCategoryRevenueData(categoryId, year, period);
     }
 }
 
-// Set initial date range (last 30 days)
-const endDate = new Date();
-const startDate = new Date();
-startDate.setDate(endDate.getDate() - 30);
-globalDatePicker.setDate([startDate, endDate]);
+// Set initial values and fetch data
+currentYear = new Date().getFullYear();
+currentPeriod = 'monthly';
 
-// Store initial dates
-currentStartDate = startDate;
-currentEndDate = endDate;
-
-// Fetch initial data
-fetchRevenueData(startDate, endDate, 'daily');
-fetchAllCategoriesRevenueData(startDate, endDate, 'daily');
+// Fetch initial data for all charts
+fetchRevenueData(currentYear, currentPeriod);
+fetchAllCategoriesRevenueData(currentYear, currentPeriod);
 
 // Set up refresh interval (5 minutes)
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 setInterval(refreshAllCharts, REFRESH_INTERVAL);
 
-// Add event listeners
+// Add event listeners for both year and period filters
 document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
+document.getElementById('yearFilter').addEventListener('change', refreshAllCharts);
 document.getElementById('periodFilter').addEventListener('change', refreshAllCharts);
 
 // Fetch category revenue data when a category is selected
 document.getElementById('categoryDropdown').addEventListener('change', function() {
     const categoryId = this.value;
-    const selectedDates = globalDatePicker.selectedDates;
+    const year = parseInt(document.getElementById('yearFilter').value);
     const period = document.getElementById('periodFilter').value;
     
-    if (categoryId && selectedDates.length === 2) {
-        fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1], period);
+    if (categoryId) {
+        fetchCategoryRevenueData(categoryId, year, period);
     }
 });
 
