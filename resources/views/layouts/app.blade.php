@@ -101,8 +101,8 @@
         <!-- Navbar -->
     <nav class="bg-[#f1eadc] text-black p-4 flex items-center justify-between shadow-md border-b-2 border-black">
         <div class="flex items-center space-x-2">
-            <img src="{{ asset('storage/images/cupslogo.png') }}" alt="Logo" class="h-8">
-            <a href="/products" class="text-lg font-bold">CupsStreet</a>
+            <img src="{{ asset('storage/images/cupstreet_logo.jpg') }}" alt="Logo" class="h-8">
+            <a href="/products" class="text-lg font-bold">Cups Street</a>
         </div>
 
         <!-- Notification and User Dropdown -->

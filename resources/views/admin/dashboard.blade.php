@@ -156,10 +156,12 @@
                     <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">{{ $totalOrders }}</p>
                 </div>
             </div>
-        </a>
+</a>
 
         <!-- Total Revenue -->
+        <a href="{{ route('admin.orders') }}">
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
+           
             <div class="flex items-center space-x-3">
                 <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -173,9 +175,11 @@
                 </div>
             </div>
         </div>
-
+</a>
         <!-- Today's Sales -->
+         <a href="{{ route('admin.orders') }}">
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
+            
             <div class="flex items-center space-x-3">
                 <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -188,7 +192,7 @@
                 </div>
             </div>
         </div>
-
+</a>
         <!-- Best Seller -->
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
             <div class="flex items-center space-x-3">
@@ -420,25 +424,37 @@ function updateCategoryChart(data, year, period) {
     }
 
     categoryRevenueChart = new Chart(categoryCtx, {
-        type: 'pie',
-        data: {
-            labels: data.labels,
-            datasets: [{
-                label: `Revenue by Product (${period} - ${year})`,
-                data: data.revenue,
-                backgroundColor: [
-                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
-                    '#D4B483', '#BC8A5F', '#E6C39A', '#9C7E56'
-                ],
-                borderColor: '#f5f1ea',
-                borderWidth: 1.5,
-                hoverBackgroundColor: [
-                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54',
-                    '#C4A472', '#AA754D', '#D6B288', '#8B6D4A'
-                ],
-                hoverBorderWidth: 2
-            }]
-        },
+    type: 'bar',
+    data: {
+        labels: data.labels,
+        datasets: [{
+            label: 'Revenue by Product',
+            data: data.revenue,
+            backgroundColor: [
+                '#A67B5B',  // Warm coffee brown
+                '#C9A87C',  // Light latte
+                '#E3C16F',  // Golden cream
+                '#8D6E63',  // Muted clay
+                '#D4B483',  // Soft beige
+                '#BC8A5F',  // Medium roast
+                '#E6C39A',  // Light foam
+                '#9C7E56'   // Dark caramel
+            ],
+            borderColor: '#f5f1ea', // Light cream border
+            borderWidth: 1.5,        // Slightly thicker border
+            hoverBackgroundColor: [   // Slightly darker on hover
+                '#956A4F',
+                '#B5976B',
+                '#D3B15F',
+                '#7D5E54',
+                '#C4A472',
+                '#AA754D',
+                '#D6B288',
+                '#8B6D4A'
+            ],
+            hoverBorderWidth: 2
+        }]
+    },
         options: {
             responsive: true,
             maintainAspectRatio: false,

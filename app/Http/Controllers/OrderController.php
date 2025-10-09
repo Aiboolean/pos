@@ -106,8 +106,8 @@ class OrderController extends Controller
     }
 }
 
-    // MODIFIED METHOD: Added filtering functionality
-   public function adminIndex(Request $request)
+// MODIFIED METHOD: Added filtering + cashiers/products for modal
+public function adminIndex(Request $request)
 {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'You must log in first.');
@@ -116,13 +116,11 @@ class OrderController extends Controller
     // Start building the query with relationships and descending order
     $query = Order::with('user', 'items.product')->orderBy('created_at', 'desc');
 
-    // ===== NEW DATE RANGE FILTERING LOGIC =====
-    // Filter by start date
+    // ===== DATE RANGE FILTERING LOGIC =====
     if ($request->filled('start_date')) {
         $query->whereDate('created_at', '>=', $request->input('start_date'));
     }
 
-    // Filter by end date
     if ($request->filled('end_date')) {
         $query->whereDate('created_at', '<=', $request->input('end_date'));
     }
@@ -131,9 +129,25 @@ class OrderController extends Controller
     // Execute the query and paginate the results
     $orders = $query->paginate(10);
 
-    // Pass the request object to the view to pre-fill the filter form inputs
-    return view('admin.orders.index', compact('orders', 'request'));
+    //  Fetch all users (Admins + Employees) for Cashier dropdown
+    $cashiers = \App\Models\User::all();
+
+    //  Detect default admin
+    $admin = \App\Models\User::where('role', 'Admin')->first();
+
+    //  Fetch products for Orders dropdown
+    $products = \App\Models\Product::all();
+
+    //  Fetch categories for Category filter dropdown
+    $categories = \App\Models\Category::all(); // Added this line
+
+    // Pass everything to the view
+    return view('admin.orders.index', compact('orders', 'request', 'products', 'cashiers', 'admin', 'categories'));
 }
+
+
+
+
 
     public function adminShow(Order $order)
     {
@@ -261,4 +275,42 @@ class OrderController extends Controller
         // 6. Download the PDF
         return $pdf->download($fileName);
     }
+    // NEW METHOD: For saving late transactions
+    public function storeLate(Request $request)
+    {
+        $request->validate([
+            'cashier_id'      => 'required|exists:users,id',  // cashier must exist
+            'payment_method'  => 'required|string',
+            'total_price'     => 'required|numeric',
+            'amount_received' => 'required|numeric',
+            'change'          => 'required|numeric',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Save a simplified late order (no items/inventory deduction)
+            $order = Order::create([
+                'payment_method'  => $request->payment_method,
+                'total_price'     => $request->total_price,
+                'amount_received' => $request->amount_received,
+                'change'          => $request->change,
+                'status'          => 'late',
+                'user_id'         => $request->cashier_id, // ✅ assign selected cashier
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('success', 'Late transaction added successfully!');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to add late transaction: ' . $e->getMessage());
+        }
+    }
+
 }
