@@ -57,113 +57,114 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 py-4 overflow-y-auto" style="max-height: calc(500vh - 200px);" id="productGrid">
 
         @foreach($products as $product)
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-5 product-item border border-gray-200 transition-transform transform hover:scale-105 
-                        {{ $product->is_available ? '' : 'hidden' }}" 
-                data-category="{{ $product->category_id }}" 
-                data-available="{{ $product->is_available ? 'true' : 'false' }}">
+          
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-5 product-item border border-gray-200 transition-transform transform hover:scale-105 
+                {{ $product->is_available ? '' : 'hidden' }}" 
+        data-category="{{ $product->category_id }}" 
+        data-available="{{ $product->is_available ? 'true' : 'false' }}">
 
-                <!-- Product Image -->
-                <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
-                    alt="{{ $product->name }}" 
-                    class="w-full h-36 object-cover rounded-lg">
+        <!-- Product Image (Framed and Fixed Size) -->
+        <div class="w-full h-48 border-2 border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
+                alt="{{ $product->name }}" 
+                class="object-cover w-full h-full">
+        </div>
 
-                <!-- Product Details -->
-                <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
-        <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
-        <p class="text-sm text-gray-600 sm:text-sm">
-            Category: <span class="font-medium">{{ $product->category->name }}</span>
-        </p>
-        <p class="text-sm font-semibold transition sm:text-base md:text-lg 
-                {{ $product->is_available ? 'text-green-600' : 'text-red-500' }}">
-            {{ $product->is_available ? 'Available' : 'Not Available' }}
-        </p>
-    </div>
+        <!-- Product Details -->
+        <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
+            <p class="text-sm text-gray-600 sm:text-sm">
+                Category: <span class="font-medium">{{ $product->category->name }}</span>
+            </p>
+            <p class="text-sm font-semibold transition sm:text-base md:text-lg 
+                    {{ $product->is_available ? 'text-green-600' : 'text-red-500' }}">
+                {{ $product->is_available ? 'Available' : 'Not Available' }}
+            </p>
+        </div>
 
-                <!-- Size Selection (For Available Products) -->
-                @if($product->is_available)
-                <div class="mt-6">
-        <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
-        <div class="relative">
-        <select id="size-{{ $product->id }}" 
+        <!-- Size Selection (For Available Products) -->
+        @if($product->is_available)
+            <div class="mt-6">
+                <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+                <div class="relative">
+                    <select id="size-{{ $product->id }}" 
                         class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 
                             focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition 
                             appearance-none text-xs sm:text-sm">
-                @if($product->has_multiple_sizes)
-                    @if($product->price_small && $product->small_enabled)
-                        <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
-                    @endif
-                    @if($product->price_medium && $product->medium_enabled)
-                        <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
-                    @endif
-                    @if($product->price_large && $product->large_enabled)
-                        <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
-                    @endif
-                @else
-                    <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
-                @endif
-            </select>
-            <!-- Custom dropdown icon -->
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
+                        @if($product->has_multiple_sizes)
+                            @if($product->price_small && $product->small_enabled)
+                                <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
+                            @endif
+                            @if($product->price_medium && $product->medium_enabled)
+                                <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
+                            @endif
+                            @if($product->price_large && $product->large_enabled)
+                                <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
+                            @endif
+                        @else
+                            <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
+                        @endif
+                    </select>
+                    <!-- Custom dropdown icon -->
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-
-                    <!-- Quantity Adjustment -->
-                    <div class="mt-4">
-        <label class="block text-sm font-medium text-gray-700">Quantity</label>
-        <div class="flex items-center space-x-2">
-            <!-- Decrease Quantity Button -->
-            <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                        hover:bg-gray-200 transition" 
-                    onclick="adjustQuantity('{{ $product->id }}', -1)">
-                –
-            </button>
-
-            <!-- Quantity Input Field -->
-            <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" 
-                class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
-
-            <!-- Increase Quantity Button -->
-            <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                        hover:bg-gray-200 transition" 
-                    onclick="adjustQuantity('{{ $product->id }}', 1)">
-                +
-            </button>
-        </div>
-    </div>
-
-                @endif
-
-                <!-- Toggle Availability Checkbox -->
-                <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-4">
-                    @csrf
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="is_available" onchange="this.form.submit()" 
-                            {{ $product->is_available ? 'checked' : '' }} class="accent-blue-500">
-                        <span>Available</span>
-                    </label>
-                </form>
-
-                <!-- Add to Order Button (For Available Products) -->
-                @if($product->is_available)
-                    <button class="mt-4 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full transition shadow-md hover:shadow-lg add-to-order" 
-                            data-id="{{ $product->id }}" 
-                            data-name="{{ $product->name }}" 
-                            data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
-                            data-price-small="{{ $product->price_small }}" 
-                            data-price-medium="{{ $product->price_medium }}" 
-                            data-price-large="{{ $product->price_large }}" 
-                            data-price="{{ $product->price }}">
-                        Add to Order
+            <!-- Quantity Adjustment -->
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                <div class="flex items-center space-x-2">
+                    <!-- Decrease Quantity Button -->
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                                hover:bg-gray-200 transition" 
+                            onclick="adjustQuantity('{{ $product->id }}', -1)">
+                        –
                     </button>
-                @endif
 
+                    <!-- Quantity Input Field -->
+                    <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" 
+                        class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
+
+                    <!-- Increase Quantity Button -->
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                                hover:bg-gray-200 transition" 
+                            onclick="adjustQuantity('{{ $product->id }}', 1)">
+                        +
+                    </button>
+                </div>
             </div>
-        @endforeach
+        @endif
+
+        <!-- Toggle Availability Checkbox -->
+        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-4">
+            @csrf
+            <label class="flex items-center space-x-2">
+                <input type="checkbox" name="is_available" onchange="this.form.submit()" 
+                    {{ $product->is_available ? 'checked' : '' }} class="accent-blue-500">
+                <span>Available</span>
+            </label>
+        </form>
+
+        <!-- Add to Order Button (For Available Products) -->
+        @if($product->is_available)
+            <button class="mt-4 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full transition shadow-md hover:shadow-lg add-to-order" 
+                    data-id="{{ $product->id }}" 
+                    data-name="{{ $product->name }}" 
+                    data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
+                    data-price-small="{{ $product->price_small }}" 
+                    data-price-medium="{{ $product->price_medium }}" 
+                    data-price-large="{{ $product->price_large }}" 
+                    data-price="{{ $product->price }}">
+                Add to Order
+            </button>
+        @endif
+    </div>
+@endforeach
+
         </div>
 
     </div>
@@ -226,49 +227,55 @@
 
 
     <!-- Receipt Modal -->
-    <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-lg w-80 shadow-xl transform transition-all scale-95 border border-gray-300">
-            <!-- Receipt Header -->
-            <div class="text-center border-b pb-3">
-                <h2 class="text-lg font-bold text-gray-800 tracking-wide">Order Receipt</h2>
-                <p class="text-sm text-gray-600">Thank you for your purchase!</p>
+    <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden print:bg-transparent print:static">
+    <div class="bg-white p-6 rounded-lg w-80 shadow-xl transform transition-all scale-95 border border-gray-300 print:shadow-none print:border-none print:rounded-none print:w-full print:p-4">
+        
+        <!-- Receipt Header -->
+        <div class="text-center border-b pb-3 print:border-b print:pb-2">
+            <!-- Company Logo -->
+            <div class="flex justify-center mb-2">
+                <img src="{{ asset('storage/logo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto">
             </div>
 
-            <!-- Order Details -->
-            <div class="mt-4 text-sm text-gray-700 space-y-1">
-                <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
-                <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
-                <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
-                <hr class="border-gray-300 my-2">
-                <p class="flex justify-between text-lg font-semibold"><span>Total:</span> <span class="text-gray-900">₱<span id="receipt-total-price"></span></span></p>
-                <p class="flex justify-between"><span>Amount Received:</span> <span>₱<span id="receipt-amount-received"></span></span></p>
-                <p class="flex justify-between text-red-500"><span>Change:</span> <span>₱<span id="receipt-change"></span></span></p>
-            </div>
+            <h2 class="text-lg font-bold text-gray-800 tracking-wide print:text-base">Order Receipt</h2>
+            <p class="text-sm text-gray-600 print:text-xs">Thank you for your purchase!</p>
+        </div>
 
-            <hr class="my-3 border-gray-300">
+        <!-- Order Details -->
+        <div class="mt-4 text-sm text-gray-700 space-y-1 print:text-xs print:mt-2">
+            <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
+            <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
+            <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
+            <hr class="border-gray-300 my-2 print:my-1">
+            <p class="flex justify-between text-lg font-semibold print:text-sm"><span>Total:</span> <span class="text-gray-900">₱<span id="receipt-total-price"></span></span></p>
+            <p class="flex justify-between"><span>Amount Received:</span> <span>₱<span id="receipt-amount-received"></span></span></p>
+            <p class="flex justify-between text-red-500"><span>Change:</span> <span>₱<span id="receipt-change"></span></span></p>
+        </div>
 
-            <!-- Item List -->
-            <h3 class="text-md font-bold text-gray-800">Items:</h3>
-            <ul id="receipt-items" class="text-sm text-gray-700 list-disc list-inside space-y-1"></ul>
+        <hr class="my-3 border-gray-300 print:my-2">
 
-            <!-- Footer Message -->
-            <div class="text-center text-xs text-gray-500 mt-4 italic border-t pt-2">
-                <p>“This receipt serves as an official record of your transaction.”</p>
-            </div>
+        <!-- Item List -->
+        <h3 class="text-md font-bold text-gray-800 print:text-sm">Items:</h3>
+        <ul id="receipt-items" class="text-sm text-gray-700 list-disc list-inside space-y-1 print:text-xs"></ul>
 
-            <!-- Action Buttons -->
-            <div class="mt-4 flex justify-end space-x-3">
-                <button onclick="printReceipt()" 
-                        class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
-                    Print Receipt
-                </button>
-                <button onclick="closeReceiptModal()" 
-                        class="px-4 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition">
-                    Close
-                </button>
-            </div>
+        <!-- Footer Message -->
+        <div class="text-center text-xs text-gray-500 mt-4 italic border-t pt-2 print:mt-2 print:text-[10px] print:pt-1 print:border-t">
+            <p>“This receipt serves as an official record of your transaction.”</p>
+        </div>
+
+        <!-- Action Buttons (Hide in Print) -->
+        <div class="mt-4 flex justify-end space-x-3 print:hidden">
+            <button onclick="printReceipt()" 
+                    class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
+                Print Receipt
+            </button>
+            <button onclick="closeReceiptModal()" 
+                    class="px-4 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition">
+                Close
+            </button>
         </div>
     </div>
+</div>
 
     <script>
         function adjustQuantity(productId, change) {
