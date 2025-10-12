@@ -71,45 +71,166 @@
             z-index: 50;
             margin-left: 4px;
         }
+                /* notif */
+        .notification-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+
+        .notification-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-scroll::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 3px;
+        }
+
+        .notification-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        .notification-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
     </style>
 </head>
 <body class="bg-[#E6DDC6]">
 
-    <!-- Navbar -->
+        <!-- Navbar -->
     <nav class="bg-[#f1eadc] text-black p-4 flex items-center justify-between shadow-md border-b-2 border-black">
         <div class="flex items-center space-x-2">
             <img src="{{ asset('storage/images/cupstreet_logo.jpg') }}" alt="Logo" class="h-8">
             <a href="/products" class="text-lg font-bold">Cups Street</a>
         </div>
 
-        <!-- User Dropdown -->
-        <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open" 
-                    class="p-2 rounded-full bg-gray-700 text-white focus:outline-none hover:bg-gray-600 transition-all duration-300">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-            </button>
+        <!-- Notification and User Dropdown -->
+        <div class="flex items-center space-x-4">
+            <!-- Low Stock Notification -->
+            @php
+                // Direct query in the blade file - much simpler!
+                $lowStockIngredients = App\Models\Ingredient::whereRaw('stock <= alert_threshold')
+                    ->where('alert_threshold', '>', 0)
+                    ->get();
+                $lowStockCount = $lowStockIngredients->count();
+            @endphp
+            
+            <div x-data="{ notificationOpen: false }" class="relative">
+                <!-- Notification Bell -->
+                <button @click="notificationOpen = !notificationOpen" 
+                        class="p-2 rounded-full bg-gray-700 text-white focus:outline-none hover:bg-gray-600 transition-all duration-300 relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    
+                    <!-- Notification Badge -->
+                    @if($lowStockCount > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center animate-pulse">
+                        {{ $lowStockCount }}
+                    </span>
+                    @endif
+                </button>
 
-            <div x-show="open" @click.away="open = false" 
-                 x-transition:enter="transition ease-out duration-100"
-                 x-transition:enter-start="transform opacity-0 scale-95"
-                 x-transition:enter-end="transform opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-75"
-                 x-transition:leave-start="transform opacity-100 scale-100"
-                 x-transition:leave-end="transform opacity-0 scale-95"
-                 class="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-md z-50">
-                <a href="{{ route('admin.credentials') }}" 
-                   class="flex items-center px-4 py-2 text-black hover:bg-gray-200 transition-all duration-300">
-                    <i data-lucide="key-round" class="mr-2 w-5 h-5"></i> 
-                    <span>Update Credentials</span>
-                </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" 
-                            class="flex items-center w-full px-4 py-2 text-black hover:bg-gray-200 transition-all duration-300">
-                        <i data-lucide="log-out" class="mr-2 w-5 h-5"></i> 
-                        <span>Logout</span>
-                    </button>
-                </form>
+                <!-- Notification Dropdown -->
+                <div x-show="notificationOpen" @click.away="notificationOpen = false" 
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+                    
+                    <!-- Notification Header -->
+                    <div class="bg-gray-50 px-4 py-3 border-b">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold text-gray-800">Low Stock Alerts</h3>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                                {{ $lowStockCount }} alert(s)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Notification Content -->
+                    <div class="max-h-64 overflow-y-auto">
+                        @if($lowStockCount > 0)
+                            @foreach($lowStockIngredients as $ingredient)
+                            <div class="border-b border-gray-100 last:border-b-0">
+                                <div class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0 mt-1">
+                                            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900 truncate">
+                                                {{ $ingredient->name }}
+                                            </p>
+                                            <p class="text-xs text-gray-600 mt-1">
+                                                Current stock: 
+                                                <span class="font-semibold {{ $ingredient->stock == 0 ? 'text-red-600' : 'text-orange-600' }}">
+                                                    {{ $ingredient->stock }} {{ $ingredient->unit }}
+                                                </span>
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                Alert threshold: {{ $ingredient->alert_threshold }} {{ $ingredient->unit }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <!-- No alerts state -->
+                            <div class="px-4 py-8 text-center">
+                                <div class="flex justify-center mb-3">
+                                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500"></i>
+                                </div>
+                                <p class="text-gray-600 text-sm">All ingredients are well stocked!</p>
+                                <p class="text-gray-500 text-xs mt-1">No low stock alerts</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Notification Footer -->
+                    @if($lowStockCount > 0)
+                    <div class="bg-gray-50 px-4 py-3 border-t">
+                        <a href="{{ route('ingredients.index') }}" 
+                        class="block w-full text-center bg-blue-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200">
+                            Manage Ingredients
+                        </a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- User Dropdown (your existing code) -->
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" 
+                        class="p-2 rounded-full bg-gray-700 text-white focus:outline-none hover:bg-gray-600 transition-all duration-300">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+
+                <div x-show="open" @click.away="open = false" 
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-56 bg-white border rounded-lg shadow-md z-50">
+                    <a href="{{ route('admin.credentials') }}" 
+                    class="flex items-center px-4 py-2 text-black hover:bg-gray-200 transition-all duration-300">
+                        <i data-lucide="key-round" class="mr-2 w-5 h-5"></i> 
+                        <span>Update Credentials</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" 
+                                class="flex items-center w-full px-4 py-2 text-black hover:bg-gray-200 transition-all duration-300">
+                            <i data-lucide="log-out" class="mr-2 w-5 h-5"></i> 
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </nav>

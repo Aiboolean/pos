@@ -32,13 +32,13 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create the order
-            $order = Order::create([
-                'total_price' => $request->total_price,
-                'amount_received' => $request->amount_received,
-                'change' => $request->change,
-                'user_id' => Session::get('user_id'),
-            ]);
+        // Create the order
+        $order = Order::create([
+            'total_price' => $request->total_price,
+            'amount_received' => $request->amount_received,
+            'change' => $request->change,
+            'user_id' => Session::get('user_id'),
+        ]);
 
         // Add order items and process inventory
         $orderItems = [];
@@ -47,50 +47,64 @@ class OrderController extends Controller
             
             // ========== INVENTORY DEDUCTION START ==========
             foreach ($product->ingredients as $ingredient) {
-                $multiplier = match($item['size']) {
-                    'small' => $ingredient->pivot->small_multiplier,
-                    'medium' => $ingredient->pivot->medium_multiplier,
-                    'large' => $ingredient->pivot->large_multiplier,
-                };
+                // Check if product has multiple sizes
+                if ($product->has_multiple_sizes) {
+                    // Use size multipliers for multi-size products
+                    $multiplier = match($item['size']) {
+                        'small' => $ingredient->pivot->small_multiplier,
+                        'medium' => $ingredient->pivot->medium_multiplier,
+                        'large' => $ingredient->pivot->large_multiplier,
+                        default => 1.00 // Fallback
+                    };
+                } else {
+                    // Use base quantity for single-size products
+                    $multiplier = 1.00;
+                }
                 
                 $quantityNeeded = $ingredient->pivot->quantity * $multiplier * $item['quantity'];
+                
+                // Check stock availability
+                if ($ingredient->stock < $quantityNeeded) {
+                    throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
+                }
+                
+                // Deduct from inventory
                 $ingredient->decrement('stock', $quantityNeeded);
             }
             // ========== INVENTORY DEDUCTION END ==========
             
+            // Create order item
             $orderItem = OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item['id'],
                 'user_id' => Session::get('user_id'),
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
-                'size' => $item['size'],
+                'size' => $product->has_multiple_sizes ? $item['size'] : 'standard',
             ]);
             
             $orderItems[] = [
                 'name' => $product->name,
-                'size' => $item['size'],
+                'size' => $product->has_multiple_sizes ? $item['size'] : 'standard',
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
             ];
         }
 
-            // Commit transaction if all operations succeed
-            DB::commit();
+        DB::commit();
 
-            return response()->json([
-                'order' => $order,
-                'items' => $orderItems,
-            ], 201);
+        return response()->json([
+            'order' => $order,
+            'items' => $orderItems,
+        ], 201);
 
-        } catch (\Exception $e) {
-            // Rollback transaction on error
-            DB::rollBack();
-            return response()->json([
-                'error' => 'Order processing failed: ' . $e->getMessage()
-            ], 400);
-        }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'error' => 'Order processing failed: ' . $e->getMessage()
+        ], 400);
     }
+}
 
 // MODIFIED METHOD: Added filtering + cashiers/products for modal
 public function adminIndex(Request $request)

@@ -215,8 +215,6 @@
         </div>
     </div>
 
-    <!-- ===== Main Content ===== -->
-    <div class="space-y-4 sm:space-y-6">
         <!-- Revenue Chart -->
         <div class="coffee-card p-4 sm:p-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 chart-header">
@@ -227,9 +225,23 @@
                     </svg>
                     Revenue Chart
                 </h3>
-                <!-- Excel-Style Compact Controls -->
+                <!-- Simplified Year and Period Controls -->
                 <div class="compact-controls w-full sm:w-auto">
-                    <input type="text" id="globalDateRangePicker" class="border coffee-border rounded-lg w-full">
+                    <select id="yearFilter" class="border coffee-border rounded-lg p-2 text-sm">
+                        @php
+                            $currentYear = date('Y');
+                            $startYear = 2020; // You can change this to your business start year
+                        @endphp
+                        @for($year = $currentYear; $year >= $startYear; $year--)
+                            <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
+                        @endfor
+                    </select>
+                    <select id="periodFilter" class="border coffee-border rounded-lg p-2 text-sm">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly" selected>Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
                     <button id="refreshChartsBtn" class="coffee-btn-primary rounded-lg font-medium inline-flex items-center whitespace-nowrap">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -289,71 +301,58 @@
 </div>
 
 <script>
-// Initialize Flatpickr for Global Date Range
-const globalDatePicker = flatpickr("#globalDateRangePicker", {
-    mode: "range",
-    dateFormat: "Y-m-d",
-    onChange: function(selectedDates, dateStr, instance) {
-        if (selectedDates.length === 2) {
-            const startDate = selectedDates[0];
-            const endDate = selectedDates[1];
-
-            // Update all charts with the selected date range
-            fetchRevenueData(startDate, endDate); // Update Revenue Chart
-            fetchAllCategoriesRevenueData(startDate, endDate); // Update All Categories Revenue Chart
-
-            // Update Category Revenue Chart if a category is selected
-            const categoryId = document.getElementById('categoryDropdown').value;
-            if (categoryId) {
-                fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
-            }
-        }
-    }
-});
-
 // Initialize Chart.js for Revenue Chart
 const ctx = document.getElementById('revenueChart').getContext('2d');
 let revenueChart;
 
+// Global variables to track current period and year
+let currentPeriod = 'monthly';
+let currentYear = new Date().getFullYear();
+
 // Function to fetch revenue data
-function fetchRevenueData(startDate, endDate) {
-    // Add cache-busting parameter to prevent browser caching
+function fetchRevenueData(year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/revenue-data?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    
+    fetch(`/admin/revenue-data?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateChart(data);
+            updateChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching revenue data:', error);
         });
 }
 
-// Function to update the Revenue Chart
-function updateChart(data) {
+// Enhanced chart update function
+function updateChart(data, year, period) {
     if (revenueChart) {
         revenueChart.destroy();
     }
 
+    // Determine chart type based on period
+    let chartType = 'bar';
+    if (period === 'daily') chartType = 'line';
+    if (period === 'yearly') chartType = 'bar';
+
     revenueChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue',
-            data: data.revenue,
-            backgroundColor: 'rgba(166, 123, 91, 0.2)',  // Soft coffee brown with transparency
-            borderColor: '#A67B5B',                      // Warm coffee brown
-            borderWidth: 2,
-            tension: 0.1,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#A67B5B',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: true
-        }]
-    },
+        type: chartType,
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: `${period.charAt(0).toUpperCase() + period.slice(1)} Revenue - ${year}`,
+                data: data.revenue,
+                backgroundColor: period === 'daily' ? 'rgba(166, 123, 91, 0.2)' : '#A67B5B',
+                borderColor: '#A67B5B',
+                borderWidth: period === 'daily' ? 3 : 1,
+                tension: 0.1,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#A67B5B',
+                pointBorderWidth: 2,
+                pointRadius: period === 'daily' ? 5 : 0,
+                pointHoverRadius: period === 'daily' ? 8 : 4,
+                fill: period === 'daily'
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -364,7 +363,10 @@ function updateChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
                     }
                 },
                 x: {
@@ -372,7 +374,9 @@ function updateChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        maxRotation: period === 'daily' ? 45 : 0,
+                        minRotation: period === 'daily' ? 45 : 0
                     }
                 }
             },
@@ -381,68 +385,64 @@ function updateChart(data) {
                     labels: {
                         color: '#5c4d3c'
                     }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Revenue: ₱${context.raw.toLocaleString()}`;
+                        }
+                    }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
 }
 
-// Initialize Category Revenue Chart
+// Initialize other charts
 const categoryCtx = document.getElementById('categoryRevenueChart').getContext('2d');
 let categoryRevenueChart;
 
-// Function to fetch category revenue data
-function fetchCategoryRevenueData(categoryId, startDate, endDate) {
-    // Add cache-busting parameter
+function fetchCategoryRevenueData(categoryId, year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/category-revenue/${categoryId}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    fetch(`/admin/category-revenue/${categoryId}?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateCategoryChart(data);
+            updateCategoryChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching category revenue data:', error);
         });
 }
 
-// Function to update the Category Revenue Chart
-function updateCategoryChart(data) {
+function updateCategoryChart(data, year, period) {
     if (categoryRevenueChart) {
         categoryRevenueChart.destroy();
     }
 
     categoryRevenueChart = new Chart(categoryCtx, {
-    type: 'bar',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue by Product',
-            data: data.revenue,
-            backgroundColor: [
-                '#A67B5B',  // Warm coffee brown
-                '#C9A87C',  // Light latte
-                '#E3C16F',  // Golden cream
-                '#8D6E63',  // Muted clay
-                '#D4B483',  // Soft beige
-                '#BC8A5F',  // Medium roast
-                '#E6C39A',  // Light foam
-                '#9C7E56'   // Dark caramel
-            ],
-            borderColor: '#f5f1ea', // Light cream border
-            borderWidth: 1.5,        // Slightly thicker border
-            hoverBackgroundColor: [   // Slightly darker on hover
-                '#956A4F',
-                '#B5976B',
-                '#D3B15F',
-                '#7D5E54',
-                '#C4A472',
-                '#AA754D',
-                '#D6B288',
-                '#8B6D4A'
-            ],
-            hoverBorderWidth: 2
-        }]
-    },
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: `Revenue by Product (${period} - ${year})`,
+                data: data.revenue,
+                backgroundColor: [
+                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
+                    '#D4B483', '#BC8A5F', '#E6C39A', '#9C7E56'
+                ],
+                borderColor: '#f5f1ea',
+                borderWidth: 1.5,
+                hoverBackgroundColor: [
+                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54',
+                    '#C4A472', '#AA754D', '#D6B288', '#8B6D4A'
+                ],
+                hoverBorderWidth: 2
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -464,7 +464,7 @@ function updateCategoryChart(data) {
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
                             const percentage = Math.round((value / total) * 100);
-                            return `${label}: ₱${value} (${percentage}%)`;
+                            return `${label}: ₱${value.toLocaleString()} (${percentage}%)`;
                         }
                     }
                 }
@@ -473,58 +473,44 @@ function updateCategoryChart(data) {
     });
 }
 
-// Initialize All Categories Revenue Chart
 const allCategoriesCtx = document.getElementById('allCategoriesRevenueChart').getContext('2d');
 let allCategoriesRevenueChart;
 
-// Function to fetch revenue data for all categories
-function fetchAllCategoriesRevenueData(startDate, endDate) {
-    // Add cache-busting parameter
+function fetchAllCategoriesRevenueData(year, period) {
     const cacheBuster = new Date().getTime();
-    fetch(`/admin/all-categories-revenue?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}&_=${cacheBuster}`)
+    fetch(`/admin/all-categories-revenue?year=${year}&period=${period}&_=${cacheBuster}`)
         .then(response => response.json())
         .then(data => {
-            updateAllCategoriesChart(data);
+            updateAllCategoriesChart(data, year, period);
         })
         .catch(error => {
             console.error('Error fetching all categories revenue data:', error);
         });
 }
 
-// Function to update the All Categories Revenue Chart
-function updateAllCategoriesChart(data) {
+function updateAllCategoriesChart(data, year, period) {
     if (allCategoriesRevenueChart) {
         allCategoriesRevenueChart.destroy();
     }
 
     allCategoriesRevenueChart = new Chart(allCategoriesCtx, {
-    type: 'bar',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue by Category',
-            data: data.revenue,
-            backgroundColor: [
-                '#A67B5B',  // Warm coffee brown
-                '#C9A87C',  // Light latte
-                '#E3C16F',  // Golden cream
-                '#8D6E63',  // Muted clay
-                '#D4B483',  // Soft beige
-                '#BC8A5F'   // Medium roast
-            ],
-            borderColor: '#f5f1ea',
-            borderWidth: 1.5,
-            hoverBackgroundColor: [
-                '#956A4F',
-                '#B5976B',
-                '#D3B15F',
-                '#7D5E54',
-                '#C4A472',
-                '#AA754D'
-            ],
-            hoverBorderWidth: 2
-        }]
-    },
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: `Revenue by Category (${period} - ${year})`,
+                data: data.revenue,
+                backgroundColor: [
+                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', '#D4B483', '#BC8A5F'
+                ],
+                borderColor: '#f5f1ea',
+                borderWidth: 1.5,
+                hoverBackgroundColor: [
+                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54', '#C4A472', '#AA754D'
+                ],
+                hoverBorderWidth: 2
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -535,7 +521,10 @@ function updateAllCategoriesChart(data) {
                         color: '#e0d6c2'
                     },
                     ticks: {
-                        color: '#5c4d3c'
+                        color: '#5c4d3c',
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
                     }
                 },
                 x: {
@@ -558,48 +547,51 @@ function updateAllCategoriesChart(data) {
     });
 }
 
-// Fetch initial data for all charts (e.g., last 30 days)
-const endDate = new Date();
-const startDate = new Date();
-startDate.setDate(endDate.getDate() - 30);
-
-// Set initial date range in the global date picker
-globalDatePicker.setDate([startDate, endDate]);
-
 // Function to refresh all charts
 function refreshAllCharts() {
-    const selectedDates = globalDatePicker.selectedDates;
-    if (selectedDates.length === 2) {
-        fetchRevenueData(selectedDates[0], selectedDates[1]);
-        fetchAllCategoriesRevenueData(selectedDates[0], selectedDates[1]);
-        
-        // Update Category Revenue Chart if a category is selected
-        const categoryId = document.getElementById('categoryDropdown').value;
-        if (categoryId) {
-            fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
-        }
+    const year = parseInt(document.getElementById('yearFilter').value);
+    const period = document.getElementById('periodFilter').value;
+    
+    currentYear = year;
+    currentPeriod = period;
+    
+    // Update all charts with the same year and period
+    fetchRevenueData(year, period);
+    fetchAllCategoriesRevenueData(year, period);
+    
+    const categoryId = document.getElementById('categoryDropdown').value;
+    if (categoryId) {
+        fetchCategoryRevenueData(categoryId, year, period);
     }
 }
 
+// Set initial values and fetch data
+currentYear = new Date().getFullYear();
+currentPeriod = 'monthly';
+
 // Fetch initial data for all charts
-fetchRevenueData(startDate, endDate); // Revenue Chart
-fetchAllCategoriesRevenueData(startDate, endDate); // All Categories Revenue Chart
+fetchRevenueData(currentYear, currentPeriod);
+fetchAllCategoriesRevenueData(currentYear, currentPeriod);
+
+// Set up refresh interval (5 minutes)
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+setInterval(refreshAllCharts, REFRESH_INTERVAL);
+
+// Add event listeners for both year and period filters
+document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
+document.getElementById('yearFilter').addEventListener('change', refreshAllCharts);
+document.getElementById('periodFilter').addEventListener('change', refreshAllCharts);
 
 // Fetch category revenue data when a category is selected
 document.getElementById('categoryDropdown').addEventListener('change', function() {
     const categoryId = this.value;
-    const selectedDates = globalDatePicker.selectedDates;
-    if (categoryId && selectedDates.length === 2) {
-        fetchCategoryRevenueData(categoryId, selectedDates[0], selectedDates[1]);
+    const year = parseInt(document.getElementById('yearFilter').value);
+    const period = document.getElementById('periodFilter').value;
+    
+    if (categoryId) {
+        fetchCategoryRevenueData(categoryId, year, period);
     }
 });
-
-// Set up refresh interval (e.g., every 1 minutes)
-const REFRESH_INTERVAL = 1 * 60 * 1000; // 1 minutes in milliseconds
-setInterval(refreshAllCharts, REFRESH_INTERVAL);
-
-// Add click handler for refresh button
-document.getElementById('refreshChartsBtn').addEventListener('click', refreshAllCharts);
 
 // Initialize Lucide icons
 lucide.createIcons();
