@@ -424,7 +424,7 @@ function updateCategoryChart(data, year, period) {
     }
 
     categoryRevenueChart = new Chart(categoryCtx, {
-        type: 'pie',
+        type: 'bar',
         data: {
             labels: data.labels,
             datasets: [{
