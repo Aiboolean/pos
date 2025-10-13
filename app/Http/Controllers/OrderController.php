@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf; 
+use Carbon\Carbon; 
 
 
 
@@ -276,37 +277,122 @@ public function adminIndex(Request $request)
         return $pdf->download($fileName);
     }
     // NEW METHOD: For saving late transactions
-    public function storeLate(Request $request)
+        public function storeLate(Request $request)
     {
         $request->validate([
-            'cashier_id'      => 'required|exists:users,id',  // cashier must exist
+            'cashier_id'      => 'required|exists:users,id',
             'payment_method'  => 'required|string',
             'total_price'     => 'required|numeric',
             'amount_received' => 'required|numeric',
             'change'          => 'required|numeric',
+            'transaction_time'=> 'nullable|string',
+            'products'        => 'required|array|min:1',
+            'products.*.id'   => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.size' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Save a simplified late order (no items/inventory deduction)
+            // Create the order and assign cashier (user_id)
             $order = Order::create([
                 'payment_method'  => $request->payment_method,
                 'total_price'     => $request->total_price,
                 'amount_received' => $request->amount_received,
                 'change'          => $request->change,
                 'status'          => 'late',
-                'user_id'         => $request->cashier_id, // ✅ assign selected cashier
+                'user_id'         => $request->cashier_id,
             ]);
+
+            // If a custom transaction_time was provided, set created_at accordingly
+            if ($request->filled('transaction_time')) {
+                try {
+                    $parsed = Carbon::parse($request->transaction_time);
+                    $order->created_at = $parsed;
+                    $order->save();
+                } catch (\Exception $e) {
+                    // ignore parse error and keep DB timestamp, or you can throw if you prefer
+                }
+            }
+
+            $orderItemsPayload = [];
+
+            foreach ($request->products as $p) {
+                $product = Product::with('ingredients')->findOrFail($p['id']);
+                $quantity = (int) $p['quantity'];
+                $sizeRaw = isset($p['size']) ? trim($p['size']) : null;
+                $sizeKey = $sizeRaw ? strtolower($sizeRaw) : null;
+
+                // Determine price based on size or standard price
+                if ($product->has_multiple_sizes) {
+                    // Normalize size to keys used in DB (small/medium/large)
+                    if ($sizeKey === 'small') {
+                        $price = $product->price_small ?? $product->price;
+                    } elseif ($sizeKey === 'medium') {
+                        $price = $product->price_medium ?? $product->price;
+                    } elseif ($sizeKey === 'large') {
+                        $price = $product->price_large ?? $product->price;
+                    } else {
+                        // fallback to base price if size missing
+                        $price = $product->price;
+                    }
+                } else {
+                    $price = $product->price;
+                }
+
+                // ========= INVENTORY DEDUCTION (same logic as store()) =========
+                foreach ($product->ingredients as $ingredient) {
+                    if ($product->has_multiple_sizes) {
+                        $multiplier = match($sizeKey) {
+                            'small' => $ingredient->pivot->small_multiplier ?? 1.0,
+                            'medium' => $ingredient->pivot->medium_multiplier ?? 1.0,
+                            'large' => $ingredient->pivot->large_multiplier ?? 1.0,
+                            default => 1.0,
+                        };
+                    } else {
+                        $multiplier = 1.0;
+                    }
+
+                    $quantityNeeded = $ingredient->pivot->quantity * $multiplier * $quantity;
+
+                    if ($ingredient->stock < $quantityNeeded) {
+                        throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
+                    }
+
+                    // Deduct ingredient stock
+                    $ingredient->decrement('stock', $quantityNeeded);
+                }
+                // ========= END INVENTORY DEDUCTION =========
+
+                // Create order item row
+                $orderItem = OrderItem::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $product->id,
+                    'user_id'    => $request->cashier_id,
+                    'quantity'   => $quantity,
+                    'price'      => $price,
+                    'size'       => $product->has_multiple_sizes ? ($sizeKey ?? 'standard') : 'standard',
+                ]);
+
+                $orderItemsPayload[] = [
+                    'name' => $product->name,
+                    'size' => $product->has_multiple_sizes ? ($sizeKey ?? 'standard') : 'standard',
+                    'quantity' => $quantity,
+                    'price' => $price,
+                ];
+            }
 
             DB::commit();
 
             return redirect()
                 ->back()
                 ->with('success', 'Late transaction added successfully!');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
+
+            // Optionally log error: \Log::error($e);
             return redirect()
                 ->back()
                 ->with('error', 'Failed to add late transaction: ' . $e->getMessage());
