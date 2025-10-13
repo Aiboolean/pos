@@ -85,6 +85,9 @@
                 <div class="coffee-info-box p-4 rounded-lg">
                     <p class="font-medium coffee-text-primary mb-1">Order ID: <span class="font-normal">{{ $order->id }}</span></p>
                     <p class="font-medium coffee-text-primary mb-1">Cashier: <span class="font-normal">{{ $order->user->username }}</span></p>
+                    <p class="font-medium coffee-text-primary mb-1">Transaction Date: 
+                        <span class="font-normal">{{ $order->created_at->format('F j, Y h:i A') }}</span>
+                    </p>
                 </div>
                 <div class="coffee-info-box p-4 rounded-lg">
                     <p class="font-medium coffee-text-primary mb-1">Total Price: <span class="font-normal">₱{{ number_format($order->total_price, 2) }}</span></p>
