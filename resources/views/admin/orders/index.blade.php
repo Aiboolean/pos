@@ -312,6 +312,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Total</th>
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Received</th>
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Change</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Payment Method</th> <!-- ADD THIS LINE -->
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -329,6 +330,19 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
                                 ₱{{ number_format($order->change, 2) }}
                             </td>
+                            <!-- ========== ADDED PAYMENT METHOD COLUMN START ========== -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if($order->payment_method === 'gcash')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        GCash
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Cash
+                                    </span>
+                                @endif
+                            </td>
+                            <!-- ========== ADDED PAYMENT METHOD COLUMN END ========== -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('admin.orders.show', $order) }}" 
                                    class="coffee-btn-view px-3 py-1 rounded-lg text-sm font-medium shadow-sm inline-flex items-center hover:shadow-md transition-shadow">
@@ -342,7 +356,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center">
+                            <td colspan="7" class="px-6 py-8 text-center"><!-- CHANGED FROM 6 TO 7 -->
                                 <div class="flex flex-col items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package mb-4 opacity-60">
                                         <path d="M16.5 9.4 7.5 4.21"/>

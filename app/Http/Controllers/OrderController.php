@@ -15,6 +15,7 @@ use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    
     public function store(Request $request)
     {
         // ... YOUR EXISTING store METHOD (NO CHANGES) ...
@@ -22,6 +23,7 @@ class OrderController extends Controller
             'total_price' => 'required|numeric',
             'amount_received' => 'required|numeric',
             'change' => 'required|numeric',
+            'payment_method' => 'sometimes|in:cash,gcash', // ← CHANGE TO THIS
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -33,12 +35,13 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
-        // Create the order
-        $order = Order::create([
-            'total_price' => $request->total_price,
-            'amount_received' => $request->amount_received,
-            'change' => $request->change,
-            'user_id' => Session::get('user_id'),
+            // Create the order
+            $order = Order::create([
+                'total_price' => $request->total_price,
+                'amount_received' => $request->amount_received,
+                'change' => $request->change,
+                'payment_method' => $request->input('payment_method', 'cash'), // ← FIXED: Use input() method
+                'user_id' => Session::get('user_id'),
         ]);
 
         // Add order items and process inventory
