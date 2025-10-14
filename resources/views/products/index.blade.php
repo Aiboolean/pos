@@ -244,6 +244,7 @@
         <!-- Order Details -->
         <div class="mt-4 text-sm text-gray-700 space-y-1 print:text-xs print:mt-2">
             <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
+            <p class="flex justify-between"><span class="font-medium">Payment Method:</span> <span id="receipt-payment-method"></span></p> <!-- ADD THIS LINE -->
             <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
             <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
             <hr class="border-gray-300 my-2 print:my-1">
@@ -547,6 +548,7 @@
     function openReceiptModal(order, items) {
         const receiptModal = document.getElementById("receiptModal");
         const receiptOrderId = document.getElementById("receipt-order-id");
+        const receiptPaymentMethod = document.getElementById("receipt-payment-method"); // ← ADD THIS LINE
         const receiptTotalWithoutVat = document.getElementById("receipt-total-without-vat");
         const receiptVat = document.getElementById("receipt-vat");
         const receiptTotalPrice = document.getElementById("receipt-total-price");
@@ -561,6 +563,7 @@
 
         // Update receipt content
         receiptOrderId.innerText = order.id;
+        receiptPaymentMethod.innerText = order.payment_method === 'gcash' ? 'GCash' : 'Cash'; // ← ADD THIS LINE
         receiptTotalWithoutVat.innerText = totalWithoutVat;
         receiptVat.innerText = vat;
         receiptTotalPrice.innerText = totalPrice.toFixed(2);
