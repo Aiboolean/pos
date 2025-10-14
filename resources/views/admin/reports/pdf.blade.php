@@ -6,10 +6,10 @@
         body { 
             font-family: DejaVu Sans, sans-serif; 
             color: #5c4d3c; 
-            line-height: 1.4; 
-            font-size: 0.8em; 
+            line-height: 1.3; 
+            font-size: 0.75em; 
             margin: 0; 
-            padding: 15px; 
+            padding: 10px; 
         }
         .header { 
             text-align: center; 
@@ -39,8 +39,8 @@
         
         /* Executive Summary */
         .analysis { 
-            margin: 1rem 0; 
-            padding: 1rem; 
+            margin: 0.75rem 0; 
+            padding: 0.75rem; 
             background-color: #faf7f2; 
             border-radius: 6px; 
             border-left: 3px solid #a67c52; 
@@ -64,7 +64,7 @@
             overflow: hidden;
             background: #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
         .financial-header {
             background-color: #f0e6d8;
@@ -76,12 +76,12 @@
             border-bottom: 1px solid #e6d7c1;
         }
         .financial-content {
-            padding: 1rem;
+            padding: 0.5rem;
         }
         .financial-row {
             display: flex;
             justify-content: space-between;
-            padding: 0.5rem 0;
+            padding: 0.3rem 0;
             border-bottom: 1px solid #f0e6d8;
         }
         .financial-row:last-child {
@@ -98,23 +98,30 @@
         
         /* Product Comparison - Side by Side */
         .product-comparison { 
-            display: flex; 
-            gap: 1rem; 
+            width: 100%;
+            margin-bottom: 0.75rem;
         }
         .table-container { 
-            flex: 1;
+            width: 48%;
             border: 1px solid #e6d7c1; 
             border-radius: 6px; 
             overflow: hidden;
             background: #fff;
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 2%;
         }
+        .table-container:last-child {
+            margin-right: 0;
+        }
+
         .table-header { 
             background-color: #f0e6d8; 
-            padding: 0.75rem; 
+            padding: 0.4rem; 
             text-align: center; 
             font-weight: bold; 
             color: #5c4d3c; 
-            font-size: 0.8em;
+            font-size: 0.7em;
             border-bottom: 1px solid #e6d7c1;
         }
         
@@ -122,14 +129,15 @@
         .product-table { 
             width: 100%; 
             border-collapse: collapse;
-            font-size: 0.75em; 
+            font-size: 0.65em;
+            table-layout: fixed;
         }
         .product-table thead th { 
-            padding: 0.6rem; 
+            padding: 0.3rem; 
             background-color: #f8f3e9; 
             color: #5c4d3c; 
-            font-size: 0.8em;
-            border-bottom: 2px solid #e6d7c1;
+            font-size: 0.65em;
+            border-bottom: 1px solid #e6d7c1;
         }
         .product-table th:nth-child(1) { 
             text-align: left; 
@@ -147,7 +155,7 @@
         }
         
         .product-table td { 
-            padding: 0.6rem; 
+            padding: 0.3rem; 
             border-bottom: 1px solid #f0e6d8; 
         }
         .product-table td:nth-child(1) { 
@@ -234,11 +242,40 @@
         </div>
     </div>
 
+    <!-- Payment Method Statistics - Full Width -->
+    <div class="financial-summary" style="margin-top: 1rem;">
+        <div class="financial-header">💳 Payment Method Breakdown</div>
+        <div class="financial-content">
+            <div class="financial-row">
+                <span class="financial-label">Cash Orders:</span>
+                <span class="financial-value">
+                    {{ $paymentMethodStats['cash']['count'] }} orders 
+                    ({{ number_format($paymentMethodStats['cash']['percentage'], 1) }}%)
+                </span>
+            </div>
+            <div class="financial-row">
+                <span class="financial-label">Cash Revenue:</span>
+                <span class="financial-value">₱{{ number_format($paymentMethodStats['cash']['revenue'], 2) }}</span>
+            </div>
+            <div class="financial-row">
+                <span class="financial-label">GCash Orders:</span>
+                <span class="financial-value">
+                    {{ $paymentMethodStats['gcash']['count'] }} orders 
+                    ({{ number_format($paymentMethodStats['gcash']['percentage'], 1) }}%)
+                </span>
+            </div>
+            <div class="financial-row">
+                <span class="financial-label">GCash Revenue:</span>
+                <span class="financial-value">₱{{ number_format($paymentMethodStats['gcash']['revenue'], 2) }}</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Product Comparison - Side by Side Tables -->
     <div class="product-comparison">
         <!-- Top 5 Products -->
         <div class="table-container">
-            <div class="table-header">🏆 Top Products</div>
+            <div class="table-header"> Top Products</div>
             <table class="product-table">
                 <thead>
                     <tr>
@@ -261,7 +298,7 @@
 
         <!-- Bottom 5 Products -->
         <div class="table-container">
-            <div class="table-header">📈 Least Products</div>
+            <div class="table-header"> Least Products</div>
             <table class="product-table">
                 <thead>
                     <tr>
