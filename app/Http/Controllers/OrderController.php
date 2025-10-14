@@ -130,6 +130,12 @@ public function adminIndex(Request $request)
     }
     // ===== END FILTERING LOGIC =====
 
+    // ===== PAYMENT METHOD FILTER =====
+    if ($request->filled('payment_method')) {
+        $query->where('payment_method', $request->input('payment_method'));
+    }
+    // ===== END PAYMENT METHOD FILTER =====
+
     // Execute the query and paginate the results
     $orders = $query->paginate(10);
 
