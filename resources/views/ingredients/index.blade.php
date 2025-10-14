@@ -89,56 +89,227 @@
     }
 </style>
 
-<div class="container mx-auto px-4 py-6 coffee-bg">
-    <div class="coffee-card p-6">
+<div class="min-h-screen bg-gray-50 p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold coffee-text-primary">Ingredients</h1>
+            <h1 class="text-2xl font-bold text-gray-900">Ingredients Management</h1>
             <a href="{{ route('ingredients.create') }}" 
-               class="px-4 py-2 rounded-lg coffee-btn-primary">
-                Add New Ingredient
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                Add Ingredient
             </a>
         </div>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full coffee-card">
-                <thead>
-                    <tr class="coffee-bg">
-                        <th class="py-3 px-4 text-left coffee-text-secondary">Name</th>
-                        <th class="py-3 px-4 text-left coffee-text-secondary">Stock</th>
-                        <th class="py-3 px-4 text-left coffee-text-secondary">Unit</th>
-                        <th class="py-3 px-4 text-left coffee-text-secondary">Low Stock Alert</th>
-                        <th class="py-3 px-4 text-left coffee-text-secondary">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($ingredients as $ingredient)
-                    <tr class="coffee-border border-t">
-                        <td class="py-3 px-4 coffee-text-primary">{{ $ingredient->name }}</td>
-                        <td class="py-3 px-4 coffee-text-primary">{{ $ingredient->stock }}</td>
-                        <td class="py-3 px-4 coffee-text-primary">{{ $ingredient->unit }}</td>
-                        <td class="py-3 px-4 coffee-text-primary">{{ $ingredient->alert_threshold ?? '-' }}</td>
-                        <td class="py-3 px-4">
-                            <div class="flex space-x-2">
+
+        <!-- Ingredient Usage Report Filter -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Ingredient Usage Report</h2>
+            <form id="usageReportForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="date" name="end_date" id="end_date" class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <i data-lucide="bar-chart" class="w-5 h-5 mr-2"></i>
+                        Generate Report
+                    </button>
+                </div>
+                <div class="flex items-end">
+                    <button type="button" id="exportReport" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center">
+                        <i data-lucide="download" class="w-5 h-5 mr-2"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ingredients Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ingredient
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Current Stock
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Alert Threshold
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Last Updated
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Usage (Today)
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="ingredientsTableBody">
+                        @foreach($ingredients as $ingredient)
+                        <tr class="{{ $ingredient->status === 'low-stock' ? 'bg-yellow-50' : ($ingredient->status === 'out-of-stock' ? 'bg-red-50' : '') }}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ $ingredient->name }}</div>
+                                <div class="text-sm text-gray-500">{{ $ingredient->unit }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ $ingredient->stock }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $ingredient->alert_threshold }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($ingredient->status === 'out-of-stock')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Out of Stock
+                                    </span>
+                                @elseif($ingredient->status === 'low-stock')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Low Stock
+                                    </span>
+                                @else
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        In Stock
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $ingredient->last_updated }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 usage-today">
+                                <div class="text-center">
+                                    <div class="text-sm font-medium">{{ $ingredient->getUsageInPeriod(now()->startOfDay(), now()->endOfDay()) }}</div>
+                                    <div class="text-xs text-gray-400">{{ $ingredient->unit }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <a href="{{ route('ingredients.edit', $ingredient->id) }}" 
-                                   class="px-3 py-1 rounded coffee-btn-success">
-                                    Edit
-                                </a>
-                                <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST">
+                                   class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
-                                            class="px-3 py-1 rounded coffee-btn-secondary"
-                                            onclick="return confirm('Are you sure?')">
+                                            class="text-red-600 hover:text-red-900"
+                                            onclick="return confirm('Are you sure you want to delete this ingredient?')">
                                         Delete
                                     </button>
                                 </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Usage Report Results -->
+        <div id="usageReportResults" class="mt-6 hidden">
+            <!-- Results will be loaded here via AJAX -->
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Generate Usage Report
+    document.getElementById('usageReportForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('{{ route("ingredients.usage-report") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayUsageReport(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    // Export Report
+    document.getElementById('exportReport').addEventListener('click', function() {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates');
+            return;
+        }
+        
+        window.location.href = `{{ route("ingredients.export-usage") }}?start_date=${startDate}&end_date=${endDate}`;
+    });
+
+    function displayUsageReport(data) {
+        const resultsDiv = document.getElementById('usageReportResults');
+        resultsDiv.classList.remove('hidden');
+        
+        let html = `
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Usage Report: ${data.start_date} to ${data.end_date}</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ingredient</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Used</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage Rate/Day</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+        `;
+        
+        data.usage_data.forEach(item => {
+            html += `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.ingredient_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.total_used}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.unit}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.usage_rate}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        resultsDiv.innerHTML = html;
+    }
+
+    // Set default dates (last 30 days)
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    document.getElementById('start_date').value = startDate.toISOString().split('T')[0];
+    document.getElementById('end_date').value = endDate;
+});
+
+lucide.createIcons();
+</script>
 @endsection

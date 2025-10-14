@@ -101,6 +101,8 @@ Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('
 
 // inredient route
 Route::resource('ingredients', IngredientController::class)->except(['show']);
+Route::post('ingredients/usage-report', [IngredientController::class, 'usageReport'])->name('ingredients.usage-report');
+Route::get('ingredients/export-usage', [IngredientController::class, 'exportUsage'])->name('ingredients.export-usage');
 
 
 
