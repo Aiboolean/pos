@@ -7,6 +7,7 @@ use App\Models\Ingredient;
 use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class IngredientController extends Controller
 {
@@ -85,7 +86,10 @@ class IngredientController extends Controller
                 'ingredient_name' => $ingredient->name,
                 'total_used' => $totalUsed,
                 'unit' => $ingredient->unit,
-                'usage_rate' => $usageRate
+                'usage_rate' => $usageRate,
+                'current_stock' => $ingredient->stock,
+                'status' => $ingredient->stock == 0 ? 'Out of Stock' : 
+                            ($ingredient->stock <= $ingredient->alert_threshold ? 'Low Stock' : 'In Stock')
             ];
         }
 
@@ -97,46 +101,84 @@ class IngredientController extends Controller
     }
 
     public function exportUsage(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date'
-        ]);
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date'
+    ]);
 
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    // Get simplified usage data without stock histories
+    $usageData = [];
+    $ingredients = Ingredient::all();
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="ingredient-usage-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.csv"',
+    $totalIngredients = $ingredients->count();
+    
+    // FIX: Properly count low stock ingredients
+    $lowStockCount = $ingredients->filter(function($ingredient) {
+        return $ingredient->stock <= $ingredient->alert_threshold && $ingredient->stock > 0;
+    })->count();
+    
+    $outOfStockCount = $ingredients->where('stock', 0)->count();
+
+    foreach ($ingredients as $ingredient) {
+        // Calculate total used in period
+        $totalUsed = $ingredient->getUsageInPeriod($startDate, $endDate);
+        
+        // Calculate usage rate per day
+        $daysInPeriod = $startDate->diffInDays($endDate) + 1;
+        $usageRatePerDay = $daysInPeriod > 0 ? round($totalUsed / $daysInPeriod, 2) : 0;
+        
+        // Determine status
+        $status = $ingredient->stock == 0 ? 'Out of Stock' : 
+                 ($ingredient->stock <= $ingredient->alert_threshold ? 'Low Stock' : 'In Stock');
+
+        $usageData[] = [
+            'ingredient' => $ingredient,
+            'total_used' => $totalUsed,
+            'current_stock' => $ingredient->stock,
+            'alert_threshold' => $ingredient->alert_threshold,
+            'usage_rate_per_day' => $usageRatePerDay,
+            'status' => $status,
+            'days_in_period' => $daysInPeriod
         ];
+    }
 
-        $callback = function() use ($startDate, $endDate) {
-            $file = fopen('php://output', 'w');
-            
-            // CSV headers
-            fputcsv($file, ['Ingredient', 'Total Used', 'Unit', 'Usage Rate/Day', 'Period']);
-            
-            $ingredients = Ingredient::all();
-            
-            foreach ($ingredients as $ingredient) {
-                $totalUsed = $ingredient->getUsageInPeriod($startDate, $endDate);
-                $days = $startDate->diffInDays($endDate) + 1;
-                $usageRate = $days > 0 ? round($totalUsed / $days, 2) : 0;
-                
-                fputcsv($file, [
-                    $ingredient->name,
-                    $totalUsed,
-                    $ingredient->unit,
-                    $usageRate,
-                    $startDate->format('M j, Y') . ' to ' . $endDate->format('M j, Y')
-                ]);
-            }
-            
-            fclose($file);
-        };
+    // Sort by most used ingredients first
+    usort($usageData, function($a, $b) {
+        return $b['total_used'] <=> $a['total_used'];
+    });
 
-        return response()->stream($callback, 200, $headers);
+    $data = [
+        'usage_data' => $usageData,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'total_ingredients' => $totalIngredients,
+        'low_stock_count' => $lowStockCount,
+        'out_of_stock_count' => $outOfStockCount,
+        'generated_at' => now(),
+        'period_days' => $startDate->diffInDays($endDate) + 1
+    ];
+
+    $fileName = 'ingredient-usage-report-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf';
+
+    return Pdf::loadView('ingredients.usage-pdf', $data)
+             ->setPaper('a4', 'landscape')
+             ->download($fileName);
+}
+    private function getInitialStock($ingredient, $startDate)
+    {
+        // Get the stock history record just before the start date
+        $history = $ingredient->stockHistories()
+            ->where('created_at', '<', $startDate)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // If no history found before start date, use current stock as initial
+        // Or you might want to track initial stock separately
+        return $history ? $history->new_stock : $ingredient->stock;
     }
 
 }

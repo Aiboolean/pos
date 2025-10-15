@@ -124,8 +124,8 @@
                 <div class="flex items-end">
                     <button type="button" id="exportReport" 
                             class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center">
-                        <i data-lucide="download" class="w-5 h-5 mr-2"></i>
-                        Export CSV
+                        <i data-lucide="file-text" class="w-5 h-5 mr-2"></i>
+                        Export PDF
                     </button>
                 </div>
             </form>
@@ -248,18 +248,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Export Report
-    document.getElementById('exportReport').addEventListener('click', function() {
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
-        
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates');
-            return;
-        }
-        
-        window.location.href = `{{ route("ingredients.export-usage") }}?start_date=${startDate}&end_date=${endDate}`;
-    });
+    // Export PDF Report
+document.getElementById('exportReport').addEventListener('click', function() {
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+    
+    // Show loading state
+    const button = this;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i data-lucide="loader" class="w-5 h-5 mr-2 animate-spin"></i>Generating PDF...';
+    button.disabled = true;
+    
+    window.location.href = `{{ route("ingredients.export-usage") }}?start_date=${startDate}&end_date=${endDate}`;
+    
+    // Reset button after 3 seconds
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        lucide.createIcons();
+    }, 3000);
+});
 
     function displayUsageReport(data) {
         const resultsDiv = document.getElementById('usageReportResults');
