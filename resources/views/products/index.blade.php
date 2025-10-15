@@ -192,15 +192,16 @@
             </div>
 
             <!-- Payment Method Dropdown -->
-            <!-- <div class="mt-4">
+            <div class="mt-4">
                 <label for="paymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
                 <select id="paymentMethod" 
                     class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition shadow-sm">
-                    <option value="" disabled selected>Select Payment Method</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Gcash">Gcash</option>
+                    <option value="cash" selected>Cash</option>
+                    <option value="gcash">GCash</option>
                 </select>
-            </div> -->
+            </div>
+
+        
 
             <!-- Change Amount -->
             <div class="mt-4">
@@ -243,6 +244,7 @@
         <!-- Order Details -->
         <div class="mt-4 text-sm text-gray-700 space-y-1 print:text-xs print:mt-2">
             <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
+            <p class="flex justify-between"><span class="font-medium">Payment Method:</span> <span id="receipt-payment-method"></span></p> <!-- ADD THIS LINE -->
             <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
             <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
             <hr class="border-gray-300 my-2 print:my-1">
@@ -466,13 +468,13 @@
             const modalTotalPrice = document.getElementById("modal-total-price");
             const changeAmount = document.getElementById("changeAmount");
             const amountReceivedInput = document.getElementById("amountReceived");
-            // const paymentMethodSelect = document.getElementById("paymentMethod");
+            
 
             // Reset modal values
             modalTotalPrice.innerText = totalPriceElement.innerText;
             amountReceivedInput.value = "";
             changeAmount.innerText = "0.00";
-            // paymentMethodSelect.selectedIndex = 0; // ✅ Reset to "Select Payment Method"
+           
             modal.classList.remove("hidden");
 
             // Set up amount received input handler
@@ -501,13 +503,7 @@
             const amountReceivedInput = document.getElementById("amountReceived");
             const amountReceived = parseFloat(amountReceivedInput.value);
             const totalPrice = parseFloat(totalPriceElement.innerText);
-            // const paymentMethodSelect = document.getElementById("paymentMethod");
-            // const paymentMethod = paymentMethodSelect.value;
-
-            // if (paymentMethod === "") {
-            //     alert("Please select a payment method.");
-            //     return; // ✅ Block transaction
-            // }
+            const paymentMethod = document.getElementById("paymentMethod").value; // ← ADD THIS LINE
 
 
             if (isNaN(amountReceived) || amountReceived < totalPrice) {
@@ -527,14 +523,21 @@
                     items: cart,
                     total_price: totalPriceElement.innerText,
                     amount_received: amountReceived,
-                    change: (amountReceived - totalPrice).toFixed(2)
-                    // payment_method: paymentMethod // ✅ Include payment method
+                    change: (amountReceived - totalPrice).toFixed(2),
+                    payment_method: paymentMethod // ← ADD THIS LINE
+                    
                 }),
             })
             .then(response => response.json())
             .then(data => {
                 cart = [];
                 updateCartUI();
+                
+                // Show success message with payment method
+                const paymentMethod = document.getElementById("paymentMethod").value;
+                const paymentText = paymentMethod === 'gcash' ? 'GCash' : 'Cash';
+                alert(`Order Successful! Payment was done via ${paymentText}`);
+                
                 openReceiptModal(data.order, data.items);
             })
             .catch(error => console.error("Error:", error));
@@ -545,6 +548,7 @@
     function openReceiptModal(order, items) {
         const receiptModal = document.getElementById("receiptModal");
         const receiptOrderId = document.getElementById("receipt-order-id");
+        const receiptPaymentMethod = document.getElementById("receipt-payment-method"); // ← ADD THIS LINE
         const receiptTotalWithoutVat = document.getElementById("receipt-total-without-vat");
         const receiptVat = document.getElementById("receipt-vat");
         const receiptTotalPrice = document.getElementById("receipt-total-price");
@@ -559,6 +563,7 @@
 
         // Update receipt content
         receiptOrderId.innerText = order.id;
+        receiptPaymentMethod.innerText = order.payment_method === 'gcash' ? 'GCash' : 'Cash'; // ← ADD THIS LINE
         receiptTotalWithoutVat.innerText = totalWithoutVat;
         receiptVat.innerText = vat;
         receiptTotalPrice.innerText = totalPrice.toFixed(2);
