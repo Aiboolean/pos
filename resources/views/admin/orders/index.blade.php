@@ -265,6 +265,17 @@
                             <input type="date" name="end_date" id="end_date" value="{{ request('end_date') }}" 
                                    class="coffee-input rounded-lg px-4 py-2 border border-[#d9c7b3] focus:ring-2 focus:ring-[#a67c52] focus:border-transparent">
                         </div>
+                        <!-- ========== ADD PAYMENT METHOD FILTER HERE ========== -->
+                        <div class="flex flex-col">
+                            <label for="payment_method" class="text-sm font-medium coffee-text-secondary mb-2">Payment Method</label>
+                            <select name="payment_method" id="payment_method" 
+                                    class="coffee-input rounded-lg px-4 py-2 border border-[#d9c7b3] focus:ring-2 focus:ring-[#a67c52] focus:border-transparent">
+                                <option value="">All Methods</option>
+                                <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
+                                <option value="gcash" {{ request('payment_method') == 'gcash' ? 'selected' : '' }}>GCash</option>
+                            </select>
+                        </div>
+                        <!-- ========== END PAYMENT METHOD FILTER ========== -->
                     </div>
                     <div class="flex gap-2 w-full lg:w-auto">
                         <button type="submit" class="coffee-btn-filter px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors hover:bg-[#8b5d3c]">
@@ -312,6 +323,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Total</th>
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Received</th>
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Change</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Payment Method</th> <!-- ADD THIS LINE -->
                             <th class="px-6 py-3 text-left text-xs font-medium coffee-text-primary uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -329,6 +341,19 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
                                 ₱{{ number_format($order->change, 2) }}
                             </td>
+                            <!-- ========== ADDED PAYMENT METHOD COLUMN START ========== -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if($order->payment_method === 'gcash')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        GCash
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Cash
+                                    </span>
+                                @endif
+                            </td>
+                            <!-- ========== ADDED PAYMENT METHOD COLUMN END ========== -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('admin.orders.show', $order) }}" 
                                    class="coffee-btn-view px-3 py-1 rounded-lg text-sm font-medium shadow-sm inline-flex items-center hover:shadow-md transition-shadow">
@@ -342,7 +367,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center">
+                            <td colspan="7" class="px-6 py-8 text-center"><!-- CHANGED FROM 6 TO 7 -->
                                 <div class="flex flex-col items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package mb-4 opacity-60">
                                         <path d="M16.5 9.4 7.5 4.21"/>

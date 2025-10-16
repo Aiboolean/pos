@@ -10,6 +10,7 @@ class Order extends Model
         'total_price',
         'amount_received',
         'change',
+        'payment_method',
         'user_id', // Add user_id to fillable
     ];
 

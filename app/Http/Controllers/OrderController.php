@@ -15,6 +15,7 @@ use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    
     public function store(Request $request)
     {
         // ... YOUR EXISTING store METHOD (NO CHANGES) ...
@@ -22,6 +23,7 @@ class OrderController extends Controller
             'total_price' => 'required|numeric',
             'amount_received' => 'required|numeric',
             'change' => 'required|numeric',
+            'payment_method' => 'sometimes|in:cash,gcash', // ← CHANGE TO THIS
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -33,12 +35,13 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
-        // Create the order
-        $order = Order::create([
-            'total_price' => $request->total_price,
-            'amount_received' => $request->amount_received,
-            'change' => $request->change,
-            'user_id' => Session::get('user_id'),
+            // Create the order
+            $order = Order::create([
+                'total_price' => $request->total_price,
+                'amount_received' => $request->amount_received,
+                'change' => $request->change,
+                'payment_method' => $request->input('payment_method', 'cash'), // ← FIXED: Use input() method
+                'user_id' => Session::get('user_id'),
         ]);
 
         // Add order items and process inventory
@@ -132,6 +135,12 @@ public function adminIndex(Request $request)
         $query->whereDate('created_at', '<=', $request->input('end_date'));
     }
     // ===== END FILTERING LOGIC =====
+
+    // ===== PAYMENT METHOD FILTER =====
+    if ($request->filled('payment_method')) {
+        $query->where('payment_method', $request->input('payment_method'));
+    }
+    // ===== END PAYMENT METHOD FILTER =====
 
     // Execute the query and paginate the results
     $orders = $query->paginate(10);
@@ -266,6 +275,24 @@ public function adminIndex(Request $request)
         $totalOrders = $filteredOrders->count();
         $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
 
+        // ===== PAYMENT METHOD STATISTICS =====
+        $cashOrders = $filteredOrders->where('payment_method', 'cash');
+        $gcashOrders = $filteredOrders->where('payment_method', 'gcash');
+
+        $paymentMethodStats = [
+            'cash' => [
+                'count' => $cashOrders->count(),
+                'percentage' => $totalOrders > 0 ? ($cashOrders->count() / $totalOrders) * 100 : 0,
+                'revenue' => $cashOrders->sum('total_price')
+            ],
+            'gcash' => [
+                'count' => $gcashOrders->count(),
+                'percentage' => $totalOrders > 0 ? ($gcashOrders->count() / $totalOrders) * 100 : 0,
+                'revenue' => $gcashOrders->sum('total_price')
+            ]
+        ];
+        // ===== END PAYMENT METHOD STATISTICS =====
+
         // 4. Load a PDF view, pass the data
         $pdf = PDF::loadView('admin.reports.pdf', [
             'orders' => $filteredOrders,
@@ -273,6 +300,7 @@ public function adminIndex(Request $request)
             'totalOrders' => $totalOrders,
             'averageOrderValue' => $averageOrderValue,
             'productPerformance' => $productPerformance,
+            'paymentMethodStats' => $paymentMethodStats, // ← ADD THIS LINE
             'filters' => $request->all()
         ]);
 
