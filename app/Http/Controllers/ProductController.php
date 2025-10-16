@@ -99,12 +99,20 @@ class ProductController extends Controller
         return redirect()->back()->with('success', 'Product availability updated.');
     }
 
-    public function edit(Product $product)
-    {
-        $categories = Category::all();
-        return view('products.edit', compact('product', 'categories'));
+   public function edit(Product $product)
+{
+    $categories = Category::all();
+    $ingredients = Ingredient::all(); // Make sure ingredients are available
+
+    // ✅ This is the smart logic
+    if (request()->ajax()) {
+        // If it's a modal request, return the PARTIAL view.
+        return view('products._edit', compact('product', 'categories', 'ingredients'));
     }
 
+    // Otherwise, for a direct URL visit, return the FULL page view.
+    return view('products.edit', compact('product', 'categories', 'ingredients'));
+}
     public function update(Request $request, Product $product)
     {
         $validatedData = $request->validate([

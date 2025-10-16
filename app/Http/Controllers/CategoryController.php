@@ -13,11 +13,17 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories'));
     }
 
-    public function create()
-    {
-        return view('categories.create');
+   public function create()
+{
+    // This is the new "smart" logic
+    if (request()->ajax()) {
+        // If the request is from our JavaScript, return only the partial view
+        return view('categories._create');
     }
 
+    // Otherwise, for a direct URL visit, return the full page view
+    return view('categories.create');
+}
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -30,10 +36,9 @@ class CategoryController extends Controller
     }
 
     public function edit(Category $category)
-    {
-        return view('categories.edit', compact('category'));
-    }
-
+{
+    return view('categories.edit', compact('category'));
+}
     public function update(Request $request, Category $category)
     {
         $validatedData = $request->validate([

@@ -2,15 +2,16 @@
 
 @section('content')
 <style>
-    /* Coffee Shop Theme CSS - Responsive */
-   <style>
-    /* Coffee Theme Base */
+    /* Coffee Shop Theme CSS - Combined & Responsive */
+    
+    /* == BASE THEME & LAYOUT == */
     .coffee-bg {
         background-color: #f5f1ea;
     }
 
     .coffee-container {
-        max-width: 1200px;
+        /* Size from your first block */
+        max-width: 1200px; 
         margin: 0 auto;
         padding: 1rem;
         background-color: #f5f1ea;
@@ -21,7 +22,7 @@
     .coffee-card {
         background-color: white;
         border: 1px solid #e0d6c2;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
         border-radius: 0.75rem;
         padding: 1.5rem;
         margin-top: 1rem;
@@ -38,17 +39,14 @@
     .coffee-border {
         border-color: #e0d6c2;
     }
-
-    .coffee-table-header {
-        background-color: #f5f1ea;
-        color: #5c4d3c;
+    
+    .page-header {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        margin-bottom: 1.5rem;
     }
 
-    .coffee-table-row:hover {
-        background-color: #f9f7f3;
-    }
-
-    .coffee-btn-view {
+    /* == BUTTONS == */
+    .coffee-btn-view, .coffee-btn-primary {
         background-color: #6f4e37;
         color: white;
         transition: all 0.2s ease;
@@ -57,21 +55,33 @@
         font-size: 0.875rem;
     }
 
-    .coffee-btn-view:hover {
+    .coffee-btn-view:hover, .coffee-btn-primary:hover {
         background-color: #5c3d2a;
-    }
-
-    .coffee-empty-state {
-        color: #a67c52;
-    }
-
-    .coffee-pagination {
-        background-color: white;
-        border: 1px solid #e0d6c2;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
-    /* Filter section styles */
+    .coffee-btn-success {
+        background-color: #8c7b6b;
+        color: white;
+        transition: all 0.2s ease;
+    }
+    
+    .coffee-btn-success:hover {
+        background-color: #6f4e37;
+    }
+    
+    .coffee-btn-secondary {
+        background-color: #e0d6c2;
+        color: #5c4d3c;
+        transition: all 0.2s ease;
+    }
+    
+    .coffee-btn-secondary:hover {
+        background-color: #d4c9b5;
+    }
+
+    /* == FORM & INPUT ELEMENTS == */
     .filter-section {
         display: flex;
         justify-content: flex-end;
@@ -88,33 +98,46 @@
     }
     
     .filter-select {
+        /* Size from your first block */
+        min-width: 150px;
         border: 1px solid #e0d6c2;
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         background-color: white;
         color: #5c4d3c;
-        min-width: 150px;
     }
-    
-    .period-display {
-        background-color: #e0d6c2;
+
+    .coffee-input {
+        border: 1px solid #e0d6c2;
+        background-color: white;
         color: #5c4d3c;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-        margin-left: auto;
+        transition: all 0.2s ease;
     }
     
-    /* Responsive table container */
+    .coffee-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #8c7b6b40;
+        border-color: #8c7b6b;
+    }
+
+    .coffee-file-input {
+        border-color: #e0d6c2;
+    }
+    
+    .coffee-file-input:hover {
+        background-color: #f5f1ea;
+    }
+
+    /* == TABLE & DATA DISPLAY == */
     .table-container {
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Table styles */
     .orders-table {
         width: 100%;
+        /* Size from your first block */
         min-width: 600px;
         border-collapse: collapse;
     }
@@ -126,24 +149,44 @@
         border-bottom: 1px solid #e0d6c2;
     }
 
-    /* Responsive text sizes */
+    .coffee-table-header {
+        background-color: #f5f1ea;
+        color: #5c4d3c;
+    }
+
+    .coffee-table-row:hover {
+        background-color: #f9f7f3;
+    }
+    
+    .period-display {
+        background-color: #e0d6c2;
+        color: #5c4d3c;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        margin-left: auto;
+    }
+
+    /* == UTILITY & MISC == */
     .responsive-text {
         font-size: clamp(0.875rem, 2vw, 1rem);
     }
-
-    /* Header styles */
-    .page-header {
-        font-size: clamp(1.5rem, 4vw, 2rem);
-        margin-bottom: 1.5rem;
-    }
-
-    /* Empty state styling */
-    .empty-state {
+    
+    .empty-state, .coffee-empty-state {
         padding: 2rem;
         text-align: center;
+        color: #a67c52;
+    }
+    
+    .coffee-shadow {
+        box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+    }
+    
+    .coffee-toggle-bg {
+        background-color: #f5f1ea;
     }
 
-    /* Pagination responsive styles */
+    /* == PAGINATION == */
     .pagination-container {
         margin-top: 1.5rem;
     }
@@ -156,12 +199,19 @@
     }
 
     .page-link {
-        padding: 0.5rem 0.75rem;
+        /* Size from your first block */
         min-width: 2.5rem;
+        padding: 0.5rem 0.75rem;
         text-align: center;
     }
+    
+    .coffee-pagination {
+        background-color: white;
+        border: 1px solid #e0d6c2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
 
-    /* Mobile-specific styles */
+    /* == RESPONSIVE STYLES (from your first block) == */
     @media (max-width: 640px) {
         .coffee-container {
             padding: 0.5rem;
@@ -189,7 +239,7 @@
         
         .filter-section {
             flex-direction: column;
-            align-items: flex-end;
+            align-items: center;
         }
         
         .period-display {
@@ -200,12 +250,10 @@
     }
 </style>
 
-
 <div class="min-h-screen coffee-bg">
     <main class="p-6">
         <div class="coffee-container">
             <div class="coffee-card">
-                <!-- Header with icon -->
                 <div class="flex flex-col sm:flex-row items-center justify-between mb-6 page-header">
                     <div class="flex items-center justify-center sm:justify-start">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list mr-0 sm:mr-3 mb-2 sm:mb-0">
@@ -219,7 +267,6 @@
                         <h1 class="text-2xl sm:text-3xl font-bold coffee-text-primary text-center sm:text-left">My Orders</h1>
                     </div>
 
-                    <!-- Filter Section - Fixed in the top right -->
                     <div class="filter-section">
                         <span class="filter-label">Filter by:</span>
                         <select id="timeFilter" class="filter-select" onchange="updateFilter()">
@@ -255,66 +302,67 @@
                     </div>
                 </div>
 
-                <!-- Responsive table container -->
                 <div class="table-container">
                     <table class="orders-table">
                         <thead class="coffee-table-header">
-                            <tr>
-                                <th class="p-3 responsive-text">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hash mr-2">
-                                            <line x1="4" x2="20" y1="9" y2="9"/>
-                                            <line x1="4" x2="20" y1="15" y2="15"/>
-                                            <line x1="10" x2="8" y1="3" y2="21"/>
-                                            <line x1="16" x2="14" y1="3" y2="21"/>
-                                        </svg>
-                                        ID
-                                    </div>
-                                </th>
-                                <th class="p-3 responsive-text">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-dollar-sign mr-2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-                                            <path d="M12 18V6"/>
-                                        </svg>
-                                        Total
-                                    </div>
-                                </th>
-                                <th class="p-3 responsive-text">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet mr-2">
-                                            <path d="M19 7V4a1 1 0 0 0-1-1H4a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
-                                            <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
-                                        </svg>
-                                        Received
-                                    </div>
-                                </th>
-                                <th class="p-3 responsive-text">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-coins mr-2">
-                                            <circle cx="8" cy="8" r="6"/>
-                                            <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
-                                            <path d="M7 6h1v4"/>
-                                            <path d="m16.71 13.88.7.71-2.82 2.82"/>
-                                        </svg>
-                                        Change
-                                    </div>
-                                </th>
-                                <th class="p-3 responsive-text">
-                                    <div class="flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar mr-2">
-                                            <path d="M8 2v4"/>
-                                            <path d="M16 2v4"/>
-                                            <rect width="18" height="18" x="3" y="4" rx="2"/>
-                                            <path d="M3 10h18"/>
-                                        </svg>
-                                        Date
-                                    </div>
-                                </th>
-                                <th class="p-3 responsive-text text-center">Actions</th>
-                            </tr>
-                        </thead>
+    <tr>
+     <thead class="coffee-table-header">
+    <tr>
+        <th class="py-3 px-2 responsive-text">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hash mr-2">
+                    <line x1="4" x2="20" y1="9" y2="9"/>
+                    <line x1="4" x2="20" y1="15" y2="15"/>
+                    <line x1="10" x2="8" y1="3" y2="21"/>
+                    <line x1="16" x2="14" y1="3" y2="21"/>
+                </svg>
+                ID
+            </div>
+        </th>
+        <th class="py-3 px-2 responsive-text">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-dollar-sign mr-2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                    <path d="M12 18V6"/>
+                </svg>
+                Total
+            </div>
+        </th>
+        <th class="py-3 px-2 responsive-text">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet mr-2">
+                    <path d="M19 7V4a1 1 0 0 0-1-1H4a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
+                </svg>
+                Received
+            </div>
+        </th>
+        <th class="py-3 px-2 responsive-text">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-coins mr-2">
+                    <circle cx="8" cy="8" r="6"/>
+                    <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+                    <path d="M7 6h1v4"/>
+                    <path d="m16.71 13.88.7.71-2.82 2.82"/>
+                </svg>
+                Change
+            </div>
+        </th>
+        <th class="py-3 px-2 responsive-text">
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar mr-2">
+                    <path d="M8 2v4"/>
+                    <path d="M16 2v4"/>
+                    <rect width="18" height="18" x="3" y="4" rx="2"/>
+                    <path d="M3 10h18"/>
+                </svg>
+                Date
+            </div>
+        </th>
+        <th class="py-3 px-2 responsive-text text-center">Actions</th>
+    </tr>
+</thead>
                         <tbody>
                             @if ($orders->isEmpty())
                                 <tr>
@@ -334,21 +382,24 @@
                             @else
                                 @foreach($orders as $order)
                                     <tr class="hover:bg-[#f4e7da]/50 transition-colors duration-150">
-                                        <td class="p-3 font-medium coffee-text-primary responsive-text">{{ $order->id }}</td>
-                                        <td class="p-3 font-semibold text-[#8b5e3b] responsive-text">₱{{ number_format($order->total_price, 2) }}</td>
-                                        <td class="p-3 font-semibold text-[#6d883e] responsive-text">₱{{ number_format($order->amount_received, 2) }}</td>
-                                        <td class="p-3 font-semibold text-[#a94442] responsive-text">₱{{ number_format($order->change, 2) }}</td>
-                                        <td class="p-3 coffee-text-primary responsive-text">{{ $order->created_at->format('M j, Y g:i A') }}</td>
-                                        <td class="p-3 text-center">
-                                            <a href="{{ route('user.orders.show', $order) }}" 
-                                            class="inline-flex items-center coffee-btn-view">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye mr-2">
-                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                                    <circle cx="12" cy="12" r="3"/>
-                                                </svg>
-                                                <span class="hidden sm:inline">View</span>
-                                            </a>
-                                        </td>
+                <td class="p-3 font-medium coffee-text-primary responsive-text">{{ $order->id }}</td>
+                <td class="p-3 font-semibold text-[#8b5e3b] responsive-text text-right">₱{{ number_format($order->total_price, 2) }}</td>
+                <td class="p-3 font-semibold text-[#6d883e] responsive-text text-right">₱{{ number_format($order->amount_received, 2) }}</td>
+                <td class="p-3 font-semibold text-[#a94442] responsive-text text-right">₱{{ number_format($order->change, 2) }}</td>
+                <td class="p-3 coffee-text-primary responsive-text">{{ $order->created_at->format('M j, Y g:i A') }}</td>
+                
+                {{-- ✅ CORRECTED ACTIONS CELL --}}
+                <td class="p-3 text-center">
+                    <button data-order-id="{{ $order->id }}"
+                            class="inline-flex items-center coffee-btn-view view-order-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye mr-2">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <span class="hidden sm:inline">View</span>
+                    </button>
+                </td>
+            </tr>
                                     </tr>
                                 @endforeach
                             @endif
@@ -356,7 +407,6 @@
                     </table>
                 </div>
 
-                <!-- Responsive pagination -->
                 @if ($orders->hasPages())
                     <div class="pagination-container">
                         <div class="pagination">
@@ -366,6 +416,18 @@
                 @endif
             </div>
         </div>
+        <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="coffee-card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4 pb-2 coffee-border border-b">
+            <h2 class="text-xl font-bold coffee-text-primary">Order Details</h2>
+            <button id="closeModalBtn" class="text-3xl font-light leading-none coffee-text-secondary hover:text-red-600">&times;</button>
+        </div>
+
+        <div id="modalBody" class="text-left">
+            <p class="text-center coffee-text-primary">Loading details...</p>
+        </div>
+    </div>
+</div>
     </main>
 </div>
 
@@ -382,5 +444,64 @@
         
         window.location.href = url.toString();
     }
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('orderModal');
+        const modalBody = document.getElementById('modalBody');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // Function to open the modal
+        const openModal = () => {
+            modal.style.display = 'flex';
+        };
+
+        // Function to close the modal
+        const closeModal = () => {
+            modal.style.display = 'none';
+        };
+
+        // Find all view buttons and add a click listener
+        document.querySelectorAll('.view-order-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const orderId = this.dataset.orderId;
+                // IMPORTANT: Make sure this URL is correct for your application's routes
+                const url = `/orders/${orderId}`;
+
+                // Show modal with a loading message
+                modalBody.innerHTML = '<p class="text-center coffee-text-primary">Loading details...</p>';
+                openModal();
+
+                // Fetch the order details HTML from the server
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest' // This tells Laravel it's an AJAX request
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text(); // We expect HTML content
+                })
+                .then(html => {
+                    // Load the fetched HTML into the modal's body
+                    modalBody.innerHTML = html;
+                })
+                .catch(error => {
+                    // Show an error message if something goes wrong
+                    modalBody.innerHTML = '<p class="text-center text-red-500">Failed to load order details. Please try again.</p>';
+                    console.error('Fetch error:', error);
+                });
+            });
+        });
+
+        // Add listeners to close the modal
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function (event) {
+            // Close the modal if the dark background is clicked, but not the content inside
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+    });
 </script>
 @endsection
