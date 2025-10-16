@@ -14,7 +14,12 @@ class StockHistory extends Model
         'change_type',
         'reason',
         'user_id',
-        'order_id'
+        'order_id',
+        'effective_date' // Make sure this is included
+    ];
+
+    protected $casts = [
+        'effective_date' => 'datetime',
     ];
 
     public function ingredient()

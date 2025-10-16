@@ -104,7 +104,9 @@ Route::resource('ingredients', IngredientController::class)->except(['show']);
 Route::post('ingredients/usage-report', [IngredientController::class, 'usageReport'])->name('ingredients.usage-report');
 Route::get('ingredients/export-usage', [IngredientController::class, 'exportUsage'])->name('ingredients.export-usage');
 
-
+// Stock History Routes
+Route::post('/ingredients/stock-history', [IngredientController::class, 'stockHistory'])->name('ingredients.stock-history');
+Route::get('/ingredients/export-stock-history', [IngredientController::class, 'exportStockHistory'])->name('ingredients.export-stock-history');
 
 // API endpoint for chart
 

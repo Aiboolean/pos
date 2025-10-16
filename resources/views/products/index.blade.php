@@ -277,131 +277,116 @@
 </div>
 
     <script>
-        function adjustQuantity(productId, change) {
+    // Global cart variable
+    let cart = [];
+
+    function adjustQuantity(productId, change) {
         const quantityInput = document.getElementById(`quantity-${productId}`);
         let quantity = parseInt(quantityInput.value);
         quantity += change;
 
         // Ensure the quantity stays within the range of 1 to 100
-            if (quantity < 1) {
-                quantity = 1; // Minimum quantity is 1
-            } else if (quantity > 100) {
-                quantity = 100; // Maximum quantity is 100. 
-                alert("Maximum quantity per order is 100."); 
-            }
+        if (quantity < 1) {
+            quantity = 1;
+        } else if (quantity > 100) {
+            quantity = 100;
+            alert("Maximum quantity per order is 100.");
+        }
         quantityInput.value = quantity;
+    }
 
-        // Add event listener to enforce maximum value when typing manually
-        document.addEventListener('input', function(event) {
-            if (event.target.type === 'number' && event.target.hasAttribute('max')) {
-                const input = event.target;
-                const maxValue = parseInt(input.getAttribute('max'));
+    // Product Search Feature
+    document.getElementById('productSearch').addEventListener('input', function() {
+        const searchQuery = this.value.toLowerCase();
+        const productItems = document.querySelectorAll('.product-item');
 
-                if (input.value > maxValue) {
-                    input.value = 1; // It resets to 1 if the input number is > 100.
-                    alert(`Maximum quantity per order is ${maxValue}.`); // Optional: Display a warning
-                }
+        productItems.forEach(item => {
+            const productName = item.querySelector('h2').textContent.toLowerCase();
+            if (productName.includes(searchQuery)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Get references to the search input and category filter
+    const searchInput = document.getElementById('productSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    // Add event listeners for both search and category filter
+    searchInput.addEventListener('input', filterProducts);
+    categoryFilter.addEventListener('change', filterProducts);
+
+    function filterProducts() {
+        const searchQuery = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+        const productItems = document.querySelectorAll('.product-item');
+
+        productItems.forEach(item => {
+            const productName = item.querySelector('h2').textContent.toLowerCase();
+            const productCategory = item.getAttribute('data-category');
+            const isAvailable = item.getAttribute('data-available');
+
+            const matchesSearch = productName.includes(searchQuery);
+            const matchesCategory = selectedCategory === '' || productCategory === selectedCategory;
+            const matchesAvailability = selectedCategory !== 'unavailable' || isAvailable === 'false';
+
+            if (matchesSearch && matchesCategory && matchesAvailability) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
             }
         });
     }
-    // Product Search Feature
-    document.getElementById('productSearch').addEventListener('input', function() {
-            const searchQuery = this.value.toLowerCase();
-            const productItems = document.querySelectorAll('.product-item');
 
-            productItems.forEach(item => {
-                const productName = item.querySelector('h2').textContent.toLowerCase();
-                if (productName.includes(searchQuery)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-
-        // Get references to the search input and category filter
-        const searchInput = document.getElementById('productSearch');
-        const categoryFilter = document.getElementById('categoryFilter');
-
-        // Add event listeners for both search and category filter
-        searchInput.addEventListener('input', filterProducts);
-        categoryFilter.addEventListener('change', filterProducts);
-
-        function filterProducts() {
-            const searchQuery = searchInput.value.toLowerCase(); // Get the search query
-            const selectedCategory = categoryFilter.value; // Get the selected category
-            const productItems = document.querySelectorAll('.product-item'); // Get all product items
-
-            productItems.forEach(item => {
-                const productName = item.querySelector('h2').textContent.toLowerCase(); // Get product name
-                const productCategory = item.getAttribute('data-category'); // Get product category
-                const isAvailable = item.getAttribute('data-available'); // Get product availability
-
-                // Check if the product matches the search query
-                const matchesSearch = productName.includes(searchQuery);
-
-                // Check if the product matches the selected category
-                const matchesCategory = selectedCategory === '' || productCategory === selectedCategory;
-
-                // Check if the product matches the availability filter (if "unavailable" is selected)
-                const matchesAvailability = selectedCategory !== 'unavailable' || isAvailable === 'false';
-
-                // Show or hide the product based on the conditions
-                if (matchesSearch && matchesCategory && matchesAvailability) {
-                    item.style.display = 'block'; // Show the product
-                } else {
-                    item.style.display = 'none'; // Hide the product
-                }
-            });
+    // Cart functions
+    function addToCart(productId, name, size, price, quantity) {
+        console.log("🛒 Adding to cart:", { productId, name, size, price, quantity });
+        
+        let existingProduct = cart.find(item => item.id === productId && item.size === size);
+        if (existingProduct) {
+            existingProduct.quantity += quantity;
+        } else {
+            cart.push({ id: productId, name, size, price, quantity });
         }
+        updateCartUI();
+    }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        // Initialize state variables
-        let cart = [];
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        updateCartUI();
+    }
+
+    function updateCartUI() {
         const cartItemsContainer = document.getElementById("cart-items");
         const totalPriceElement = document.getElementById("total-price");
         
-        // Make cart functions available globally
-        window.addToCart = function(productId, name, size, price, quantity) {
-            let existingProduct = cart.find(item => item.id === productId && item.size === size);
-            if (existingProduct) {
-                existingProduct.quantity += quantity;
-            } else {
-                cart.push({ id: productId, name, size, price, quantity });
-            }
-            updateCartUI();
-        };
-        
-        window.removeFromCart = function(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        };
-        
-        // Cart UI functions
-        function updateCartUI() {
-            cartItemsContainer.innerHTML = "";
-            let total = 0;
+        cartItemsContainer.innerHTML = "";
+        let total = 0;
 
-            cart.forEach((item, index) => {
-                total += item.price * item.quantity;
+        cart.forEach((item, index) => {
+            total += item.price * item.quantity;
 
-                let cartItem = document.createElement("div");
-                cartItem.classList.add("p-2", "bg-white", "rounded", "shadow");
+            let cartItem = document.createElement("div");
+            cartItem.classList.add("p-2", "bg-white", "rounded", "shadow");
 
-                cartItem.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span>${item.name} (${item.size === 'standard' ? 'Single' : item.size}, ${item.quantity})</span>
-                        <span>₱${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                    <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
-                `;
+            cartItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span>${item.name} (${item.size === 'standard' ? 'Single' : item.size}, ${item.quantity})</span>
+                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+                <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
+            `;
 
-                cartItemsContainer.appendChild(cartItem);
-            });
+            cartItemsContainer.appendChild(cartItem);
+        });
 
-            totalPriceElement.innerText = total.toFixed(2);
-        }
-        
+        totalPriceElement.innerText = total.toFixed(2);
+        console.log("🛒 Cart updated. Total items:", cart.length, "Total price:", total);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
         // Add event listeners for "Add to Order" buttons
         document.querySelectorAll(".add-to-order").forEach(button => {
             button.addEventListener("click", function () {
@@ -411,14 +396,13 @@
                 const sizeElement = document.getElementById(`size-${productId}`);
                 const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
 
-                let size = 'standard'; // Changed from 'single' to 'standard'
+                let size = 'standard';
                 let price = 0;
 
                 if (hasMultipleSizes && sizeElement) {
                     size = sizeElement.value;
                     price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
                 } else {
-                    // For single-size products, use the standard price and set size to 'standard'
                     size = 'standard';
                     price = parseFloat(this.dataset.price);
                 }
@@ -438,13 +422,10 @@
                     const isAvailable = item.dataset.available === "true";
 
                     if (selectedCategory === "unavailable") {
-                        // Show only unavailable products
                         item.style.display = isAvailable ? 'none' : 'block';
                     } else if (selectedCategory === "") {
-                        // Show all available products
                         item.style.display = isAvailable ? 'block' : 'none';
                     } else {
-                        // Show products matching the selected category and availability
                         item.style.display = (category === selectedCategory && isAvailable) ? 'block' : 'none';
                     }
                 });
@@ -460,89 +441,140 @@
 
             setupConfirmationModal();
         });
-        
-        function setupConfirmationModal() {
-            const modal = document.getElementById("confirmationModal");
-            const modalTotalPrice = document.getElementById("modal-total-price");
-            const changeAmount = document.getElementById("changeAmount");
-            const amountReceivedInput = document.getElementById("amountReceived");
-            // const paymentMethodSelect = document.getElementById("paymentMethod");
-
-            // Reset modal values
-            modalTotalPrice.innerText = totalPriceElement.innerText;
-            amountReceivedInput.value = "";
-            changeAmount.innerText = "0.00";
-            // paymentMethodSelect.selectedIndex = 0; // ✅ Reset to "Select Payment Method"
-            modal.classList.remove("hidden");
-
-            // Set up amount received input handler
-            amountReceivedInput.addEventListener("input", function () {
-                const amountReceived = parseFloat(amountReceivedInput.value);
-                const totalPrice = parseFloat(totalPriceElement.innerText);
-
-                if (!isNaN(amountReceived) && amountReceived >= totalPrice) {
-                    const change = amountReceived - totalPrice;
-                    changeAmount.innerText = change.toFixed(2);
-                } else {
-                    changeAmount.innerText = "0.00";
-                }
-            });
-
-            // Set up order cancellation
-            document.getElementById("cancelOrder").addEventListener("click", function () {
-                modal.classList.add("hidden");
-            });
-
-            // Set up order confirmation
-            document.getElementById("confirmOrder").addEventListener("click", processOrder);
-        }
-        
-        function processOrder() {
-            const amountReceivedInput = document.getElementById("amountReceived");
-            const amountReceived = parseFloat(amountReceivedInput.value);
-            const totalPrice = parseFloat(totalPriceElement.innerText);
-            // const paymentMethodSelect = document.getElementById("paymentMethod");
-            // const paymentMethod = paymentMethodSelect.value;
-
-            // if (paymentMethod === "") {
-            //     alert("Please select a payment method.");
-            //     return; // ✅ Block transaction
-            // }
-
-
-            if (isNaN(amountReceived) || amountReceived < totalPrice) {
-                alert("Please enter a valid amount that covers the total price.");
-                return;
-            }
-
-            document.getElementById("confirmationModal").classList.add("hidden");
-
-            fetch("{{ route('orders.store') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                },
-                body: JSON.stringify({ 
-                    items: cart,
-                    total_price: totalPriceElement.innerText,
-                    amount_received: amountReceived,
-                    change: (amountReceived - totalPrice).toFixed(2)
-                    // payment_method: paymentMethod // ✅ Include payment method
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                cart = [];
-                updateCartUI();
-                openReceiptModal(data.order, data.items);
-            })
-            .catch(error => console.error("Error:", error));
-        }
     });
 
-    // Receipt handling functions 
+    function setupConfirmationModal() {
+        const modal = document.getElementById("confirmationModal");
+        const modalTotalPrice = document.getElementById("modal-total-price");
+        const changeAmount = document.getElementById("changeAmount");
+        const amountReceivedInput = document.getElementById("amountReceived");
+
+        // Reset modal values
+        modalTotalPrice.innerText = document.getElementById("total-price").innerText;
+        amountReceivedInput.value = "";
+        changeAmount.innerText = "0.00";
+        modal.classList.remove("hidden");
+
+        // Focus on amount input
+        amountReceivedInput.focus();
+
+        // Set up amount received input handler
+        amountReceivedInput.addEventListener("input", function () {
+            const amountReceived = parseFloat(amountReceivedInput.value);
+            const totalPrice = parseFloat(document.getElementById("total-price").innerText);
+
+            if (!isNaN(amountReceived) && amountReceived >= totalPrice) {
+                const change = amountReceived - totalPrice;
+                changeAmount.innerText = change.toFixed(2);
+            } else {
+                changeAmount.innerText = "0.00";
+            }
+        });
+
+        // Set up order cancellation
+        document.getElementById("cancelOrder").addEventListener("click", function () {
+            modal.classList.add("hidden");
+        });
+
+        // Set up order confirmation
+        const confirmButton = document.getElementById("confirmOrder");
+        confirmButton.onclick = processOrder;
+    }
+    
+    function processOrder() {
+        console.log("🔹 processOrder() STARTED");
+        
+        const amountReceivedInput = document.getElementById("amountReceived");
+        const amountReceived = parseFloat(amountReceivedInput.value);
+        const totalPrice = parseFloat(document.getElementById("total-price").innerText);
+
+        console.log("Amount Received:", amountReceived);
+        console.log("Total Price:", totalPrice);
+        console.log("Cart:", cart);
+
+        // Validation
+        if (isNaN(amountReceived) || amountReceived < totalPrice) {
+            alert("Please enter a valid amount that covers the total price.");
+            return;
+        }
+
+        // Show loading state
+        const confirmButton = document.getElementById("confirmOrder");
+        const originalText = confirmButton.innerHTML;
+        confirmButton.innerHTML = 'Processing...';
+        confirmButton.disabled = true;
+
+        // Hide modal temporarily
+        document.getElementById("confirmationModal").classList.add("hidden");
+
+        // Prepare order data
+        const orderData = { 
+            items: cart,
+            total_price: totalPrice,
+            amount_received: amountReceived,
+            change: (amountReceived - totalPrice).toFixed(2)
+        };
+
+        console.log("📦 Sending order data:", orderData);
+
+        fetch("{{ route('orders.store') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(orderData),
+        })
+        .then(response => {
+            console.log("📡 Response received. Status:", response.status, response.statusText);
+            
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error("❌ Server returned error:", text);
+                    throw new Error(`Server error: ${response.status}. ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("✅ Order success! Data received:", data);
+            
+            // Reset cart
+            cart = [];
+            updateCartUI();
+            
+            // Show receipt modal
+            if (data.order && data.items) {
+                console.log("🎫 Opening receipt modal...");
+                openReceiptModal(data.order, data.items);
+            } else {
+                console.error("❌ Invalid response data - missing order or items:", data);
+                alert("Order processed but receipt data is missing. Check console for details.");
+            }
+        })
+        .catch(error => {
+            console.error("❌ Order failed:", error);
+            
+            // Show error message
+            alert("Order failed: " + error.message);
+            
+            // Re-show confirmation modal to try again
+            document.getElementById("confirmationModal").classList.remove("hidden");
+        })
+        .finally(() => {
+            // Reset button state
+            confirmButton.innerHTML = originalText;
+            confirmButton.disabled = false;
+            console.log("🔹 processOrder() COMPLETED");
+        });
+    }
+
     function openReceiptModal(order, items) {
+        console.log("🔹 openReceiptModal() called");
+        console.log("Order data:", order);
+        console.log("Items data:", items);
+        
         const receiptModal = document.getElementById("receiptModal");
         const receiptOrderId = document.getElementById("receipt-order-id");
         const receiptTotalWithoutVat = document.getElementById("receipt-total-without-vat");
@@ -557,6 +589,8 @@
         const totalWithoutVat = (totalPrice / 1.12).toFixed(2);
         const vat = (totalWithoutVat * 0.12).toFixed(2);
 
+        console.log("VAT Calculations:", { totalPrice, totalWithoutVat, vat });
+
         // Update receipt content
         receiptOrderId.innerText = order.id;
         receiptTotalWithoutVat.innerText = totalWithoutVat;
@@ -564,11 +598,19 @@
         receiptTotalPrice.innerText = totalPrice.toFixed(2);
         receiptAmountReceived.innerText = order.amount_received || "0.00";
         receiptChange.innerText = order.change || "0.00";
-        receiptItems.innerHTML = items.map(item => `
-            <li>${item.name} (${item.size || 'Single'}, ${item.quantity}) - ₱${item.price * item.quantity}</li>
-        `).join("");
+        
+        // Build items list
+        const itemsHtml = items.map(item => 
+            `<li>${item.name} (${item.size || 'Single'}, ${item.quantity}) - ₱${(item.price * item.quantity).toFixed(2)}</li>`
+        ).join("");
+        
+        receiptItems.innerHTML = itemsHtml;
+        
+        console.log("Receipt content updated");
 
+        // Show modal
         receiptModal.classList.remove("hidden");
+        console.log("Modal should now be visible");
     }
 
     function closeReceiptModal() {
@@ -652,7 +694,5 @@
         document.head.removeChild(style);
         parentElement.appendChild(receiptModal);
     }
-
-
-    </script>
+</script>
     @endsection

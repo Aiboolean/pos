@@ -168,17 +168,110 @@ class IngredientController extends Controller
              ->setPaper('a4', 'landscape')
              ->download($fileName);
 }
-    private function getInitialStock($ingredient, $startDate)
-    {
-        // Get the stock history record just before the start date
-        $history = $ingredient->stockHistories()
-            ->where('created_at', '<', $startDate)
-            ->orderBy('created_at', 'desc')
-            ->first();
+   public function stockHistory(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date'
+    ]);
 
-        // If no history found before start date, use current stock as initial
-        // Or you might want to track initial stock separately
-        return $history ? $history->new_stock : $ingredient->stock;
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    $stockHistoryData = [];
+    $ingredients = Ingredient::all();
+
+    foreach ($ingredients as $ingredient) {
+        $movements = $ingredient->getStockMovementsInPeriod($startDate, $endDate);
+        
+        if ($movements->count() > 0) {
+            foreach ($movements as $movement) {
+                $stockHistoryData[] = [
+                    'date' => $movement->created_at->format('M j, Y g:i A'),
+                    'ingredient_name' => $ingredient->name,
+                    'change_type' => $this->getChangeTypeLabel($movement->change_type),
+                    'previous_stock' => $movement->previous_stock,
+                    'new_stock' => $movement->new_stock,
+                    'change_amount' => $movement->change_amount,
+                    'reason' => $movement->reason,
+                    'user' => $movement->user ? $movement->user->name : 'System',
+                    'order_id' => $movement->order_id
+                ];
+            }
+        }
     }
 
+    // Sort by date descending
+    usort($stockHistoryData, function($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+
+    return response()->json([
+        'stock_history' => $stockHistoryData,
+        'start_date' => $startDate->format('M j, Y'),
+        'end_date' => $endDate->format('M j, Y'),
+        'total_movements' => count($stockHistoryData)
+    ]);
+}
+
+public function exportStockHistory(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date'
+    ]);
+
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    $stockHistoryData = [];
+    $ingredients = Ingredient::all();
+
+    foreach ($ingredients as $ingredient) {
+        $movements = $ingredient->getStockMovementsInPeriod($startDate, $endDate);
+        
+        if ($movements->count() > 0) {
+            foreach ($movements as $movement) {
+                $stockHistoryData[] = [
+                    'date' => $movement->created_at->format('M j, Y g:i A'),
+                    'ingredient' => $ingredient,
+                    'movement' => $movement,
+                    'change_type' => $this->getChangeTypeLabel($movement->change_type),
+                    'user' => $movement->user ? $movement->user->name : 'System'
+                ];
+            }
+        }
+    }
+
+    // Sort by date descending
+    usort($stockHistoryData, function($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+
+    $data = [
+        'stock_history' => $stockHistoryData,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'total_movements' => count($stockHistoryData),
+        'generated_at' => now()
+    ];
+
+    $fileName = 'stock-history-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf';
+
+    return Pdf::loadView('ingredients.stock-history-pdf', $data)
+             ->setPaper('a4', 'landscape')
+             ->download($fileName);
+}
+
+private function getChangeTypeLabel($changeType)
+{
+    $labels = [
+        'order_deduction' => 'Order Deduction',
+        'manual_update' => 'Manual Update',
+        'restock' => 'Restock',
+        'initial_stock' => 'Initial Stock'
+    ];
+    
+    return $labels[$changeType] ?? $changeType;
+}
 }

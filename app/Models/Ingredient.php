@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ingredient extends Model
 {
     protected $fillable = ['name', 'unit', 'stock', 'alert_threshold'];
     
-    // Add these for tracking
     protected $appends = ['last_updated', 'usage_today', 'status'];
 
     public function products()
@@ -17,7 +17,6 @@ class Ingredient extends Model
             ->withPivot('quantity');
     }
 
-    // Add relationship to track stock changes (if you don't have this yet)
     public function stockHistories()
     {
         return $this->hasMany(StockHistory::class);
@@ -41,16 +40,71 @@ class Ingredient extends Model
         }
     }
 
-    // Method to get usage in a date range
+    /**
+     * Get ingredient usage within a specific period from stock history
+     */
     public function getUsageInPeriod($startDate, $endDate)
     {
-        // This will depend on how you track order deductions
-        // You might need to create an OrderIngredientUsage model
-        return OrderItem::join('product_ingredient', 'order_items.product_id', '=', 'product_ingredient.product_id')
-            ->where('product_ingredient.ingredient_id', $this->id)
-            ->whereBetween('order_items.created_at', [$startDate, $endDate])
-            ->selectRaw('SUM(product_ingredient.quantity * order_items.quantity) as total_used')
-            ->first()
-            ->total_used ?? 0;
+        return abs($this->stockHistories()
+            ->where('change_type', 'order_deduction')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('change_amount'));
+    }
+
+    /**
+     * Get stock movements within a specific period
+     */
+    public function getStockMovementsInPeriod($startDate, $endDate)
+    {
+        return $this->stockHistories()
+            ->with(['user', 'order'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Method to record stock changes - ADD THIS METHOD
+     */
+    public function recordStockChange($newStock, $changeType, $reason = null, $orderId = null, $effectiveDate = null)
+    {
+        $changeAmount = $newStock - $this->stock;
+        
+        StockHistory::create([
+            'ingredient_id' => $this->id,
+            'previous_stock' => $this->stock,
+            'new_stock' => $newStock,
+            'change_amount' => $changeAmount,
+            'change_type' => $changeType,
+            'reason' => $reason,
+            'user_id' => auth()->id(),
+            'order_id' => $orderId,
+            'effective_date' => $effectiveDate ?: now()
+        ]);
+
+        // Update the current stock
+        $this->update(['stock' => $newStock]);
+    }
+
+    /**
+     * Get stock at a specific date
+     */
+    public function getStockAtDate($date)
+    {
+        // Find the last stock history record before or at the given date
+        $history = $this->stockHistories()
+            ->where('effective_date', '<=', $date)
+            ->orderBy('effective_date', 'desc')
+            ->first();
+
+        return $history ? $history->new_stock : $this->stock;
+    }
+
+    /**
+     * Get initial stock for a period (stock at start date)
+     */
+    public function getInitialStockForPeriod($startDate)
+    {
+        return $this->getStockAtDate($startDate->copy()->subSecond());
     }
 }

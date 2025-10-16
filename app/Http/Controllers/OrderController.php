@@ -69,8 +69,14 @@ class OrderController extends Controller
                     throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
                 }
                 
-                // Deduct from inventory
-                $ingredient->decrement('stock', $quantityNeeded);
+                // Deduct from inventory and record stock history
+            $newStock = $ingredient->stock - $quantityNeeded;
+            $ingredient->recordStockChange(
+                $newStock,
+                'order_deduction',
+                "Order #{$order->id} - {$product->name} ({$item['size']})",
+                $order->id
+            );
             }
             // ========== INVENTORY DEDUCTION END ==========
             
@@ -188,7 +194,7 @@ public function adminIndex(Request $request)
             break;
         case 'monthly':
             $query->whereMonth('created_at', now()->month)
-                  ->whereYear('created_at', now()->year);
+                    ->whereYear('created_at', now()->year);
             break;
         case 'yearly':
             $query->whereYear('created_at', now()->year);
@@ -360,8 +366,14 @@ public function adminIndex(Request $request)
                         throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
                     }
 
-                    // Deduct ingredient stock
-                    $ingredient->decrement('stock', $quantityNeeded);
+                    // Deduct from inventory and record stock history
+                $newStock = $ingredient->stock - $quantityNeeded;
+                $ingredient->recordStockChange(
+                    $newStock,
+                    'order_deduction',
+                    "Order #{$order->id} - {$product->name} ({$item['size']})",
+                    $order->id
+                );
                 }
                 // ========= END INVENTORY DEDUCTION =========
 
