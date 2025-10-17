@@ -514,7 +514,8 @@
             items: cart,
             total_price: totalPrice,
             amount_received: amountReceived,
-            change: (amountReceived - totalPrice).toFixed(2)
+            change: (amountReceived - totalPrice).toFixed(2),
+            payment_method: document.getElementById('paymentMethod').value // ← ADD THIS LINE
         };
 
         console.log("📦 Sending order data:", orderData);

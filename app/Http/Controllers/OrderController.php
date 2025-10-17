@@ -23,7 +23,7 @@ class OrderController extends Controller
             'total_price' => 'required|numeric',
             'amount_received' => 'required|numeric',
             'change' => 'required|numeric',
-            'payment_method' => 'sometimes|in:cash,gcash', // ← CHANGE TO THIS
+            'payment_method' => 'required|in:cash,gcash', // ← CHANGED from 'sometimes' to 'required'
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -40,7 +40,7 @@ class OrderController extends Controller
                 'total_price' => $request->total_price,
                 'amount_received' => $request->amount_received,
                 'change' => $request->change,
-                'payment_method' => $request->input('payment_method', 'cash'), // ← FIXED: Use input() method
+                'payment_method' => $request->payment_method, // ← This should now always be set
                 'user_id' => Session::get('user_id'),
         ]);
 
@@ -395,13 +395,13 @@ public function adminIndex(Request $request)
                     }
 
                     // Deduct from inventory and record stock history
-                $newStock = $ingredient->stock - $quantityNeeded;
-                $ingredient->recordStockChange(
-                    $newStock,
-                    'order_deduction',
-                    "Order #{$order->id} - {$product->name} ({$item['size']})",
-                    $order->id
-                );
+                    $newStock = $ingredient->stock - $quantityNeeded;
+                    $ingredient->recordStockChange(
+                        $newStock,
+                        'order_deduction',
+                        "Order #{$order->id} - {$product->name} (" . ($sizeRaw ?? 'standard') . ")", // ← FIXED: Use $sizeRaw instead of $item['size']
+                        $order->id
+                    );
                 }
                 // ========= END INVENTORY DEDUCTION =========
 
