@@ -217,22 +217,32 @@ public function adminIndex(Request $request)
 
     return view('user.orders.index', compact('orders'));
 }
-    public function userOrderShow(Order $order)
-    {
-        if (!Session::has('admin_logged_in')) {
-            return redirect('/login')->with('error', 'You must log in first.');
+   public function userOrderShow(Order $order)
+{
+    // --- Your security checks ---
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+    $userId = Session::get('user_id');
+    if ($order->user_id !== $userId) {
+        if (request()->ajax()) {
+            return response()->json(['error' => 'Unauthorized access.'], 403);
         }
+        return redirect('/orders')->with('error', 'Unauthorized access.');
+    }
+    // --- End of security checks ---
 
-        // Ensure the order belongs to the logged-in user
-        $userId = Session::get('user_id');
-        if ($order->user_id !== $userId) {
-            return redirect('/orders')->with('error', 'Unauthorized access.');
-        }
+    $order->load('items.product');
 
-        $order->load('items.product');
-        return view('user.orders.show', compact('order'));
+    // ✅ This is the key logic we are putting back
+    if (request()->ajax()) {
+        // For modal requests, return the partial view
+        return view('user.orders._show_partial', compact('order'));
     }
 
+    // For direct page visits, return the full page view
+    return view('user.orders.show', compact('order'));
+}
     // NEW METHOD: Handles generating the PDF report
     public function generatePDFReport(Request $request)
     {
