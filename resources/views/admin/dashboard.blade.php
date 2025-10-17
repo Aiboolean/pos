@@ -424,37 +424,25 @@ function updateCategoryChart(data, year, period) {
     }
 
     categoryRevenueChart = new Chart(categoryCtx, {
-    type: 'bar',
-    data: {
-        labels: data.labels,
-        datasets: [{
-            label: 'Revenue by Product',
-            data: data.revenue,
-            backgroundColor: [
-                '#A67B5B',  // Warm coffee brown
-                '#C9A87C',  // Light latte
-                '#E3C16F',  // Golden cream
-                '#8D6E63',  // Muted clay
-                '#D4B483',  // Soft beige
-                '#BC8A5F',  // Medium roast
-                '#E6C39A',  // Light foam
-                '#9C7E56'   // Dark caramel
-            ],
-            borderColor: '#f5f1ea', // Light cream border
-            borderWidth: 1.5,        // Slightly thicker border
-            hoverBackgroundColor: [   // Slightly darker on hover
-                '#956A4F',
-                '#B5976B',
-                '#D3B15F',
-                '#7D5E54',
-                '#C4A472',
-                '#AA754D',
-                '#D6B288',
-                '#8B6D4A'
-            ],
-            hoverBorderWidth: 2
-        }]
-    },
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: `Revenue by Product (${period} - ${year})`,
+                data: data.revenue,
+                backgroundColor: [
+                    '#A67B5B', '#C9A87C', '#E3C16F', '#8D6E63', 
+                    '#D4B483', '#BC8A5F', '#E6C39A', '#9C7E56'
+                ],
+                borderColor: '#f5f1ea',
+                borderWidth: 1.5,
+                hoverBackgroundColor: [
+                    '#956A4F', '#B5976B', '#D3B15F', '#7D5E54',
+                    '#C4A472', '#AA754D', '#D6B288', '#8B6D4A'
+                ],
+                hoverBorderWidth: 2
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,

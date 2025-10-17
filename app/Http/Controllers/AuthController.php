@@ -106,6 +106,11 @@ public function logout()
 //Fetch Categories and Products
     $categories = Category::with('products')->get();
     $products = Product::all();
+    // Fetch Admin + Employees for Cashier dropdown
+    $cashiers = DB::table('users')
+                ->whereIn('role', ['Admin', 'Employee'])
+                ->where('is_active', 1) // only active accounts
+                ->get();
     // Pass analytics data to the view
     return view('admin.dashboard', [
         'totalOrders' => $totalOrders,
@@ -114,6 +119,7 @@ public function logout()
         'bestSeller' => $bestSeller,
         'categories' => $categories,
         'products' => $products,
+        'cashiers' => $cashiers, // new
     ]);
 }
 
