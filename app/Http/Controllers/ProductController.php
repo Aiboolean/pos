@@ -114,42 +114,61 @@ class ProductController extends Controller
     return view('products.edit', compact('product', 'categories', 'ingredients'));
 }
     public function update(Request $request, Product $product)
-    {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'has_multiple_sizes' => 'nullable|boolean',
-            'price_small' => 'nullable|numeric',
-            'price_medium' => 'nullable|numeric',
-            'price_large' => 'nullable|numeric',
-            'price' => 'nullable|numeric',
-            'small_enabled' => 'nullable|boolean',
-            'medium_enabled' => 'nullable|boolean',
-            'large_enabled' => 'nullable|boolean',
-            'is_available' => 'required|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+{
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'category_id' => 'required|exists:categories,id',
+        'has_multiple_sizes' => 'nullable|boolean',
+        'price_small' => 'nullable|numeric',
+        'price_medium' => 'nullable|numeric',
+        'price_large' => 'nullable|numeric',
+        'price' => 'nullable|numeric',
+        'small_enabled' => 'nullable|boolean',
+        'medium_enabled' => 'nullable|boolean',
+        'large_enabled' => 'nullable|boolean',
+        'is_available' => 'required|boolean',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('product_images', 'public');
-            $validatedData['image'] = $imagePath;
-        }
-
-        // If the product has multiple sizes, ensure size-based prices are provided
-        if ($request->has('has_multiple_sizes') && $request->has_multiple_sizes) {
-            $validatedData['price'] = null;
-        } else {
-            $validatedData['price_small'] = null;
-            $validatedData['price_medium'] = null;
-            $validatedData['price_large'] = null;
-        }
-
-        // Update the product
-        $product->update($validatedData);
-
-        return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
+    // Handle image upload
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('product_images', 'public');
+        $validatedData['image'] = $imagePath;
     }
+
+    // If the product has multiple sizes, ensure size-based prices are provided
+    if ($request->has('has_multiple_sizes') && $request->has_multiple_sizes) {
+        $validatedData['price'] = null;
+    } else {
+        $validatedData['price_small'] = null;
+        $validatedData['price_medium'] = null;
+        $validatedData['price_large'] = null;
+    }
+
+    // Update the product
+    $product->update($validatedData);
+
+    // ✅ ADD THIS INGREDIENT SYNC LOGIC (same as store method)
+    if ($request->has('ingredients')) {
+        $ingredientsData = [];
+        foreach ($request->ingredients as $index => $ingredientId) {
+            if (!empty($ingredientId) && !empty($request->quantities[$index])) {
+                $ingredientsData[$ingredientId] = [
+                    'quantity' => $request->quantities[$index],
+                    'small_multiplier' => $request->small_multipliers[$index] ?? 0.75,
+                    'medium_multiplier' => $request->medium_multipliers[$index] ?? 1.00,
+                    'large_multiplier' => $request->large_multipliers[$index] ?? 1.50
+                ];
+            }
+        }
+        $product->ingredients()->sync($ingredientsData);
+    } else {
+        // If no ingredients are provided, detach all existing ones
+        $product->ingredients()->detach();
+    }
+
+    return redirect()->route('admin.products')->with('success', 'Product updated successfully.');
+}
 
     public function destroy(Product $product)
     {
