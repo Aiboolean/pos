@@ -103,6 +103,8 @@ Route::get('/orders/{order}', [OrderController::class, 'userOrderShow'])->name('
 Route::resource('ingredients', IngredientController::class)->except(['show']);
 Route::post('ingredients/usage-report', [IngredientController::class, 'usageReport'])->name('ingredients.usage-report');
 Route::get('ingredients/export-usage', [IngredientController::class, 'exportUsage'])->name('ingredients.export-usage');
+Route::post('/ingredients/{ingredient}/restock', [IngredientController::class, 'restock'])->name('ingredients.restock');
+Route::post('/ingredients/{ingredient}/adjust-stock', [IngredientController::class, 'adjustStock'])->name('ingredients.adjust-stock');
 
 // Stock History Routes
 Route::post('/ingredients/stock-history', [IngredientController::class, 'stockHistory'])->name('ingredients.stock-history');

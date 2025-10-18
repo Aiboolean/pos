@@ -197,18 +197,49 @@
                                     <div class="text-xs text-gray-400">{{ $ingredient->unit }}</div>
                                 </div>
                             </td>
+                            <!-- Replace the Actions column in your table with this: -->
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('ingredients.edit', $ingredient->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="text-red-600 hover:text-red-900"
-                                            onclick="return confirm('Are you sure you want to delete this ingredient?')">
-                                        Delete
-                                    </button>
-                                </form>
+                                <!-- Restock Form -->
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <form action="{{ route('ingredients.restock', $ingredient->id) }}" method="POST" class="flex items-center space-x-2">
+                                        @csrf
+                                        <input type="number" 
+                                            name="restock_amount" 
+                                            step="0.01" 
+                                            min="0.01" 
+                                            placeholder="Qty" 
+                                            class="w-20 px-2 py-1 border rounded text-sm"
+                                            required>
+                                        <input type="text" 
+                                            name="reason" 
+                                            placeholder="Reason" 
+                                            class="w-32 px-2 py-1 border rounded text-sm">
+                                        <button type="submit" 
+                                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm flex items-center">
+                                            <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
+                                            Add
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Edit and Delete Links -->
+                                <div class="flex space-x-3">
+                                    <a href="{{ route('ingredients.edit', $ingredient->id) }}" 
+                                    class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="text-red-600 hover:text-red-900 flex items-center"
+                                                onclick="return confirm('Are you sure you want to delete this ingredient?')">
+                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @endforeach

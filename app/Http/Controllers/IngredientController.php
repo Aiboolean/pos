@@ -267,11 +267,47 @@ private function getChangeTypeLabel($changeType)
 {
     $labels = [
         'order_deduction' => 'Order Deduction',
-        'manual_update' => 'Manual Update',
+        'manual_update' => 'Manual Update', 
         'restock' => 'Restock',
-        'initial_stock' => 'Initial Stock'
+        'initial_stock' => 'Initial Stock',
+        'adjustment' => 'Adjustment' // Add this if you want to support adjustments
     ];
     
     return $labels[$changeType] ?? $changeType;
+}
+// Add this method to IngredientController.php
+public function restock(Request $request, Ingredient $ingredient)
+{
+    $request->validate([
+        'restock_amount' => 'required|numeric|min:0.01',
+        'reason' => 'nullable|string|max:255'
+    ]);
+
+    $newStock = $ingredient->stock + $request->restock_amount;
+    
+    // Record the stock change
+    $ingredient->recordStockChange(
+        $newStock,
+        'restock',
+        $request->reason ?? 'Manual restock'
+    );
+
+    return redirect()->back()->with('success', 'Ingredient restocked successfully!');
+}
+// Add this to IngredientController.php
+public function adjustStock(Request $request, Ingredient $ingredient)
+{
+    $request->validate([
+        'new_stock' => 'required|numeric|min:0',
+        'reason' => 'required|string|max:255'
+    ]);
+
+    $ingredient->recordStockChange(
+        $request->new_stock,
+        'manual_update',
+        $request->reason
+    );
+
+    return redirect()->back()->with('success', 'Stock adjusted successfully!');
 }
 }
