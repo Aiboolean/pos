@@ -357,7 +357,7 @@
                     <rect width="18" height="18" x="3" y="4" rx="2"/>
                     <path d="M3 10h18"/>
                 </svg>
-                Date
+                Dates
             </div>
         </th>
         <th class="py-3 px-2 responsive-text text-center">Actions</th>
@@ -386,7 +386,7 @@
                 <td class="p-3 font-semibold text-[#8b5e3b] responsive-text text-right">₱{{ number_format($order->total_price, 2) }}</td>
                 <td class="p-3 font-semibold text-[#6d883e] responsive-text text-right">₱{{ number_format($order->amount_received, 2) }}</td>
                 <td class="p-3 font-semibold text-[#a94442] responsive-text text-right">₱{{ number_format($order->change, 2) }}</td>
-                <td class="p-3 coffee-text-primary responsive-text">{{ $order->created_at->format('M j, Y g:i A') }}</td>
+               <td class="p-3 coffee-text-primary responsive-text">{{ $order->created_at->format('M j, Y') }}</td>
                 
                 {{-- ✅ CORRECTED ACTIONS CELL --}}
                 <td class="p-3 text-center">

@@ -1,175 +1,163 @@
     @extends('layouts.app')
 
     @section('content')
-        <div class="flex h-screen">
-        <!-- Order Summary (Now on the Left Side) -->
-        <div class="w-2/6 bg-gray-100 p-4 sticky top-0 h-screen overflow-y-auto">
-            <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-            <div id="cart-items" class="space-y-2"></div>
-            <hr class="my-4">
-            <p class="text-lg font-semibold">Total: ₱<span id="total-price">0.00</span></p>
-            <button id="checkout" 
-            class="mt-6 w-full bg-green-500 text-white font-medium py-3 rounded-xl transition duration-300 hover:bg-green-600 focus:ring-4 focus:ring-green-300">
+       <style>
+    /* Main Coffee Shop Theme Styles (Ensure these match your global styles) */
+    .coffee-bg { background-color: #f5f1ea; }
+    .coffee-card { background-color: white; border: 1px solid #e0d6c2; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 0.75rem; }
+    .coffee-text-primary { color: #5c4d3c; }
+    .coffee-text-secondary { color: #8c7b6b; }
+    .coffee-border { border-color: #e0d6c2; }
+    .coffee-btn-primary, .coffee-btn-success, .coffee-btn-warning, .coffee-btn-danger, .coffee-btn-secondary { transition: all 0.2s ease; border: none; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; }
+    .coffee-btn-primary { background-color: #6f4e37; color: white; }
+    .coffee-btn-primary:hover { background-color: #5c3d2a; }
+    .coffee-btn-success { background-color: #8c7b6b; color: white; }
+    .coffee-btn-success:hover { background-color: #6f4e37; }
+    .coffee-btn-danger { background-color: #c45e4c; color: white; }
+    .coffee-btn-danger:hover { background-color: #a34a3a; }
+    .coffee-btn-secondary { background-color: #e0d6c2; color: #5c4d3c; }
+    .coffee-btn-secondary:hover { background-color: #d4c9b5; }
+    .coffee-input { border: 1px solid #e0d6c2; transition: all 0.2s ease; background-color: white; color: #5c4d3c; border-radius: 0.5rem; padding: 0.75rem 1rem; }
+    .coffee-input:focus { outline: none; box-shadow: 0 0 0 2px #8c7b6b40; border-color: #8c7b6b; }
+
+    /* Custom styles for POS */
+    .status-available { color: #6f8c6b; }
+    .status-unavailable { color: #c45e4c; }
+    .order-summary-bg { background-color: #fdfbf7; } /* Slightly off-white for contrast */
+    .product-grid-container {
+        /* Correct height calculation for scrollable area */
+        height: calc(100vh - 150px); /* Adjust 150px based on header/filter height */
+        overflow-y: auto;
+    }
+    .quantity-btn {
+        width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
+        background-color: #e0d6c2; color: #5c4d3c; border-radius: 9999px;
+        transition: background-color 0.2s ease;
+    }
+    .quantity-btn:hover { background-color: #d4c9b5; }
+    .quantity-input {
+        width: 3.5rem; text-align: center; border: 1px solid #e0d6c2; border-radius: 0.5rem;
+        padding: 0.25rem 0.5rem; color: #5c4d3c;
+    }
+    .availability-toggle input[type="checkbox"] {
+        accent-color: #6f4e37; /* Theme color for checkbox */
+        height: 1.1rem; width: 1.1rem;
+    }
+</style>
+
+<div class="flex flex-col md:flex-row h-screen coffee-bg">
+
+    <div class="w-full md:w-1/3 lg:w-1/4 order-summary-bg p-4 md:sticky md:top-0 md:h-screen md:overflow-y-auto border-r coffee-border">
+        <h2 class="text-xl font-bold mb-4 coffee-text-primary flex items-center">
+            <i data-lucide="shopping-cart" class="w-5 h-5 mr-2 coffee-text-secondary"></i>
+            Order Summary
+        </h2>
+        <div id="cart-items" class="space-y-3 mb-4">
+            {{-- Cart items will be dynamically added here --}}
+            <p class="text-center coffee-text-secondary italic">Your cart is empty.</p>
+        </div>
+        <hr class="my-4 coffee-border">
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-lg font-semibold coffee-text-primary">Total:</span>
+            <span class="text-lg font-bold coffee-text-primary">₱<span id="total-price">0.00</span></span>
+        </div>
+        <button id="checkout" class="w-full coffee-btn-success py-3 rounded-xl font-medium">
             Proceed to Payment
         </button>
-        </div>
-
-        
-    <!-- Main Content (Now on the Right Side) -->
-    <div class="w-full md:w-4/6 p-6">
-    <!-- Category Filter and Search Product (Stacked on Small Screens, Side by Side on Medium+) -->
-    <div class="mb-6 flex flex-wrap gap-4">
-        <!-- Category Filter -->
-        <div class="w-full sm:w-60">
-            <label for="categoryFilter" class="block text-sm font-semibold text-gray-700 mb-1">Filter by Category</label>
-            <div class="relative">
-                <select id="categoryFilter" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition appearance-none">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                    <option value="unavailable">Unavailable Products</option>
-                </select>
-            
-                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                    
-                </div>
-            </div>
-        </div>
-
-        <!-- Search Product -->
-        <div class="w-full sm:w-60">
-            <label for="productSearch" class="block text-sm font-semibold text-gray-700 mb-1">Search Products</label>
-            <div class="relative">
-                <input type="text" id="productSearch" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition" placeholder="Search product name">
-                <!-- Search Icon -->
-                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </div>
-            </div>
-        </div>
     </div>
 
-        
-        <!-- Scrollable Product Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 py-4 overflow-y-auto" style="max-height: calc(500vh - 200px);" id="productGrid">
-
-        @foreach($products as $product)
-          
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-5 product-item border border-gray-200 transition-transform transform hover:scale-105 
-                {{ $product->is_available ? '' : 'hidden' }}" 
-        data-category="{{ $product->category_id }}" 
-        data-available="{{ $product->is_available ? 'true' : 'false' }}">
-
-        <!-- Product Image (Framed and Fixed Size) -->
-        <div class="w-full h-48 border-2 border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
-                alt="{{ $product->name }}" 
-                class="object-cover w-full h-full">
-        </div>
-
-        <!-- Product Details -->
-        <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
-            <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
-            <p class="text-sm text-gray-600 sm:text-sm">
-                Category: <span class="font-medium">{{ $product->category->name }}</span>
-            </p>
-            <p class="text-sm font-semibold transition sm:text-base md:text-lg 
-                    {{ $product->is_available ? 'text-green-600' : 'text-red-500' }}">
-                {{ $product->is_available ? 'Available' : 'Not Available' }}
-            </p>
-        </div>
-
-        <!-- Size Selection (For Available Products) -->
-        @if($product->is_available)
-            <div class="mt-6">
-                <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+    <div class="w-full md:w-2/3 lg:w-3/4 p-6 flex flex-col">
+        <div class="mb-6 flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 min-w-[150px]">
+                <label for="categoryFilter" class="block text-sm font-semibold coffee-text-primary mb-1">Category</label>
                 <div class="relative">
-                    <select id="size-{{ $product->id }}" 
-                        class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 
-                            focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition 
-                            appearance-none text-xs sm:text-sm">
-                        @if($product->has_multiple_sizes)
-                            @if($product->price_small && $product->small_enabled)
-                                <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
-                            @endif
-                            @if($product->price_medium && $product->medium_enabled)
-                                <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
-                            @endif
-                            @if($product->price_large && $product->large_enabled)
-                                <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
-                            @endif
-                        @else
-                            <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
-                        @endif
+                    <select id="categoryFilter" class="w-full coffee-input appearance-none pr-8">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                        <option value="unavailable">Unavailable Products</option>
                     </select>
-                    <!-- Custom dropdown icon -->
-                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-text-secondary">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Quantity Adjustment -->
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700">Quantity</label>
-                <div class="flex items-center space-x-2">
-                    <!-- Decrease Quantity Button -->
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                                hover:bg-gray-200 transition" 
-                            onclick="adjustQuantity('{{ $product->id }}', -1)">
-                        –
-                    </button>
-
-                    <!-- Quantity Input Field -->
-                    <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" 
-                        class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
-
-                    <!-- Increase Quantity Button -->
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                                hover:bg-gray-200 transition" 
-                            onclick="adjustQuantity('{{ $product->id }}', 1)">
-                        +
-                    </button>
+            <div class="flex-1 min-w-[150px]">
+                <label for="productSearch" class="block text-sm font-semibold coffee-text-primary mb-1">Search Products</label>
+                <div class="relative">
+                    <input type="text" id="productSearch" class="w-full coffee-input pr-10" placeholder="Product name...">
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-text-secondary">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </div>
                 </div>
             </div>
-        @endif
-
-        <!-- Toggle Availability Checkbox -->
-        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mt-4">
-            @csrf
-            <label class="flex items-center space-x-2">
-                <input type="checkbox" name="is_available" onchange="this.form.submit()" 
-                    {{ $product->is_available ? 'checked' : '' }} class="accent-blue-500">
-                <span>Available</span>
-            </label>
-        </form>
-
-        <!-- Add to Order Button (For Available Products) -->
-        @if($product->is_available)
-            <button class="mt-4 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-full transition shadow-md hover:shadow-lg add-to-order" 
-                    data-id="{{ $product->id }}" 
-                    data-name="{{ $product->name }}" 
-                    data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
-                    data-price-small="{{ $product->price_small }}" 
-                    data-price-medium="{{ $product->price_medium }}" 
-                    data-price-large="{{ $product->price_large }}" 
-                    data-price="{{ $product->price }}">
-                Add to Order
-            </button>
-        @endif
-    </div>
-@endforeach
-
         </div>
 
+        <div class="flex-grow product-grid-container pr-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productGrid">
+                @foreach($products as $product)
+                <div class="flex flex-col bg-white rounded-lg shadow-md overflow-hidden product-item border coffee-border transition-transform transform hover:scale-[1.03]
+                            {{ $product->is_available ? '' : 'opacity-50 pointer-events-none' }}" 
+                     data-category="{{ $product->category_id }}" 
+                     data-name="{{ strtolower($product->name) }}" 
+                     data-available="{{ $product->is_available ? 'true' : 'false' }}">
+
+                    <div class="w-full h-40 border-b coffee-border flex items-center justify-center bg-gray-50">
+                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
+                             alt="{{ $product->name }}" 
+                             class="object-cover w-full h-full">
+                    </div>
+
+                    <div class="p-4 flex-grow flex flex-col">
+                        <h2 class="text-base font-semibold coffee-text-primary mb-1 leading-tight h-10 overflow-hidden line-clamp-2">{{ $product->name }}</h2>
+                        <p class="text-xs coffee-text-secondary mb-2">
+                            {{ $product->category->name }}
+                        </p>
+                        
+                        <div class="mt-auto mb-3">
+                            <label for="size-{{ $product->id }}" class="block text-xs font-medium coffee-text-secondary mb-1">Size</label>
+                            <div class="relative">
+                                <select id="size-{{ $product->id }}" 
+                                        class="w-full py-1 px-2 border coffee-border rounded-md bg-white coffee-text-primary 
+                                               focus:ring-1 focus:ring-[#8c7b6b] focus:border-[#8c7b6b] transition 
+                                               appearance-none text-xs">
+                                    @if($product->has_multiple_sizes)
+                                        @if($product->price_small && $product->small_enabled)<option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ number_format($product->price_small, 2) }}</option>@endif
+                                        @if($product->price_medium && $product->medium_enabled)<option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ number_format($product->price_medium, 2) }}</option>@endif
+                                        @if($product->price_large && $product->large_enabled)<option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ number_format($product->price_large, 2) }}</option>@endif
+                                    @else
+                                        <option value="single" data-price="{{ $product->price }}">Single - ₱{{ number_format($product->price, 2) }}</option>
+                                    @endif
+                                </select>
+                                <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none coffee-text-secondary">
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium coffee-text-secondary mb-1">Quantity</label>
+                            <div class="flex items-center space-x-2">
+                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', -1)"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" class="quantity-input coffee-input">
+                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', 1)"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+
+                        <button class="w-full coffee-btn-primary add-to-order" 
+                                data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
+                                data-price-small="{{ $product->price_small }}" data-price-medium="{{ $product->price_medium }}" data-price-large="{{ $product->price_large }}" data-price="{{ $product->price }}">
+                            Add to Order
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
     </div>
-    </div>
-    
+</div>
 
 
     <!-- Confirmation Modal -->

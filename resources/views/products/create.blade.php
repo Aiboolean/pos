@@ -1,10 +1,4 @@
-{{-- This is the crucial change: only extend the layout if it's NOT a modal request --}}
-@if(!request()->ajax())
-    @extends('layouts.app')
-    @section('content')
-@endif
 
-{{-- The rest of the file (styles, HTML, and scripts) will be rendered in BOTH cases --}}
 <style>
     /* Coffee Shop Theme CSS */
     .coffee-bg {
@@ -84,28 +78,31 @@
     }
 </style>
 
-<div class="min-h-screen coffee-bg py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-5xl mx-auto coffee-card overflow-hidden p-8">
-        <div class="flex items-center mb-8">
+<div class="w-full">
+    {{-- ✅ FIX: Removed mx-auto as modal handles centering. Adjusted padding slightly (p-6) --}}
+    <div class="max-w-5xl coffee-card overflow-hidden p-6 md:p-8">
+        <div class="flex items-center mb-6"> {{-- Reduced mb slightly --}}
             {{-- Hide the back arrow when in the modal --}}
             @if(!request()->ajax())
             <a href="{{ route('admin.products') }}" class="mr-4 text-[#6f4e37] hover:text-[#5c3d2a] transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
             </a>
             @endif
-            <h1 class="text-2xl font-bold coffee-text-primary">Add New Product</h1>
+            
         </div>
 
         <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
             @csrf
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"> {{-- Adjusted gap slightly --}}
+                {{-- Left Column --}}
+                <div class="space-y-5"> {{-- Adjusted spacing slightly --}}
+                    {{-- Category --}}
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium coffee-text-primary flex items-center">
                             <i data-lucide="tag" class="w-4 h-4 mr-2"></i> Category
                         </label>
-                        <select name="category_id" id="category_id" class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                        <select name="category_id" id="category_id" class="w-full px-4 py-2.5 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
                             <option value="" selected disabled hidden>Select a Category</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -113,14 +110,16 @@
                         </select>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium coffee-text-primary mb-1 flex items-center">
+                    {{-- Name --}}
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium coffee-text-primary flex items-center">
                             <i data-lucide="package-plus" class="w-4 h-4 mr-2"></i> Product Name
                         </label>
-                        <input type="text" name="name" required class="w-full px-4 py-3 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
+                        <input type="text" name="name" required class="w-full px-4 py-2.5 coffee-input rounded-lg coffee-shadow focus:ring-2 focus:ring-[#8c7b6b]">
                     </div>
 
-                    <div class="flex items-center space-x-3 p-4 coffee-toggle-bg rounded-xl">
+                    {{-- Multiple Sizes Toggle --}}
+                    <div class="flex items-center space-x-3 p-3 coffee-toggle-bg rounded-lg"> {{-- Reduced padding slightly --}}
                         <label class="block text-sm font-medium coffee-text-primary flex items-center">
                            <i data-lucide="ruler" class="w-4 h-4 mr-2"></i> Multiple Sizes
                         </label>
@@ -128,51 +127,55 @@
                         <input type="checkbox" name="has_multiple_sizes" id="has_multiple_sizes" class="h-5 w-5 text-[#8c7b6b] focus:ring-[#8c7b6b] coffee-border rounded transition duration-200" value="1">
                     </div>
 
-                    <div id="size-prices" class="hidden space-y-4 coffee-toggle-bg p-6 rounded-xl coffee-border">
+                    {{-- Size Prices --}}
+                    <div id="size-prices" class="hidden space-y-3 coffee-toggle-bg p-4 rounded-lg coffee-border"> {{-- Adjusted spacing/padding --}}
                         <label class="block text-sm font-medium coffee-text-primary flex items-center"><i data-lucide="dollar-sign" class="w-4 h-4 mr-2"></i> Size Prices</label>
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary">Small</label><input type="number" step="0.01" name="price_small" id="price_small" class="flex-1 px-4 py-2 coffee-input rounded-lg"></div>
-                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary">Medium</label><input type="number" step="0.01" name="price_medium" id="price_medium" class="flex-1 px-4 py-2 coffee-input rounded-lg"></div>
-                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary">Large</label><input type="number" step="0.01" name="price_large" id="price_large" class="flex-1 px-4 py-2 coffee-input rounded-lg"></div>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary text-sm">Small</label><input type="number" step="0.01" name="price_small" id="price_small" class="flex-1 px-3 py-2 coffee-input rounded-lg text-sm"></div>
+                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary text-sm">Medium</label><input type="number" step="0.01" name="price_medium" id="price_medium" class="flex-1 px-3 py-2 coffee-input rounded-lg text-sm"></div>
+                            <div class="flex items-center space-x-3"><label class="w-20 coffee-text-primary text-sm">Large</label><input type="number" step="0.01" name="price_large" id="price_large" class="flex-1 px-3 py-2 coffee-input rounded-lg text-sm"></div>
                         </div>
                     </div>
 
-                    <div id="single-price" class="space-y-2">
-                        <label class="block text-sm font-medium coffee-text-primary mb-1"><i data-lucide="dollar-sign" class="w-4 h-4 mr-2 inline"></i> Price</label>
-                        <input type="number" step="0.01" name="price" id="price" class="w-full px-4 py-3 coffee-input rounded-lg">
+                    {{-- Single Price --}}
+                    <div id="single-price" class="space-y-1">
+                        <label class="block text-sm font-medium coffee-text-primary"><i data-lucide="dollar-sign" class="w-4 h-4 mr-2 inline"></i> Price</label>
+                        <input type="number" step="0.01" name="price" id="price" class="w-full px-4 py-2.5 coffee-input rounded-lg">
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium coffee-text-primary mb-1"><i data-lucide="check-circle" class="w-4 h-4 mr-2 inline"></i> Status</label>
-                        <select name="is_available" class="w-full px-4 py-3 coffee-input rounded-lg">
+                    {{-- Status --}}
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium coffee-text-primary"><i data-lucide="check-circle" class="w-4 h-4 mr-2 inline"></i> Status</label>
+                        <select name="is_available" class="w-full px-4 py-2.5 coffee-input rounded-lg">
                             <option value="1">Available</option>
                             <option value="0">Not Available</option>
                         </select>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium coffee-text-primary mb-1"><i data-lucide="image" class="w-4 h-4 mr-2 inline"></i> Product Image</label>
-                        <div class="mt-1"><input type="file" name="image" accept="image/*" class="block w-full text-sm text-[#5c4d3c] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:font-medium file:bg-[#e0d6c2] file:text-[#5c4d3c] hover:file:bg-[#d4c9b5] transition"></div>
+                    {{-- Image --}}
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium coffee-text-primary"><i data-lucide="image" class="w-4 h-4 mr-2 inline"></i> Product Image</label>
+                        <input type="file" name="image" accept="image/*" class="block w-full text-sm coffee-text-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-medium file:bg-[#e0d6c2] file:text-[#5c4d3c] hover:file:bg-[#d4c9b5] transition coffee-file-input">
                     </div>
                 </div>
                 
-                <div class="space-y-6">
+                {{-- Right Column - Ingredients --}}
+                <div class="space-y-5"> {{-- Adjusted spacing --}}
                     <div class="form-group">
                         <h4 class="text-lg font-medium coffee-text-primary mb-3">Ingredients</h4>
-                        <div id="ingredient-fields" class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                            {{-- This section is now correctly empty on the create page. --}}
+                        <div id="ingredient-fields" class="space-y-4 max-h-80 overflow-y-auto pr-2"> {{-- Adjusted max-height --}}
+                            {{-- Rows added by JS --}}
                         </div>
-                        <button type="button" id="add-ingredient" class="coffee-btn-secondary mt-4 px-4 py-2 rounded-lg flex items-center justify-center w-full">
+                        <button type="button" id="add-ingredient" class="coffee-btn-secondary mt-4 px-4 py-2 rounded-lg flex items-center justify-center w-full text-sm">
                             <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add Ingredient
                         </button>
                     </div>
                 </div>
             </div>
             
-            <div class="flex justify-end space-x-3 pt-8 mt-6 border-t border-[#d4c9b5]">
-                <button type="submit" class="px-5 py-2.5 coffee-btn-success rounded-xl">Save Product</button>
-                {{-- ✅ FIX: Changed <a> to <button> and added "cancel-btn" class --}}
-                <button type="button" class="cancel-btn px-5 py-2.5 coffee-btn-secondary rounded-xl">Cancel</button>
+            <div class="flex justify-end space-x-3 pt-6 mt-6 border-t border-[#d4c9b5]"> {{-- Adjusted padding/margin --}}
+                <button type="submit" class="px-5 py-2.5 coffee-btn-success rounded-xl text-sm">Save Product</button>
+                <button type="button" class="cancel-btn px-5 py-2.5 coffee-btn-secondary rounded-xl text-sm">Cancel</button>
             </div>
         </form>
     </div>
