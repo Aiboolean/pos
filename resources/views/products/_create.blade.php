@@ -1,8 +1,4 @@
-{{-- This is the crucial change: only extend the layout if it's NOT a modal request --}}
-@if(!request()->ajax())
-    @extends('layouts.app')
-    @section('content')
-@endif
+
 
 {{-- The rest of the file (styles, HTML, and scripts) will be rendered in BOTH cases --}}
 <style>
@@ -79,7 +75,3 @@
     toggleSizeFields();
 </script>
 
-{{-- This closing tag is also conditional --}}
-@if(!request()->ajax())
-    @endsection
-@endif
