@@ -4,126 +4,152 @@
     <meta charset="utf-8">
     <title>Ingredient Usage Report</title>
     <style>
+        /* --- Coffee Shop Theme Applied --- */
+        :root {
+            --bg-color: #f5f1ea;
+            --card-bg-color: #fff;
+            --border-color: #e0d6c2;
+            --primary-text: #5c4d3c;
+            --secondary-text: #8c7b6b;
+            --success-text: #6f8c6b;
+            --warning-text: #c4a76c;
+            --danger-text: #c45e4c;
+            --success-bg: #e8f5e9;
+            --warning-bg: #fff8e1;
+            --danger-bg: #fbe9e7;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.6;
+            background-color: var(--card-bg-color); /* Use white for printing */
+            color: var(--primary-text);
+            margin: 20px;
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--primary-text);
+            padding-bottom: 15px;
         }
         .header h1 {
             margin: 0;
-            color: #333;
+            color: var(--primary-text);
+            font-size: 26px;
+            font-weight: 600;
         }
-        .header .period {
-            color: #666;
+        .header .period, .header div {
+            color: var(--secondary-text);
             font-size: 14px;
         }
         .summary {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            background: #fdfbf7;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
         }
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            text-align: center;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
         }
         .summary-item {
-            padding: 10px;
+            text-align: center;
         }
         .summary-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            color: #2c5aa0;
+            color: var(--primary-text);
+            margin: 0;
         }
         .summary-label {
             font-size: 12px;
-            color: #666;
+            color: var(--secondary-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         th {
-            background-color: #2c5aa0;
-            color: white;
-            padding: 8px;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            padding: 12px;
             text-align: left;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         td {
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
         }
         tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #f9f7f3;
         }
         .low-stock {
-            background-color: #fff3cd !important;
+            background-color: var(--warning-bg) !important;
         }
         .out-of-stock {
-            background-color: #f8d7da !important;
+            background-color: var(--danger-bg) !important;
         }
         .footer {
             margin-top: 30px;
             text-align: center;
-            color: #666;
+            color: var(--secondary-text);
             font-size: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
         }
         .section-title {
-            background-color: #495057;
-            color: white;
-            padding: 8px;
-            margin: 15px 0 10px 0;
+            color: var(--primary-text);
+            padding-bottom: 8px;
+            margin: 30px 0 15px 0;
             font-weight: bold;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
-        .text-success { color: #28a745; }
-        .text-warning { color: #ffc107; }
-        .text-danger { color: #dc3545; }
+        .text-success { color: var(--success-text); font-weight: 600; }
+        .text-warning { color: var(--warning-text); font-weight: 600; }
+        .text-danger { color: var(--danger-text); font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="header">
-    <h1>Ingredient Usage Report</h1>
-    <div class="period">
-        Period: {{ $start_date->format('F j, Y') }} to {{ $end_date->format('F j, Y') }}
+        <h1>Ingredient Usage Report</h1>
+        <div class="period">
+            Period: {{ $start_date->format('F j, Y') }} to {{ $end_date->format('F j, Y') }}
+        </div>
+        <div>Generated on: {{ $generated_at->format('F j, Y g:i A') }}</div>
+        <div style="color: var(--danger-text); font-size: 10px; margin-top: 5px;">
+            ⚠️ Note: Stock levels shown are current values.
+        </div>
     </div>
-    <div>Generated on: {{ $generated_at->format('F j, Y g:i A') }}</div>
-    <div style="color: #dc3545; font-size: 10px; margin-top: 5px;">
-        ⚠️ Note: Stock levels shown are current values. Historical stock levels are not available.
-    </div>
-</div>
 
-    <!-- Summary Section -->
     <div class="summary">
         <div class="summary-grid">
             <div class="summary-item">
-                <div class="summary-value">{{ $total_ingredients }}</div>
-                <div class="summary-label">Total Ingredients</div>
+                <p class="summary-value">{{ $total_ingredients }}</p>
+                <p class="summary-label">Total Ingredients</p>
             </div>
             <div class="summary-item">
-                <div class="summary-value">{{ $low_stock_count }}</div>
-                <div class="summary-label">Low Stock</div>
+                <p class="summary-value">{{ $low_stock_count }}</p>
+                <p class="summary-label">Items with Low Stock</p>
             </div>
             <div class="summary-item">
-                <div class="summary-value">{{ $period_days }}</div>
-                <div class="summary-label">Days in Period</div>
+                <p class="summary-value">{{ $period_days }}</p>
+                <p class="summary-label">Days in Period</p>
             </div>
         </div>
     </div>
 
-    <!-- Detailed Usage Table -->
-    <div class="section-title">Ingredient Usage Details</div>
+    <h2 class="section-title">Ingredient Usage Details</h2>
     <table>
         <thead>
             <tr>
@@ -141,7 +167,7 @@
             @php
                 $ingredient = $data['ingredient'];
                 $statusClass = $data['status'] === 'Out of Stock' ? 'out-of-stock' : 
-                                ($data['status'] === 'Low Stock' ? 'low-stock' : '');
+                               ($data['status'] === 'Low Stock' ? 'low-stock' : '');
             @endphp
             <tr class="{{ $statusClass }}">
                 <td><strong>{{ $ingredient->name }}</strong></td>
@@ -164,9 +190,8 @@
         </tbody>
     </table>
 
-    <!-- Top Used Ingredients -->
     @if(count($usage_data) > 0)
-    <div class="section-title">Top 5 Most Used Ingredients</div>
+    <h2 class="section-title">Top 5 Most Used Ingredients</h2>
     <table>
         <thead>
             <tr>

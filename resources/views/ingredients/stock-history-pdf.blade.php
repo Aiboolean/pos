@@ -5,28 +5,32 @@
     <title>Stock History Report</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             font-size: 12px;
             line-height: 1.4;
+            background-color: #f5f1ea; /* Coffee theme background */
+            color: #5c4d3c; /* Coffee theme primary text */
         }
         .header {
             text-align: center;
             margin-bottom: 20px;
-            border-bottom: 2px solid #333;
+            border-bottom: 2px solid #5c4d3c;
             padding-bottom: 10px;
         }
         .header h1 {
             margin: 0;
-            color: #333;
+            color: #5c4d3c;
+            font-size: 24px;
         }
-        .header .period {
-            color: #666;
+        .header .period, .header div {
+            color: #8c7b6b; /* Coffee theme secondary text */
             font-size: 14px;
         }
         .summary {
-            background: #f8f9fa;
+            background: #fdfbf7; /* Lighter cream for summary */
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 0.75rem;
+            border: 1px solid #e0d6c2; /* Coffee theme border */
             margin-bottom: 20px;
         }
         table {
@@ -35,40 +39,48 @@
             margin-bottom: 20px;
         }
         th {
-            background-color: #2c5aa0;
-            color: white;
-            padding: 8px;
+            background-color: #f5f1ea; /* Coffee theme table header */
+            color: #5c4d3c;
+            padding: 10px;
             text-align: left;
-            border: 1px solid #ddd;
+            border: 1px solid #e0d6c2;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
         }
         td {
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid #e0d6c2;
+            color: #5c4d3c;
         }
         tr:nth-child(even) {
-            background-color: #f8f9fa;
+             background-color: #f9f7f3; /* Coffee theme hover/alternate color */
         }
         .footer {
             margin-top: 30px;
             text-align: center;
-            color: #666;
+            color: #8c7b6b;
             font-size: 10px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #e0d6c2;
             padding-top: 10px;
         }
         .section-title {
-            background-color: #495057;
-            color: white;
-            padding: 8px;
-            margin: 15px 0 10px 0;
+            background-color: #f5f1ea;
+            border: 1px solid #e0d6c2;
+            border-bottom: none;
+            color: #5c4d3c;
+            padding: 10px;
+            margin: 20px 0 0 0;
             font-weight: bold;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
         }
         .negative {
-            color: #dc3545;
+            color: #c45e4c; /* Coffee theme danger color */
             font-weight: bold;
         }
         .positive {
-            color: #28a745;
+            color: #6f8c6b; /* Coffee theme success/active color */
             font-weight: bold;
         }
     </style>
@@ -82,7 +94,6 @@
         <div>Generated on: {{ $generated_at->format('F j, Y g:i A') }}</div>
     </div>
 
-    <!-- Summary Section -->
     <div class="summary">
         <strong>Report Summary:</strong><br>
         • Period: {{ $start_date->format('M j, Y') }} to {{ $end_date->format('M j, Y') }}<br>
@@ -90,7 +101,6 @@
         • Report Date: {{ $generated_at->format('M j, Y g:i A') }}
     </div>
 
-    <!-- Stock History Table -->
     <div class="section-title">Stock Movement Details</div>
     <table>
         <thead>
@@ -132,7 +142,7 @@
     </table>
 
     @if(count($stock_history) === 0)
-    <div style="text-align: center; padding: 20px; color: #666;">
+    <div style="text-align: center; padding: 20px; color: #8c7b6b; border: 1px solid #e0d6c2; background-color: #fff;">
         No stock movements found for the selected period.
     </div>
     @endif
