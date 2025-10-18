@@ -18,16 +18,9 @@ class IngredientController extends Controller
     }
 
     public function create()
-{
-    // This is the "smart" logic
-    if (request()->ajax()) {
-        // For modal requests, return the PARTIAL view.
-        return view('ingredients._create');
+    {
+        return view('ingredients.create');
     }
-
-    // For direct page visits, return the FULL page view.
-    return view('ingredients.create');
-}
 
     public function store(Request $request)
     {
@@ -42,17 +35,10 @@ class IngredientController extends Controller
         return redirect()->route('ingredients.index')->with('success', 'Ingredient added successfully!');
     }
 
-   public function edit(Ingredient $ingredient)
-{
-    // This is the "smart" logic
-    if (request()->ajax()) {
-        // For modal requests, return the PARTIAL view.
-        return view('ingredients._edit', compact('ingredient'));
+    public function edit(Ingredient $ingredient)
+    {
+        return view('ingredients.edit', compact('ingredient'));
     }
-    
-    // For direct page visits, return the FULL page view.
-    return view('ingredients.edit', compact('ingredient'));
-}
 
     public function update(Request $request, Ingredient $ingredient)
     {
