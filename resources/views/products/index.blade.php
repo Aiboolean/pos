@@ -234,7 +234,7 @@
         <div class="text-center border-b pb-3 print:border-b print:pb-2">
             <!-- Company Logo -->
             <div class="flex justify-center mb-2">
-                <img src="{{ asset('storage/logo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto">
+                <img src="{{ asset('storage/images/cupslogo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto">
             </div>
 
             <h2 class="text-lg font-bold text-gray-800 tracking-wide print:text-base">Order Receipt</h2>
