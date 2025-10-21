@@ -121,7 +121,8 @@
                             @if($product->price_small && $product->small_enabled)
                                 <option value="small" 
                                         data-price="{{ $product->price_small }}"
-                                        data-available="{{ $availability['small'] }}">
+                                        data-available="{{ $availability['small'] }}"
+                                        data-max="{{ $availability['small'] }}">
                                     Small - ₱{{ $product->price_small }} 
                                     @if($availability['small'] <= 5)
                                         ({{ $availability['small'] }} left)
@@ -131,7 +132,8 @@
                             @if($product->price_medium && $product->medium_enabled)
                                 <option value="medium" 
                                         data-price="{{ $product->price_medium }}"
-                                        data-available="{{ $availability['medium'] }}">
+                                        data-available="{{ $availability['medium'] }}"
+                                        data-max="{{ $availability['medium'] }}">
                                     Medium - ₱{{ $product->price_medium }}
                                     @if($availability['medium'] <= 5)
                                         ({{ $availability['medium'] }} left)
@@ -141,7 +143,8 @@
                             @if($product->price_large && $product->large_enabled)
                                 <option value="large" 
                                         data-price="{{ $product->price_large }}"
-                                        data-available="{{ $availability['large'] }}">
+                                        data-available="{{ $availability['large'] }}"
+                                        data-max="{{ $availability['large'] }}">
                                     Large - ₱{{ $product->price_large }}
                                     @if($availability['large'] <= 5)
                                         ({{ $availability['large'] }} left)
@@ -151,7 +154,8 @@
                         @else
                             <option value="single" 
                                     data-price="{{ $product->price }}"
-                                    data-available="{{ $availability['single'] }}">
+                                    data-available="{{ $availability['single'] }}"
+                                    data-max="{{ $availability['single'] }}">
                                 Single - ₱{{ $product->price }}
                                 @if($availability['single'] <= 5)
                                     ({{ $availability['single'] }} left)
@@ -180,7 +184,7 @@
                     </button>
 
                     <!-- Quantity Input Field -->
-                    <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" 
+                    <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" 
                         class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
 
                     <!-- Increase Quantity Button -->
@@ -336,17 +340,21 @@
     // Global cart variable
     let cart = [];
 
-    function adjustQuantity(productId, change) {
+        function adjustQuantity(productId, change) {
         const quantityInput = document.getElementById(`quantity-${productId}`);
+        const sizeElement = document.getElementById(`size-${productId}`);
+        const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
+        const maxAvailable = selectedOption ? parseInt(selectedOption.getAttribute('data-max')) : 100;
+        
         let quantity = parseInt(quantityInput.value);
         quantity += change;
 
-        // Ensure the quantity stays within the range of 1 to 100
+        // Ensure the quantity stays within the range of 1 to max available
         if (quantity < 1) {
             quantity = 1;
-        } else if (quantity > 100) {
-            quantity = 100;
-            alert("Maximum quantity per order is 100.");
+        } else if (quantity > maxAvailable) {
+            quantity = maxAvailable;
+            alert(`Maximum available: ${maxAvailable}`);
         }
         quantityInput.value = quantity;
     }
@@ -474,6 +482,50 @@
                 }
 
                 addToCart(productId, productName, size, price, quantity);
+            });
+        });
+        // Add this to your DOMContentLoaded event listener
+        document.querySelectorAll('select[id^="size-"]').forEach(select => {
+            select.addEventListener('change', function() {
+                const productId = this.id.replace('size-', '');
+                const selectedOption = this.options[this.selectedIndex];
+                const maxAvailable = parseInt(selectedOption.getAttribute('data-max')) || 100;
+                
+                const quantityInput = document.getElementById(`quantity-${productId}`);
+                quantityInput.max = maxAvailable;
+                
+                // If current quantity exceeds max, set to max
+                if (parseInt(quantityInput.value) > maxAvailable) {
+                    quantityInput.value = maxAvailable;
+                }
+            });
+        });
+
+        // Initialize max values on page load
+        document.querySelectorAll('select[id^="size-"]').forEach(select => {
+            const selectedOption = select.options[select.selectedIndex];
+            const maxAvailable = parseInt(selectedOption.getAttribute('data-max')) || 100;
+            const productId = select.id.replace('size-', '');
+            const quantityInput = document.getElementById(`quantity-${productId}`);
+            quantityInput.max = maxAvailable;
+        });
+
+        // Add this to your DOMContentLoaded event listener
+        document.querySelectorAll('input[id^="quantity-"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const productId = this.id.replace('quantity-', '');
+                const sizeElement = document.getElementById(`size-${productId}`);
+                const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
+                const maxAvailable = selectedOption ? parseInt(selectedOption.getAttribute('data-max')) : 100;
+                
+                let quantity = parseInt(this.value);
+                
+                if (quantity > maxAvailable) {
+                    this.value = maxAvailable;
+                    alert(`Maximum available: ${maxAvailable}`);
+                } else if (quantity < 1) {
+                    this.value = 1;
+                }
             });
         });
         
