@@ -72,14 +72,40 @@
 
         <!-- Product Details -->
         <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
-            <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
-            <p class="text-sm text-gray-600 sm:text-sm">
-                Category: <span class="font-medium">{{ $product->category->name }}</span>
-            </p>
-            <p class="text-sm font-semibold transition sm:text-base md:text-lg 
-                    {{ $product->is_available ? 'text-green-600' : 'text-red-500' }}">
-                {{ $product->is_available ? 'Available' : 'Not Available' }}
-            </p>
+            <div class="flex justify-between items-start">
+        <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
+        <!-- ADD THIS AVAILABILITY BADGE -->
+        <div class="availability-badge" data-product-id="{{ $product->id }}">
+            @php
+                $availability = $product->calculateAvailability();
+            @endphp
+            @if($product->has_multiple_sizes)
+            <div class="flex items-center space-x-3">
+                @if($product->small_enabled && $product->price_small)
+                    <span class="font-bold text-xs">
+                        S:{{ $availability['small'] }}
+                    </span>
+                @endif
+                @if($product->medium_enabled && $product->price_medium)
+                    <span class="font-bold text-xs">
+                        M:{{ $availability['medium'] }}
+                    </span>
+                @endif
+                @if($product->large_enabled && $product->price_large)
+                    <span class="font-bold text-xs">
+                        L:{{ $availability['large'] }}
+                    </span>
+                @endif
+            </div>
+        @else
+            <div class="text-xs">
+                <span class="font-bold">
+                    {{ $availability['single'] }} available
+                </span>
+            </div>
+        @endif
+</div>
+    </div>
         </div>
 
         <!-- Size Selection (For Available Products) -->
@@ -93,16 +119,44 @@
                             appearance-none text-xs sm:text-sm">
                         @if($product->has_multiple_sizes)
                             @if($product->price_small && $product->small_enabled)
-                                <option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ $product->price_small }}</option>
+                                <option value="small" 
+                                        data-price="{{ $product->price_small }}"
+                                        data-available="{{ $availability['small'] }}">
+                                    Small - ₱{{ $product->price_small }} 
+                                    @if($availability['small'] <= 5)
+                                        ({{ $availability['small'] }} left)
+                                    @endif
+                                </option>
                             @endif
                             @if($product->price_medium && $product->medium_enabled)
-                                <option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ $product->price_medium }}</option>
+                                <option value="medium" 
+                                        data-price="{{ $product->price_medium }}"
+                                        data-available="{{ $availability['medium'] }}">
+                                    Medium - ₱{{ $product->price_medium }}
+                                    @if($availability['medium'] <= 5)
+                                        ({{ $availability['medium'] }} left)
+                                    @endif
+                                </option>
                             @endif
                             @if($product->price_large && $product->large_enabled)
-                                <option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ $product->price_large }}</option>
+                                <option value="large" 
+                                        data-price="{{ $product->price_large }}"
+                                        data-available="{{ $availability['large'] }}">
+                                    Large - ₱{{ $product->price_large }}
+                                    @if($availability['large'] <= 5)
+                                        ({{ $availability['large'] }} left)
+                                    @endif
+                                </option>
                             @endif
                         @else
-                            <option value="single" data-price="{{ $product->price }}">Single - ₱{{ $product->price }}</option>
+                            <option value="single" 
+                                    data-price="{{ $product->price }}"
+                                    data-available="{{ $availability['single'] }}">
+                                Single - ₱{{ $product->price }}
+                                @if($availability['single'] <= 5)
+                                    ({{ $availability['single'] }} left)
+                                @endif
+                            </option>
                         @endif
                     </select>
                     <!-- Custom dropdown icon -->
@@ -344,6 +398,16 @@
 
     // Cart functions
     function addToCart(productId, name, size, price, quantity) {
+            // === ADD THIS VALIDATION BLOCK RIGHT HERE ===
+        const sizeElement = document.getElementById(`size-${productId}`);
+        const selectedOption = sizeElement?.querySelector('option:checked');
+        const available = selectedOption ? parseInt(selectedOption.getAttribute('data-available')) : 0;
+        
+        if (available < quantity) {
+            alert(`Not enough stock! Only ${available} available for ${name} (${size}).`);
+            return;
+        }
+        // === END OF VALIDATION BLOCK ===
         console.log("🛒 Adding to cart:", { productId, name, size, price, quantity });
         
         let existingProduct = cart.find(item => item.id === productId && item.size === size);
@@ -546,6 +610,8 @@
             // Reset cart
             cart = [];
             updateCartUI();
+
+            location.reload();
             
             // Show receipt modal
             if (data.order && data.items) {
