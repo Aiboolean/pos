@@ -97,9 +97,7 @@
                 @csrf
                 <div><label class="block coffee-text-primary font-medium mb-1">First Name</label><input type="text" name="first_name" class="w-full p-3 coffee-input rounded-lg" required></div>
                 <div><label class="block coffee-text-primary font-medium mb-1">Last Name</label><input type="text" name="last_name" class="w-full p-3 coffee-input rounded-lg" required></div>
-                <div><label class="block coffee-text-primary font-medium mb-1">Username</label><input type="text" name="username" class="w-full p-3 coffee-input rounded-lg" required></div>
                 <div><label class="block coffee-text-primary font-medium mb-1">Phone Number</label><input type="text" name="phone" id="add_phone" class="w-full p-3 coffee-input rounded-lg" value="+63 9" required></div>
-                <div><label class="block coffee-text-primary font-medium mb-1">Password</label><input type="password" name="password" class="w-full p-3 coffee-input rounded-lg" required></div>
                 <div class="flex space-x-3 pt-4"><button type="submit" class="w-full coffee-btn-success py-3 rounded-lg font-semibold">Add Employee</button><button type="button" class="cancel-modal-btn w-full coffee-btn-danger py-3 rounded-lg font-semibold">Cancel</button></div>
             </form>
         </div>

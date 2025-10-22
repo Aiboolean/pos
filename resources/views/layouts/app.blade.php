@@ -255,7 +255,7 @@
                               x-transition:leave="transition ease-in duration-200"
                               x-transition:leave-start="opacity-100 transform translate-x-0"
                               x-transition:leave-end="opacity-0 transform -translate-x-4" 
-                              class="ml-3">Collapse</span>
+                              class="ml-3"></span>
                     </button>
 
                     <!-- Sidebar Menu -->

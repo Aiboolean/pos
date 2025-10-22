@@ -12,7 +12,7 @@ use App\Http\Controllers\ReportController;
 // 🔹 Redirect Home to Login
 Route::get('/', function () {
     if (!Session::has('admin_logged_in')) {
-        return redirect('/login')->with('error', 'You must log in first.');
+        return redirect('/login');
     }
     return redirect('/products');
 });
