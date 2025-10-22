@@ -85,7 +85,7 @@
     </div>
 </div>
 
-{{-- ✅ FIX: Add Employee Modal with the full form now lives on this page --}}
+{{-- Add Employee Modal --}}
 <div id="addModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 p-4 flex items-center justify-center">
     <div class="coffee-card w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg">
         <div class="flex justify-between items-center p-6 border-b coffee-border">
@@ -93,17 +93,43 @@
             <button class="close-modal-btn text-3xl font-light leading-none coffee-text-secondary hover:text-red-600">&times;</button>
         </div>
         <div class="p-6">
+            {{-- Display validation errors --}}
+            @if($errors->any() && !session('edit_errors'))
+                <div class="coffee-alert-danger p-3 rounded-lg mb-4">
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ route('admin.employees.store') }}" method="POST" class="space-y-5">
                 @csrf
-                <div><label class="block coffee-text-primary font-medium mb-1">First Name</label><input type="text" name="first_name" class="w-full p-3 coffee-input rounded-lg" required></div>
-                <div><label class="block coffee-text-primary font-medium mb-1">Last Name</label><input type="text" name="last_name" class="w-full p-3 coffee-input rounded-lg" required></div>
-                <div><label class="block coffee-text-primary font-medium mb-1">Phone Number</label><input type="text" name="phone" id="add_phone" class="w-full p-3 coffee-input rounded-lg" value="+63 9" required></div>
-                <div class="flex space-x-3 pt-4"><button type="submit" class="w-full coffee-btn-success py-3 rounded-lg font-semibold">Add Employee</button><button type="button" class="cancel-modal-btn w-full coffee-btn-danger py-3 rounded-lg font-semibold">Cancel</button></div>
+                <div>
+                    <label class="block coffee-text-primary font-medium mb-1">First Name</label>
+                    <input type="text" name="first_name" value="{{ old('first_name') }}" 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('first_name') ? 'border-red-500' : '' }}" required>
+                </div>
+                <div>
+                    <label class="block coffee-text-primary font-medium mb-1">Last Name</label>
+                    <input type="text" name="last_name" value="{{ old('last_name') }}" 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('last_name') ? 'border-red-500' : '' }}" required>
+                </div>
+                <div>
+                    <label class="block coffee-text-primary font-medium mb-1">Phone Number</label>
+                    <input type="text" name="phone" id="add_phone" value="{{ old('phone', '+63 9') }}" 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('phone') ? 'border-red-500' : '' }}" required>
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="w-full coffee-btn-success py-3 rounded-lg font-semibold">Add Employee</button>
+                    <button type="button" class="cancel-modal-btn w-full coffee-btn-danger py-3 rounded-lg font-semibold">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
 </div>
-
+{{-- Edit Employee Modal --}}
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 p-4 flex items-center justify-center">
     <div class="coffee-card w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg">
         <div class="flex justify-between items-center p-6 border-b coffee-border">
@@ -111,15 +137,49 @@
             <button class="close-modal-btn text-3xl font-light leading-none coffee-text-secondary hover:text-red-600">&times;</button>
         </div>
         <div class="p-6">
+            {{-- Display validation errors --}}
+            @if($errors->any() && session('edit_errors'))
+                <div class="coffee-alert-danger p-3 rounded-lg mb-4">
+                    <ul class="list-disc list-inside text-sm">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form id="editForm" method="POST" class="space-y-4">
                 @csrf
-                <div><label for="editFirstName" class="block font-medium mb-1 coffee-text-primary">First Name:</label><input type="text" id="editFirstName" name="first_name" required class="w-full p-3 coffee-input rounded-lg"></div>
-                <div><label for="editLastName" class="block font-medium mb-1 coffee-text-primary">Last Name:</label><input type="text" id="editLastName" name="last_name" required class="w-full p-3 coffee-input rounded-lg"></div>
-                <div><label for="editUsername" class="block font-medium mb-1 coffee-text-primary">Username:</label><input type="text" id="editUsername" name="username" required class="w-full p-3 coffee-input rounded-lg"></div>
-                <div><label for="editPhone" class="block font-medium mb-1 coffee-text-primary">Phone:</label><input type="text" id="editPhone" name="phone" required class="w-full p-3 coffee-input rounded-lg"></div>
-                <div class="flex space-x-3 pt-4"><button type="submit" class="flex-1 coffee-btn-success py-3 rounded-lg font-semibold">Update</button><button type="button" class="cancel-modal-btn flex-1 coffee-btn-danger py-3 rounded-lg font-semibold">Cancel</button></div>
+                @method('PUT') {{-- Add this line for method spoofing --}}
+                <div>
+                    <label for="editFirstName" class="block font-medium mb-1 coffee-text-primary">First Name:</label>
+                    <input type="text" id="editFirstName" name="first_name" value="{{ old('first_name') }}" required 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('first_name') && session('edit_errors') ? 'border-red-500' : '' }}">
+                </div>
+                <div>
+                    <label for="editLastName" class="block font-medium mb-1 coffee-text-primary">Last Name:</label>
+                    <input type="text" id="editLastName" name="last_name" value="{{ old('last_name') }}" required 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('last_name') && session('edit_errors') ? 'border-red-500' : '' }}">
+                </div>
+                <div>
+                    <label for="editUsername" class="block font-medium mb-1 coffee-text-primary">Username:</label>
+                    <input type="text" id="editUsername" name="username" value="{{ old('username') }}" required 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('username') && session('edit_errors') ? 'border-red-500' : '' }}">
+                </div>
+                <div>
+                    <label for="editPhone" class="block font-medium mb-1 coffee-text-primary">Phone:</label>
+                    <input type="text" id="editPhone" name="phone" value="{{ old('phone') }}" required 
+                           class="w-full p-3 coffee-input rounded-lg {{ $errors->has('phone') && session('edit_errors') ? 'border-red-500' : '' }}">
+                </div>
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="flex-1 coffee-btn-success py-3 rounded-lg font-semibold">Update</button>
+                    <button type="button" class="cancel-modal-btn flex-1 coffee-btn-danger py-3 rounded-lg font-semibold">Cancel</button>
+                </div>
             </form>
-            <form id="resetPasswordForm" method="POST" class="mt-4">@csrf<button type="submit" class="w-full coffee-btn-warning py-3 rounded-lg font-semibold">Reset Password</button></form>
+            <form id="resetPasswordForm" method="POST" class="mt-4">
+                @csrf
+                <button type="submit" class="w-full coffee-btn-warning py-3 rounded-lg font-semibold">Reset Password</button>
+            </form>
         </div>
     </div>
 </div>
@@ -143,16 +203,21 @@
         }
 
         function closeModal() {
-            addModal.classList.add('hidden');
-            editModal.classList.add('hidden');
+            if (addModal) addModal.classList.add('hidden');
+            if (editModal) editModal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
         
         // --- PHONE FORMATTING LOGIC ---
         function formatPhoneNumber(phoneInput) {
+            if (!phoneInput) return;
+            
             phoneInput.oninput = function() {
                 let numbers = this.value.replace(/[^\d+]/g, '');
-                if (!numbers.startsWith('+639')) { this.value = '+63 9'; return; }
+                if (!numbers.startsWith('+639')) { 
+                    this.value = '+63 9'; 
+                    return; 
+                }
                 numbers = numbers.substring(0, 13);
                 let formatted = '+63 9';
                 if (numbers.length > 4) formatted += numbers.substr(4, 2);
@@ -160,6 +225,7 @@
                 if (numbers.length > 9) formatted += ' ' + numbers.substr(9, 4);
                 this.value = formatted;
             };
+            
             phoneInput.onkeydown = function(e) {
                 if (this.selectionStart < 5 && (e.key === 'Backspace' || e.key === 'Delete')) {
                     e.preventDefault();
@@ -189,7 +255,7 @@
                     document.getElementById('editUsername').value = username;
                     const phoneInput = document.getElementById('editPhone');
                     phoneInput.value = phone || '+63 9';
-                    formatPhoneNumber(phoneInput); // Apply formatting on open
+                    formatPhoneNumber(phoneInput);
                     document.getElementById('editForm').action = `/admin/employees/${id}/update`;
                     document.getElementById('resetPasswordForm').action = `/admin/employees/${id}/reset-password`;
                     openModal(editModal);
@@ -200,8 +266,71 @@
         // --- GENERAL CLOSE MODAL LOGIC ---
         allCloseButtons.forEach(btn => btn.addEventListener('click', closeModal));
         allCancelButtons.forEach(btn => btn.addEventListener('click', closeModal));
-        addModal.addEventListener('click', e => { if (e.target === addModal) closeModal(); });
-        editModal.addEventListener('click', e => { if (e.target === editModal) closeModal(); });
+        if (addModal) addModal.addEventListener('click', e => { if (e.target === addModal) closeModal(); });
+        if (editModal) editModal.addEventListener('click', e => { if (e.target === editModal) closeModal(); });
+
+        // --- AUTO-OPEN MODAL IF THERE ARE VALIDATION ERRORS ---
+        function autoOpenModalForErrors() {
+            // Check if we have any validation errors
+            const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+            const hasEditErrors = {{ session('edit_errors') ? 'true' : 'false' }};
+            
+            console.log('Auto-open check:', { hasErrors, hasEditErrors });
+            
+            if (hasErrors) {
+                if (hasEditErrors) {
+                    // Open edit modal if there are edit errors
+                    console.log('Opening edit modal due to validation errors');
+                    const editModalAuto = document.getElementById('editModal');
+                    if (editModalAuto) {
+                        openModal(editModalAuto);
+                        
+                        // Apply phone formatting to edit modal when auto-opened
+                        const editPhoneInput = document.getElementById('editPhone');
+                        if (editPhoneInput) {
+                            formatPhoneNumber(editPhoneInput);
+                        }
+                        
+                        // Populate form with old input data if available
+                        const oldFirstName = "{{ old('first_name', '') }}";
+                        const oldLastName = "{{ old('last_name', '') }}";
+                        const oldUsername = "{{ old('username', '') }}";
+                        const oldPhone = "{{ old('phone', '') }}";
+                        
+                        if (oldFirstName) document.getElementById('editFirstName').value = oldFirstName;
+                        if (oldLastName) document.getElementById('editLastName').value = oldLastName;
+                        if (oldUsername) document.getElementById('editUsername').value = oldUsername;
+                        if (oldPhone) document.getElementById('editPhone').value = oldPhone;
+                    }
+                } else {
+                    // Open add modal if there are add errors
+                    console.log('Opening add modal due to validation errors');
+                    const addModalAuto = document.getElementById('addModal');
+                    if (addModalAuto) {
+                        openModal(addModalAuto);
+                        
+                        // Apply phone formatting to add modal when auto-opened
+                        const addPhoneInput = document.getElementById('add_phone');
+                        if (addPhoneInput) {
+                            formatPhoneNumber(addPhoneInput);
+                        }
+                        
+                        // Populate form with old input data if available
+                        const oldFirstName = "{{ old('first_name', '') }}";
+                        const oldLastName = "{{ old('last_name', '') }}";
+                        const oldPhone = "{{ old('phone', '') }}";
+                        
+                        if (oldFirstName) document.querySelector('input[name="first_name"]').value = oldFirstName;
+                        if (oldLastName) document.querySelector('input[name="last_name"]').value = oldLastName;
+                        if (oldPhone) document.getElementById('add_phone').value = oldPhone;
+                    }
+                }
+            }
+        }
+    
+
+        // Run auto-open function
+        autoOpenModalForErrors();
     });
 </script>
 @endpush
