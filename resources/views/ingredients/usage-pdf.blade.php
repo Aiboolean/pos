@@ -152,11 +152,11 @@
                 <td>{{ number_format($data['usage_rate_per_day'], 2) }}/day</td>
                 <td>
                     @if($data['status'] === 'Out of Stock')
-                        <span class="text-danger">● Out of Stock</span>
+                        <span class="text-danger"> Out of Stock</span>
                     @elseif($data['status'] === 'Low Stock')
-                        <span class="text-warning">● Low Stock</span>
+                        <span class="text-warning"> Low Stock</span>
                     @else
-                        <span class="text-success">● In Stock</span>
+                        <span class="text-success"> In Stock</span>
                     @endif
                 </td>
             </tr>

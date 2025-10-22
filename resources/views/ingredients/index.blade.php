@@ -212,7 +212,7 @@
                                             required>
                                         <input type="text" 
                                             name="reason" 
-                                            placeholder="Reason" 
+                                            value="Restock" 
                                             class="w-32 px-2 py-1 border rounded text-sm">
                                         <button type="submit" 
                                                 class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm flex items-center">
