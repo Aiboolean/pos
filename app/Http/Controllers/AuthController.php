@@ -145,6 +145,18 @@ public function storeEmployee(Request $request)
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
 
+    // Custom validation for duplicate names
+    $existingEmployee = DB::table('users')
+        ->where('first_name', strtoupper($request->first_name))
+        ->where('last_name', strtoupper($request->last_name))
+        ->first();
+        
+    if ($existingEmployee) {
+        return redirect()->route('admin.employees')
+            ->withErrors(['first_name' => 'An employee with this first and last name already exists.'])
+            ->withInput();
+    }
+
     $request->validate([
         'first_name' => 'required',
         'last_name' => 'required',
@@ -157,6 +169,7 @@ public function storeEmployee(Request $request)
         'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
         'phone.unique' => 'The phone number is already registered.',
     ]);
+
     // Generate username
     $username = strtolower($request->first_name . '.' . $request->last_name);
     
@@ -180,7 +193,6 @@ public function storeEmployee(Request $request)
 
     return redirect()->route('admin.employees')->with('success', "Employee added. Username: $username, Password: $password");
 }
-
 public function manageEmployees()
 {
     if (!Session::has('admin_logged_in')) {
@@ -195,6 +207,20 @@ public function updateEmployee(Request $request, $id)
 {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    // Custom validation for duplicate names (excluding current employee)
+    $existingEmployee = DB::table('users')
+        ->where('first_name', strtoupper($request->first_name))
+        ->where('last_name', strtoupper($request->last_name))
+        ->where('id', '!=', $id)
+        ->first();
+        
+    if ($existingEmployee) {
+        return redirect()->route('admin.employees')
+            ->withErrors(['first_name' => 'Another employee with this first and last name already exists.'])
+            ->withInput()
+            ->with('edit_errors', true);
     }
 
     // Validate the request data

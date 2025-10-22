@@ -7,6 +7,7 @@ use App\Models\Ingredient;
 use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class IngredientController extends Controller
 {
@@ -85,7 +86,10 @@ class IngredientController extends Controller
                 'ingredient_name' => $ingredient->name,
                 'total_used' => $totalUsed,
                 'unit' => $ingredient->unit,
-                'usage_rate' => $usageRate
+                'usage_rate' => $usageRate,
+                'current_stock' => $ingredient->stock,
+                'status' => $ingredient->stock == 0 ? 'Out of Stock' : 
+                            ($ingredient->stock <= $ingredient->alert_threshold ? 'Low Stock' : 'In Stock')
             ];
         }
 
@@ -97,46 +101,213 @@ class IngredientController extends Controller
     }
 
     public function exportUsage(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date'
-        ]);
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date'
+    ]);
 
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    // Get simplified usage data without stock histories
+    $usageData = [];
+    $ingredients = Ingredient::all();
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="ingredient-usage-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.csv"',
+    $totalIngredients = $ingredients->count();
+    
+    // FIX: Properly count low stock ingredients
+    $lowStockCount = $ingredients->filter(function($ingredient) {
+        return $ingredient->stock <= $ingredient->alert_threshold && $ingredient->stock > 0;
+    })->count();
+    
+    $outOfStockCount = $ingredients->where('stock', 0)->count();
+
+    foreach ($ingredients as $ingredient) {
+        // Calculate total used in period
+        $totalUsed = $ingredient->getUsageInPeriod($startDate, $endDate);
+        
+        // Calculate usage rate per day
+        $daysInPeriod = $startDate->diffInDays($endDate) + 1;
+        $usageRatePerDay = $daysInPeriod > 0 ? round($totalUsed / $daysInPeriod, 2) : 0;
+        
+        // Determine status
+        $status = $ingredient->stock == 0 ? 'Out of Stock' : 
+                 ($ingredient->stock <= $ingredient->alert_threshold ? 'Low Stock' : 'In Stock');
+
+        $usageData[] = [
+            'ingredient' => $ingredient,
+            'total_used' => $totalUsed,
+            'current_stock' => $ingredient->stock,
+            'alert_threshold' => $ingredient->alert_threshold,
+            'usage_rate_per_day' => $usageRatePerDay,
+            'status' => $status,
+            'days_in_period' => $daysInPeriod
         ];
-
-        $callback = function() use ($startDate, $endDate) {
-            $file = fopen('php://output', 'w');
-            
-            // CSV headers
-            fputcsv($file, ['Ingredient', 'Total Used', 'Unit', 'Usage Rate/Day', 'Period']);
-            
-            $ingredients = Ingredient::all();
-            
-            foreach ($ingredients as $ingredient) {
-                $totalUsed = $ingredient->getUsageInPeriod($startDate, $endDate);
-                $days = $startDate->diffInDays($endDate) + 1;
-                $usageRate = $days > 0 ? round($totalUsed / $days, 2) : 0;
-                
-                fputcsv($file, [
-                    $ingredient->name,
-                    $totalUsed,
-                    $ingredient->unit,
-                    $usageRate,
-                    $startDate->format('M j, Y') . ' to ' . $endDate->format('M j, Y')
-                ]);
-            }
-            
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
     }
 
+    // Sort by most used ingredients first
+    usort($usageData, function($a, $b) {
+        return $b['total_used'] <=> $a['total_used'];
+    });
+
+    $data = [
+        'usage_data' => $usageData,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'total_ingredients' => $totalIngredients,
+        'low_stock_count' => $lowStockCount,
+        'out_of_stock_count' => $outOfStockCount,
+        'generated_at' => now(),
+        'period_days' => $startDate->diffInDays($endDate) + 1
+    ];
+
+    $fileName = 'ingredient-usage-report-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf';
+
+    return Pdf::loadView('ingredients.usage-pdf', $data)
+             ->setPaper('a4', 'landscape')
+             ->download($fileName);
+}
+   public function stockHistory(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date'
+    ]);
+
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    $stockHistoryData = [];
+    $ingredients = Ingredient::all();
+
+    foreach ($ingredients as $ingredient) {
+        $movements = $ingredient->getStockMovementsInPeriod($startDate, $endDate);
+        
+        if ($movements->count() > 0) {
+            foreach ($movements as $movement) {
+                $stockHistoryData[] = [
+                    'date' => $movement->created_at->format('M j, Y g:i A'),
+                    'ingredient_name' => $ingredient->name,
+                    'change_type' => $this->getChangeTypeLabel($movement->change_type),
+                    'previous_stock' => $movement->previous_stock,
+                    'new_stock' => $movement->new_stock,
+                    'change_amount' => $movement->change_amount,
+                    'reason' => $movement->reason,
+                    'user' => $movement->user ? $movement->user->name : 'System',
+                    'order_id' => $movement->order_id
+                ];
+            }
+        }
+    }
+
+    // Sort by date descending
+    usort($stockHistoryData, function($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+
+    return response()->json([
+        'stock_history' => $stockHistoryData,
+        'start_date' => $startDate->format('M j, Y'),
+        'end_date' => $endDate->format('M j, Y'),
+        'total_movements' => count($stockHistoryData)
+    ]);
+}
+
+public function exportStockHistory(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date'
+    ]);
+
+    $startDate = Carbon::parse($request->start_date)->startOfDay();
+    $endDate = Carbon::parse($request->end_date)->endOfDay();
+    
+    $stockHistoryData = [];
+    $ingredients = Ingredient::all();
+
+    foreach ($ingredients as $ingredient) {
+        $movements = $ingredient->getStockMovementsInPeriod($startDate, $endDate);
+        
+        if ($movements->count() > 0) {
+            foreach ($movements as $movement) {
+                $stockHistoryData[] = [
+                    'date' => $movement->created_at->format('M j, Y g:i A'),
+                    'ingredient' => $ingredient,
+                    'movement' => $movement,
+                    'change_type' => $this->getChangeTypeLabel($movement->change_type),
+                    'user' => $movement->user ? $movement->user->name : 'System'
+                ];
+            }
+        }
+    }
+
+    // Sort by date descending
+    usort($stockHistoryData, function($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+
+    $data = [
+        'stock_history' => $stockHistoryData,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'total_movements' => count($stockHistoryData),
+        'generated_at' => now()
+    ];
+
+    $fileName = 'stock-history-' . $startDate->format('Y-m-d') . '-to-' . $endDate->format('Y-m-d') . '.pdf';
+
+    return Pdf::loadView('ingredients.stock-history-pdf', $data)
+             ->setPaper('a4', 'landscape')
+             ->download($fileName);
+}
+
+private function getChangeTypeLabel($changeType)
+{
+    $labels = [
+        'order_deduction' => 'Order Deduction',
+        'manual_update' => 'Manual Update', 
+        'restock' => 'Restock',
+        'initial_stock' => 'Initial Stock',
+        'adjustment' => 'Adjustment' // Add this if you want to support adjustments
+    ];
+    
+    return $labels[$changeType] ?? $changeType;
+}
+// Add this method to IngredientController.php
+public function restock(Request $request, Ingredient $ingredient)
+{
+    $request->validate([
+        'restock_amount' => 'required|numeric|min:0.01',
+        'reason' => 'nullable|string|max:255'
+    ]);
+
+    $newStock = $ingredient->stock + $request->restock_amount;
+    
+    // Record the stock change
+    $ingredient->recordStockChange(
+        $newStock,
+        'restock',
+        $request->reason ?? 'Manual restock'
+    );
+
+    return redirect()->back()->with('success', 'Ingredient restocked successfully!');
+}
+// Add this to IngredientController.php
+public function adjustStock(Request $request, Ingredient $ingredient)
+{
+    $request->validate([
+        'new_stock' => 'required|numeric|min:0',
+        'reason' => 'required|string|max:255'
+    ]);
+
+    $ingredient->recordStockChange(
+        $request->new_stock,
+        'manual_update',
+        $request->reason
+    );
+
+    return redirect()->back()->with('success', 'Stock adjusted successfully!');
+}
 }

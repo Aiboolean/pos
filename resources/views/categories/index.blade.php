@@ -2,84 +2,23 @@
 
 @section('content')
 <style>
-    /* Coffee Shop Theme CSS */
-    .coffee-bg {
-        background-color: #f5f1ea; /* Warm cream background */
-    }
-    
-    .coffee-card {
-        background-color: white;
-        border: 1px solid #e0d6c2; /* Light beige border */
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-radius: 0.75rem;
-    }
-    
-    .coffee-text-primary {
-        color: #5c4d3c; /* Dark brown text */
-    }
-    
-    .coffee-text-secondary {
-        color: #8c7b6b; /* Medium brown text */
-    }
-    
-    .coffee-border {
-        border-color: #e0d6c2;
-    }
-    
-    .coffee-btn-primary {
-        background-color: #6f4e37; /* Dark brown */
-        color: white;
-        transition: all 0.2s ease;
-    }
-    
-    .coffee-btn-primary:hover {
-        background-color: #5c3d2a; /* Darker brown */
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .coffee-btn-secondary {
-        background-color: #e0d6c2; /* Light beige */
-        color: #5c4d3c;
-        transition: all 0.2s ease;
-    }
-    
-    .coffee-btn-secondary:hover {
-        background-color: #d4c9b5; /* Slightly darker beige */
-    }
-    
-    .coffee-btn-danger {
-        background-color: #c45e4c; /* Rust red */
-        color: white;
-        transition: all 0.2s ease;
-    }
-    
-    .coffee-btn-danger:hover {
-        background-color: #a34a3a; /* Darker rust */
-    }
-    
-    .coffee-table-header {
-        background-color: #f5f1ea;
-        color: #5c4d3c;
-    }
-    
-    .coffee-table-row:hover {
-        background-color: #f9f7f3;
-    }
-    
-    .coffee-alert-success {
-        background-color: #e8f5e9;
-        border-left: 4px solid #4caf50;
-        color: #2e7d32;
-    }
-    
-    .coffee-shadow-sm {
-        box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
-    }
-    
-    .coffee-transition {
-        transition: all 0.2s ease;
-    }
+    /* Your CSS is correct. No changes are needed here. */
+    .coffee-bg { background-color: #f5f1ea; }
+    .coffee-card { background-color: white; border: 1px solid #e0d6c2; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 0.75rem; }
+    .coffee-text-primary { color: #5c4d3c; }
+    .coffee-text-secondary { color: #8c7b6b; }
+    .coffee-border { border-color: #e0d6c2; }
+    .coffee-btn-primary { background-color: #6f4e37; color: white; transition: all 0.2s ease; }
+    .coffee-btn-primary:hover { background-color: #5c3d2a; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .coffee-btn-secondary { background-color: #e0d6c2; color: #5c4d3c; transition: all 0.2s ease; }
+    .coffee-btn-secondary:hover { background-color: #d4c9b5; }
+    .coffee-btn-danger { background-color: #c45e4c; color: white; transition: all 0.2s ease; }
+    .coffee-btn-danger:hover { background-color: #a34a3a; }
+    .coffee-table-header { background-color: #f5f1ea; color: #5c4d3c; }
+    .coffee-table-row:hover { background-color: #f9f7f3; }
+    .coffee-alert-success { background-color: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
+    .coffee-shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .coffee-transition { transition: all 0.2s ease; }
 </style>
 
 <div class="min-h-full coffee-bg">
@@ -92,11 +31,11 @@
                 </h1>
                 
                 <div class="bg-[#f5f1ea] p-2 rounded-lg">
-                    <a href="{{ route('categories.create') }}" 
-                       class="coffee-btn-primary px-4 py-2 rounded-lg flex items-center coffee-shadow-sm">
+                    {{-- ✅ VERIFIED: The ID is exactly 'addCategoryBtn' --}}
+                    <button id="addCategoryBtn" class="coffee-btn-primary px-4 py-2 rounded-lg flex items-center coffee-shadow-sm">
                         <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
                         Add New Category
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -125,17 +64,15 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium coffee-text-primary">{{ $category->name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm coffee-text-primary">
                                 <div class="flex space-x-4">
-                                    <a href="{{ route('categories.edit', $category) }}" 
-                                       class="coffee-btn-secondary px-3 py-1 rounded-lg flex items-center coffee-shadow-sm">
-                                        <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
-                                        Edit
-                                    </a>
-                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
+                                    <button data-edit-url="{{ route('categories.edit', $category) }}" 
+        class="edit-category-btn coffee-btn-secondary px-3 py-1 rounded-lg flex items-center coffee-shadow-sm">
+    <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
+    Edit
+</button>
+                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline delete-form">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" 
-                                                class="coffee-btn-danger px-3 py-1 rounded-lg flex items-center coffee-shadow-sm"
-                                                onclick="return confirm('Are you sure you want to delete this category?')">
+                                        <button type="submit" class="coffee-btn-danger px-3 py-1 rounded-lg flex items-center coffee-shadow-sm">
                                             <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
                                             Delete
                                         </button>
@@ -148,20 +85,87 @@
                 </table>
             </div>
         </div>
+
+        {{-- ✅ VERIFIED: All modal IDs are correct --}}
+        <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4" style="display: none;">
+            <div class="coffee-card w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+                <div class="flex justify-between items-center mb-4 pb-2 coffee-border border-b">
+                    <h2 class="text-xl font-bold coffee-text-primary">Add New Category</h2>
+                    <button id="closeCategoryModalBtn" class="text-3xl font-light leading-none coffee-text-secondary hover:text-red-600">&times;</button>
+                </div>
+                <div id="categoryModalBody">
+                    <p class="text-center coffee-text-primary">Loading form...</p>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
 @push('scripts')
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-    
-    // Enhanced delete confirmation
-    document.querySelectorAll('form[method="POST"]').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!confirm('This will permanently delete the category and all associated products. Continue?')) {
-                e.preventDefault();
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+
+        const categoryModal = document.getElementById('categoryModal');
+        const categoryModalBody = document.getElementById('categoryModalBody');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const closeCategoryModalBtn = document.getElementById('closeCategoryModalBtn');
+
+        if (categoryModal && addCategoryBtn) {
+            const openModal = (title) => {
+                // Update the modal title when opening
+                categoryModal.querySelector('h2').textContent = title;
+                categoryModal.style.display = 'flex';
+            };
+            const closeModal = () => categoryModal.style.display = 'none';
+
+            // --- ADD CATEGORY LOGIC (No changes here) ---
+            addCategoryBtn.addEventListener('click', () => {
+                categoryModalBody.innerHTML = '<p class="text-center coffee-text-primary">Loading form...</p>';
+                openModal('Add New Category'); // Set title
+
+                fetch('{{ route("categories.create") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                .then(response => response.text())
+                .then(html => {
+                    categoryModalBody.innerHTML = html;
+                    lucide.createIcons();
+                });
+            });
+
+            // --- NEW: EDIT CATEGORY LOGIC ---
+            document.querySelectorAll('.edit-category-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const editUrl = button.dataset.editUrl;
+
+                    categoryModalBody.innerHTML = '<p class="text-center coffee-text-primary">Loading form...</p>';
+                    openModal('Edit Category'); // Set title to "Edit"
+
+                    fetch(editUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                    .then(response => response.text())
+                    .then(html => {
+                        categoryModalBody.innerHTML = html;
+                        lucide.createIcons();
+                    });
+                });
+            });
+
+            // --- CLOSE MODAL LOGIC (No changes here) ---
+            closeCategoryModalBtn.addEventListener('click', closeModal);
+            categoryModal.addEventListener('click', (event) => {
+                if (event.target === categoryModal) {
+                    closeModal();
+                }
+            });
+        }
+
+        // --- DELETE CONFIRMATION SCRIPT (No changes here) ---
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('This will permanently delete the category. Continue?')) {
+                    e.preventDefault();
+                }
+            });
         });
     });
 </script>

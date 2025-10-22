@@ -23,7 +23,7 @@ class OrderController extends Controller
             'total_price' => 'required|numeric',
             'amount_received' => 'required|numeric',
             'change' => 'required|numeric',
-            'payment_method' => 'sometimes|in:cash,gcash', // ← CHANGE TO THIS
+            'payment_method' => 'required|in:cash,gcash', // ← CHANGED from 'sometimes' to 'required'
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -40,7 +40,7 @@ class OrderController extends Controller
                 'total_price' => $request->total_price,
                 'amount_received' => $request->amount_received,
                 'change' => $request->change,
-                'payment_method' => $request->input('payment_method', 'cash'), // ← FIXED: Use input() method
+                'payment_method' => $request->payment_method, // ← This should now always be set
                 'user_id' => Session::get('user_id'),
         ]);
 
@@ -72,8 +72,14 @@ class OrderController extends Controller
                     throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
                 }
                 
-                // Deduct from inventory
-                $ingredient->decrement('stock', $quantityNeeded);
+                // Deduct from inventory and record stock history
+            $newStock = $ingredient->stock - $quantityNeeded;
+            $ingredient->recordStockChange(
+                $newStock,
+                'order_deduction',
+                "Order #{$order->id} - {$product->name} ({$item['size']})",
+                $order->id
+            );
             }
             // ========== INVENTORY DEDUCTION END ==========
             
@@ -197,7 +203,7 @@ public function adminIndex(Request $request)
             break;
         case 'monthly':
             $query->whereMonth('created_at', now()->month)
-                  ->whereYear('created_at', now()->year);
+                    ->whereYear('created_at', now()->year);
             break;
         case 'yearly':
             $query->whereYear('created_at', now()->year);
@@ -211,22 +217,32 @@ public function adminIndex(Request $request)
 
     return view('user.orders.index', compact('orders'));
 }
-    public function userOrderShow(Order $order)
-    {
-        if (!Session::has('admin_logged_in')) {
-            return redirect('/login')->with('error', 'You must log in first.');
+   public function userOrderShow(Order $order)
+{
+    // --- Your security checks ---
+    if (!Session::has('admin_logged_in')) {
+        return redirect('/login')->with('error', 'You must log in first.');
+    }
+    $userId = Session::get('user_id');
+    if ($order->user_id !== $userId) {
+        if (request()->ajax()) {
+            return response()->json(['error' => 'Unauthorized access.'], 403);
         }
+        return redirect('/orders')->with('error', 'Unauthorized access.');
+    }
+    // --- End of security checks ---
 
-        // Ensure the order belongs to the logged-in user
-        $userId = Session::get('user_id');
-        if ($order->user_id !== $userId) {
-            return redirect('/orders')->with('error', 'Unauthorized access.');
-        }
+    $order->load('items.product');
 
-        $order->load('items.product');
-        return view('user.orders.show', compact('order'));
+    // ✅ This is the key logic we are putting back
+    if (request()->ajax()) {
+        // For modal requests, return the partial view
+        return view('user.orders._show_partial', compact('order'));
     }
 
+    // For direct page visits, return the full page view
+    return view('user.orders.show', compact('order'));
+}
     // NEW METHOD: Handles generating the PDF report
     public function generatePDFReport(Request $request)
     {
@@ -388,8 +404,14 @@ public function adminIndex(Request $request)
                         throw new \Exception("Not enough stock for {$ingredient->name}. Available: {$ingredient->stock}, Needed: {$quantityNeeded}");
                     }
 
-                    // Deduct ingredient stock
-                    $ingredient->decrement('stock', $quantityNeeded);
+                    // Deduct from inventory and record stock history
+                    $newStock = $ingredient->stock - $quantityNeeded;
+                    $ingredient->recordStockChange(
+                        $newStock,
+                        'order_deduction',
+                        "Order #{$order->id} - {$product->name} (" . ($sizeRaw ?? 'standard') . ")", // ← FIXED: Use $sizeRaw instead of $item['size']
+                        $order->id
+                    );
                 }
                 // ========= END INVENTORY DEDUCTION =========
 
