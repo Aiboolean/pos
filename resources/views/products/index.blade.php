@@ -351,7 +351,7 @@
     // Global cart variable
     let cart = [];
 
-        function adjustQuantity(productId, change) {
+    function adjustQuantity(productId, change) {
         const quantityInput = document.getElementById(`quantity-${productId}`);
         const sizeElement = document.getElementById(`size-${productId}`);
         const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
@@ -368,6 +368,78 @@
             alert(`Maximum available: ${maxAvailable}`);
         }
         quantityInput.value = quantity;
+    }
+    // Enhanced availability update function
+    function updateAvailabilityDisplay(productId, size, quantityChange) {
+        const sizeElement = document.getElementById(`size-${productId}`);
+        if (!sizeElement) return;
+
+        const selectedOption = sizeElement.querySelector(`option[value="${size}"]`);
+        if (!selectedOption) return;
+
+        // Update the data-available and data-max attributes
+        const currentAvailable = parseInt(selectedOption.getAttribute('data-available'));
+        const newAvailable = Math.max(0, currentAvailable - quantityChange);
+        
+        selectedOption.setAttribute('data-available', newAvailable);
+        selectedOption.setAttribute('data-max', newAvailable);
+        
+        // Update the display text
+        const originalText = selectedOption.textContent;
+        const priceMatch = originalText.match(/₱(\d+\.?\d*)/);
+        const price = priceMatch ? priceMatch[0] : '';
+        
+        let newText = originalText.replace(/\(\d+ left\)/, '');
+        newText = newText.replace(/S:\d+|M:\d+|L:\d+/, '');
+        
+        // Add stock indicator if low stock
+        if (newAvailable <= 5) {
+            newText += ` (${newAvailable} left)`;
+        } else {
+            // Remove any existing stock indicator
+            newText = newText.replace(/\s*\(\d+ left\)/, '');
+        }
+        
+        selectedOption.textContent = newText.trim();
+
+        // Update the availability badge
+        updateAvailabilityBadge(productId, size, newAvailable);
+    }
+
+    // Enhanced availability badge update
+    function updateAvailabilityBadge(productId, size, newAvailable) {
+        const badge = document.querySelector(`.availability-badge[data-product-id="${productId}"]`);
+        if (!badge) return;
+
+        if (badge.querySelector('.flex')) {
+            // Multiple sizes - find and update the specific size
+            const sizeSpans = badge.querySelectorAll('span');
+            sizeSpans.forEach(span => {
+                if (span.textContent.startsWith(size.charAt(0).toUpperCase() + ':')) {
+                    span.textContent = `${size.charAt(0).toUpperCase()}:${newAvailable}`;
+                    
+                    // Add low stock styling
+                    if (newAvailable <= 5) {
+                        span.classList.add('low-stock');
+                    } else {
+                        span.classList.remove('low-stock');
+                    }
+                }
+            });
+        } else {
+            // Single size
+            const singleSpan = badge.querySelector('span');
+            if (singleSpan) {
+                singleSpan.textContent = `${newAvailable} available`;
+                
+                // Add low stock styling
+                if (newAvailable <= 5) {
+                    singleSpan.classList.add('low-stock');
+                } else {
+                    singleSpan.classList.remove('low-stock');
+                }
+            }
+        }
     }
 
     // Product Search Feature
@@ -415,18 +487,17 @@
         });
     }
 
-    // Cart functions
+    // Enhanced addToCart function with real-time updates
     function addToCart(productId, name, size, price, quantity) {
-            // === ADD THIS VALIDATION BLOCK RIGHT HERE ===
         const sizeElement = document.getElementById(`size-${productId}`);
         const selectedOption = sizeElement?.querySelector('option:checked');
         const available = selectedOption ? parseInt(selectedOption.getAttribute('data-available')) : 0;
         
         if (available < quantity) {
             alert(`Not enough stock! Only ${available} available for ${name} (${size}).`);
-            return;
+            return false;
         }
-        // === END OF VALIDATION BLOCK ===
+
         console.log("🛒 Adding to cart:", { productId, name, size, price, quantity });
         
         let existingProduct = cart.find(item => item.id === productId && item.size === size);
@@ -435,10 +506,19 @@
         } else {
             cart.push({ id: productId, name, size, price, quantity });
         }
+        
+        // Update availability in real-time
+        updateAvailabilityDisplay(productId, size, quantity);
         updateCartUI();
+        return true;
     }
 
     function removeFromCart(index) {
+        const item = cart[index];
+        
+        // Restore availability when removing from cart
+        updateAvailabilityDisplay(item.id, item.size, -item.quantity);
+        
         cart.splice(index, 1);
         updateCartUI();
     }
@@ -454,14 +534,14 @@
             total += item.price * item.quantity;
 
             let cartItem = document.createElement("div");
-            cartItem.classList.add("p-2", "bg-white", "rounded", "shadow");
+            cartItem.classList.add("p-2", "bg-white", "rounded", "shadow", "mb-2");
 
             cartItem.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <span>${item.name} (${item.size === 'standard' ? 'Single' : item.size}, ${item.quantity})</span>
-                    <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                    <span class="text-sm font-medium">${item.name} (${item.size === 'standard' ? 'Single' : item.size}, ${item.quantity})</span>
+                    <span class="font-semibold">₱${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
-                <button class="text-red-500 text-sm mt-1" onclick="removeFromCart(${index})">Remove</button>
+                <button class="text-red-500 text-xs mt-1 hover:text-red-700" onclick="removeFromCart(${index})">Remove</button>
             `;
 
             cartItemsContainer.appendChild(cartItem);
@@ -471,31 +551,51 @@
         console.log("🛒 Cart updated. Total items:", cart.length, "Total price:", total);
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        // Add event listeners for "Add to Order" buttons
-        document.querySelectorAll(".add-to-order").forEach(button => {
-            button.addEventListener("click", function () {
-                const productId = this.dataset.id;
-                const productName = this.dataset.name;
-                const hasMultipleSizes = this.dataset.hasMultipleSizes === '1';
-                const sizeElement = document.getElementById(`size-${productId}`);
-                const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
+    // Update the event listener for add to order buttons
+document.addEventListener("DOMContentLoaded", function () {
+    // Add event listeners for "Add to Order" buttons
+    document.querySelectorAll(".add-to-order").forEach(button => {
+        button.addEventListener("click", function () {
+            const productId = this.dataset.id;
+            const productName = this.dataset.name;
+            const hasMultipleSizes = this.dataset.hasMultipleSizes === '1';
+            const sizeElement = document.getElementById(`size-${productId}`);
+            const quantity = parseInt(document.getElementById(`quantity-${productId}`).value);
 
-                let size = 'standard';
-                let price = 0;
+            let size = 'standard';
+            let price = 0;
 
-                if (hasMultipleSizes && sizeElement) {
-                    size = sizeElement.value;
-                    price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
-                } else {
-                    size = 'standard';
-                    price = parseFloat(this.dataset.price);
-                }
+            if (hasMultipleSizes && sizeElement) {
+                size = sizeElement.value;
+                price = parseFloat(document.querySelector(`#size-${productId} option:checked`).dataset.price);
+            } else {
+                size = 'standard';
+                price = parseFloat(this.dataset.price);
+            }
 
-                addToCart(productId, productName, size, price, quantity);
-            });
+            const success = addToCart(productId, productName, size, price, quantity);
+            
+            if (success) {
+                // Reset quantity to 1 after successful add
+                document.getElementById(`quantity-${productId}`).value = 1;
+                
+                // Show success feedback
+                const button = this;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✓ Added!';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                }, 1000);
+            }
         });
+    });
         // Add this to your DOMContentLoaded event listener
+        // Size change event listener
         document.querySelectorAll('select[id^="size-"]').forEach(select => {
             select.addEventListener('change', function() {
                 const productId = this.id.replace('size-', '');
@@ -522,6 +622,7 @@
         });
 
         // Add this to your DOMContentLoaded event listener
+        // Quantity input validation
         document.querySelectorAll('input[id^="quantity-"]').forEach(input => {
             input.addEventListener('change', function() {
                 const productId = this.id.replace('quantity-', '');
@@ -562,15 +663,15 @@
         }
         
         // Set up checkout process
-        document.getElementById("checkout").addEventListener("click", function () {
-            if (cart.length === 0) {
-                alert("Your cart is empty!");
-                return;
-            }
+    document.getElementById("checkout").addEventListener("click", function () {
+        if (cart.length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
 
-            setupConfirmationModal();
-        });
+        setupConfirmationModal();
     });
+});
 
     function setupConfirmationModal() {
         const modal = document.getElementById("confirmationModal");
@@ -674,7 +775,6 @@
             cart = [];
             updateCartUI();
 
-            location.reload();
             
             // Show receipt modal
             if (data.order && data.items) {
@@ -749,6 +849,7 @@
 
     function closeReceiptModal() {
         document.getElementById("receiptModal").classList.add("hidden");
+        location.reload();
     }
 
     function printReceipt() {
