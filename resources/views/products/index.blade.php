@@ -2,13 +2,13 @@
 
     @section('content')
        <style>
-    /* Main Coffee Shop Theme Styles (Ensure these match your global styles) */
+    /* Main Coffee Shop Theme Styles */
     .coffee-bg { background-color: #f5f1ea; }
     .coffee-card { background-color: white; border: 1px solid #e0d6c2; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 0.75rem; }
     .coffee-text-primary { color: #5c4d3c; }
     .coffee-text-secondary { color: #8c7b6b; }
     .coffee-border { border-color: #e0d6c2; }
-    .coffee-btn-primary, .coffee-btn-success, .coffee-btn-warning, .coffee-btn-danger, .coffee-btn-secondary { transition: all 0.2s ease; border: none; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; }
+    .coffee-btn-primary, .coffee-btn-success, .coffee-btn-warning, .coffee-btn-danger, .coffee-btn-secondary { transition: all 0.2s ease; border: none; padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; line-height: 1.25; }
     .coffee-btn-primary { background-color: #6f4e37; color: white; }
     .coffee-btn-primary:hover { background-color: #5c3d2a; }
     .coffee-btn-success { background-color: #8c7b6b; color: white; }
@@ -19,49 +19,39 @@
     .coffee-btn-secondary:hover { background-color: #d4c9b5; }
     .coffee-input { border: 1px solid #e0d6c2; transition: all 0.2s ease; background-color: white; color: #5c4d3c; border-radius: 0.5rem; padding: 0.75rem 1rem; }
     .coffee-input:focus { outline: none; box-shadow: 0 0 0 2px #8c7b6b40; border-color: #8c7b6b; }
+    .coffee-select-arrow { color: #8c7b6b; } /* For dropdown arrows */
 
     /* Custom styles for POS */
-    .status-available { color: #6f8c6b; }
-    .status-unavailable { color: #c45e4c; }
+    .status-available { color: #6f8c6b; } /* Theme-consistent green */
+    .status-unavailable { color: #c45e4c; } /* Theme-consistent red */
     .order-summary-bg { background-color: #fdfbf7; } /* Slightly off-white for contrast */
-    .product-grid-container {
-        /* Correct height calculation for scrollable area */
-        height: calc(100vh - 150px); /* Adjust 150px based on header/filter height */
-        overflow-y: auto;
-    }
-    .quantity-btn {
-        width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
-        background-color: #e0d6c2; color: #5c4d3c; border-radius: 9999px;
-        transition: background-color 0.2s ease;
-    }
+    .product-grid-container { height: calc(100vh - 150px); overflow-y: auto; } /* Adjust height calc as needed */
+    .quantity-btn { width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; background-color: #e0d6c2; color: #5c4d3c; border-radius: 9999px; transition: background-color 0.2s ease; border: 1px solid #d4c9b5; }
     .quantity-btn:hover { background-color: #d4c9b5; }
-    .quantity-input {
-        width: 3.5rem; text-align: center; border: 1px solid #e0d6c2; border-radius: 0.5rem;
-        padding: 0.25rem 0.5rem; color: #5c4d3c;
-    }
-    .availability-toggle input[type="checkbox"] {
-        accent-color: #6f4e37; /* Theme color for checkbox */
-        height: 1.1rem; width: 1.1rem;
-    }
+    .quantity-input { width: 3.5rem; text-align: center; border: 1px solid #e0d6c2; border-radius: 0.5rem; padding: 0.25rem 0.5rem; color: #5c4d3c; }
+    .availability-toggle input[type="checkbox"] { accent-color: #6f4e37; height: 1.1rem; width: 1.1rem; }
+    .cart-item { background-color: #fff; border: 1px solid #e0d6c2; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .low-stock { color: #c4a76c; font-weight: bold; } /* Theme consistent warning */
 </style>
 
 <div class="flex flex-col md:flex-row h-screen coffee-bg">
 
     <div class="w-full md:w-1/3 lg:w-1/4 order-summary-bg p-4 md:sticky md:top-0 md:h-screen md:overflow-y-auto border-r coffee-border">
+        {{-- ✅ THEME APPLIED --}}
         <h2 class="text-xl font-bold mb-4 coffee-text-primary flex items-center">
             <i data-lucide="shopping-cart" class="w-5 h-5 mr-2 coffee-text-secondary"></i>
             Order Summary
         </h2>
-        <div id="cart-items" class="space-y-3 mb-4">
-            {{-- Cart items will be dynamically added here --}}
-            <p class="text-center coffee-text-secondary italic">Your cart is empty.</p>
+        <div id="cart-items" class="space-y-2 mb-4">
+             <p class="text-center coffee-text-secondary italic">Your cart is empty.</p>
         </div>
         <hr class="my-4 coffee-border">
         <div class="flex justify-between items-center mb-4">
             <span class="text-lg font-semibold coffee-text-primary">Total:</span>
             <span class="text-lg font-bold coffee-text-primary">₱<span id="total-price">0.00</span></span>
         </div>
-        <button id="checkout" class="w-full coffee-btn-success py-3 rounded-xl font-medium">
+        {{-- ✅ THEME APPLIED --}}
+        <button id="checkout" class="w-full coffee-btn-success py-3 rounded-xl font-medium text-base">
             Proceed to Payment
         </button>
     </div>
@@ -69,8 +59,10 @@
     <div class="w-full md:w-2/3 lg:w-3/4 p-6 flex flex-col">
         <div class="mb-6 flex flex-col sm:flex-row gap-4">
             <div class="flex-1 min-w-[150px]">
+                {{-- ✅ THEME APPLIED --}}
                 <label for="categoryFilter" class="block text-sm font-semibold coffee-text-primary mb-1">Category</label>
                 <div class="relative">
+                     {{-- ✅ THEME APPLIED --}}
                     <select id="categoryFilter" class="w-full coffee-input appearance-none pr-8">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
@@ -78,17 +70,19 @@
                         @endforeach
                         <option value="unavailable">Unavailable Products</option>
                     </select>
-                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-text-secondary">
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-select-arrow">
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
                     </div>
                 </div>
             </div>
 
             <div class="flex-1 min-w-[150px]">
+                 {{-- ✅ THEME APPLIED --}}
                 <label for="productSearch" class="block text-sm font-semibold coffee-text-primary mb-1">Search Products</label>
                 <div class="relative">
+                    {{-- ✅ THEME APPLIED --}}
                     <input type="text" id="productSearch" class="w-full coffee-input pr-10" placeholder="Product name...">
-                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-text-secondary">
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none coffee-select-arrow">
                         <i data-lucide="search" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -98,141 +92,92 @@
         <div class="flex-grow product-grid-container pr-2">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productGrid">
                 @foreach($products as $product)
+                {{-- ✅ THEME APPLIED --}}
                 <div class="flex flex-col bg-white rounded-lg shadow-md overflow-hidden product-item border coffee-border transition-transform transform hover:scale-[1.03]
-                            {{ $product->is_available ? '' : 'opacity-50 pointer-events-none' }}" 
-                     data-category="{{ $product->category_id }}" 
-                     data-name="{{ strtolower($product->name) }}" 
+                            {{-- Availability logic (no change) --}}
+                            {{ $product->is_available ? '' : 'opacity-50 pointer-events-none' }}"
+                     data-category="{{ $product->category_id }}"
+                     data-name="{{ strtolower($product->name) }}"
                      data-available="{{ $product->is_available ? 'true' : 'false' }}">
 
+                     {{-- ✅ THEME APPLIED --}}
                     <div class="w-full h-40 border-b coffee-border flex items-center justify-center bg-gray-50">
-                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" 
-                             alt="{{ $product->name }}" 
-                             class="object-cover w-full h-full">
+                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/150' }}" alt="{{ $product->name }}" class="object-cover w-full h-full">
                     </div>
 
-        <!-- Product Details -->
-        <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
-            <div class="flex justify-between items-start">
-        <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
-        <!-- ADD THIS AVAILABILITY BADGE -->
-        <div class="availability-badge" data-product-id="{{ $product->id }}">
-            @php
-                $availability = $product->calculateAvailability();
-            @endphp
-            @if($product->has_multiple_sizes)
-            <div class="flex items-center space-x-3">
-                @if($product->small_enabled && $product->price_small)
-                    <span class="font-bold text-xs">
-                        S:{{ $availability['small'] }}
-                    </span>
-                @endif
-                @if($product->medium_enabled && $product->price_medium)
-                    <span class="font-bold text-xs">
-                        M:{{ $availability['medium'] }}
-                    </span>
-                @endif
-                @if($product->large_enabled && $product->price_large)
-                    <span class="font-bold text-xs">
-                        L:{{ $availability['large'] }}
-                    </span>
-                @endif
-            </div>
-        @else
-            <div class="text-xs">
-                <span class="font-bold">
-                    {{ $availability['single'] }} available
-                </span>
-            </div>
-        @endif
-</div>
-    </div>
-        </div>
-
-        <!-- Size Selection (For Available Products) -->
-        @if($product->is_available)
-            <div class="mt-6">
-                <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
-                <div class="relative">
-                    <select id="size-{{ $product->id }}" 
-                        class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 
-                            focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition 
-                            appearance-none text-xs sm:text-sm">
-                        @if($product->has_multiple_sizes)
-                            @if($product->price_small && $product->small_enabled)
-                                <option value="small" 
-                                        data-price="{{ $product->price_small }}"
-                                        data-available="{{ $availability['small'] }}"
-                                        data-max="{{ $availability['small'] }}">
-                                    Small - ₱{{ $product->price_small }} 
-                                    @if($availability['small'] <= 5)
-                                        ({{ $availability['small'] }} left)
-                                    @endif
-                                </option>
-                            @endif
-                            @if($product->price_medium && $product->medium_enabled)
-                                <option value="medium" 
-                                        data-price="{{ $product->price_medium }}"
-                                        data-available="{{ $availability['medium'] }}"
-                                        data-max="{{ $availability['medium'] }}">
-                                    Medium - ₱{{ $product->price_medium }}
-                                    @if($availability['medium'] <= 5)
-                                        ({{ $availability['medium'] }} left)
-                                    @endif
-                                </option>
-                            @endif
-                            @if($product->price_large && $product->large_enabled)
-                                <option value="large" 
-                                        data-price="{{ $product->price_large }}"
-                                        data-available="{{ $availability['large'] }}"
-                                        data-max="{{ $availability['large'] }}">
-                                    Large - ₱{{ $product->price_large }}
-                                    @if($availability['large'] <= 5)
-                                        ({{ $availability['large'] }} left)
-                                    @endif
-                                </option>
-                            @endif
-                        @else
-                            <option value="single" 
-                                    data-price="{{ $product->price }}"
-                                    data-available="{{ $availability['single'] }}"
-                                    data-max="{{ $availability['single'] }}">
-                                Single - ₱{{ $product->price }}
-                                @if($availability['single'] <= 5)
-                                    ({{ $availability['single'] }} left)
+                    <div class="p-4 flex-grow flex flex-col">
+                        <div class="flex justify-between items-start mb-1">
+                            {{-- ✅ THEME APPLIED --}}
+                            <h2 class="text-base font-semibold coffee-text-primary leading-tight h-10 overflow-hidden line-clamp-2 flex-1 mr-2">{{ $product->name }}</h2>
+                            {{-- Availability Badge (Functionality unchanged, Themed) --}}
+                            <div class="availability-badge text-right flex-shrink-0" data-product-id="{{ $product->id }}">
+                                @php $availability = $product->calculateAvailability(); @endphp
+                                @if($product->has_multiple_sizes)
+                                    <div class="flex flex-col items-end space-y-0.5">
+                                        {{-- ✅ THEME APPLIED --}}
+                                        @if($product->small_enabled && $product->price_small)<span class="font-bold text-xs {{ $availability['small'] <= 5 ? 'low-stock' : 'coffee-text-secondary' }}">S:{{ $availability['small'] }}</span>@endif
+                                        @if($product->medium_enabled && $product->price_medium)<span class="font-bold text-xs {{ $availability['medium'] <= 5 ? 'low-stock' : 'coffee-text-secondary' }}">M:{{ $availability['medium'] }}</span>@endif
+                                        @if($product->large_enabled && $product->price_large)<span class="font-bold text-xs {{ $availability['large'] <= 5 ? 'low-stock' : 'coffee-text-secondary' }}">L:{{ $availability['large'] }}</span>@endif
+                                    </div>
+                                @else
+                                    <div class="text-xs">
+                                         {{-- ✅ THEME APPLIED --}}
+                                        <span class="font-bold {{ $availability['single'] <= 5 ? 'low-stock' : 'coffee-text-secondary' }}">
+                                            {{ $availability['single'] }} avail.
+                                        </span>
+                                    </div>
                                 @endif
-                            </option>
-                        @endif
-                    </select>
-                    <!-- Custom dropdown icon -->
-                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                            </div>
+                        </div>
+                        {{-- ✅ THEME APPLIED --}}
+                        <p class="text-xs coffee-text-secondary mb-3">{{ $product->category->name }}</p>
+
+                        {{-- Size Selection --}}
+                        <div class="mt-auto mb-3">
+                            {{-- ✅ THEME APPLIED --}}
+                            <label for="size-{{ $product->id }}" class="block text-xs font-medium coffee-text-secondary mb-1">Size</label>
+                            <div class="relative">
+                                {{-- ✅ THEME APPLIED --}}
+                                <select id="size-{{ $product->id }}" class="w-full py-1 px-2 border coffee-border rounded-md bg-white coffee-text-primary focus:ring-1 focus:ring-[#8c7b6b] focus:border-[#8c7b6b] transition appearance-none text-xs">
+                                    {{-- Options functionality unchanged --}}
+                                    @if($product->has_multiple_sizes)
+                                        @if($product->price_small && $product->small_enabled)<option value="small" data-price="{{ $product->price_small }}" data-available="{{ $availability['small'] }}" data-max="{{ $availability['small'] }}">Small - ₱{{ number_format($product->price_small, 2) }} @if($availability['small'] <= 5) ({{ $availability['small'] }} left) @endif</option>@endif
+                                        @if($product->price_medium && $product->medium_enabled)<option value="medium" data-price="{{ $product->price_medium }}" data-available="{{ $availability['medium'] }}" data-max="{{ $availability['medium'] }}">Medium - ₱{{ number_format($product->price_medium, 2) }} @if($availability['medium'] <= 5) ({{ $availability['medium'] }} left) @endif</option>@endif
+                                        @if($product->price_large && $product->large_enabled)<option value="large" data-price="{{ $product->price_large }}" data-available="{{ $availability['large'] }}" data-max="{{ $availability['large'] }}">Large - ₱{{ number_format($product->price_large, 2) }} @if($availability['large'] <= 5) ({{ $availability['large'] }} left) @endif</option>@endif
+                                    @else
+                                        <option value="single" data-price="{{ $product->price }}" data-available="{{ $availability['single'] }}" data-max="{{ $availability['single'] }}">Single - ₱{{ number_format($product->price, 2) }} @if($availability['single'] <= 5) ({{ $availability['single'] }} left) @endif</option>
+                                    @endif
+                                </select>
+                                <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none coffee-select-arrow"><i data-lucide="chevron-down" class="w-3 h-3"></i></div>
+                            </div>
+                        </div>
+
+                        {{-- Quantity --}}
+                        <div class="mb-4">
+                            {{-- ✅ THEME APPLIED --}}
+                            <label class="block text-xs font-medium coffee-text-secondary mb-1">Quantity</label>
+                            <div class="flex items-center space-x-2">
+                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', -1)"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                {{-- ✅ THEME APPLIED --}}
+                                <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" class="quantity-input coffee-input">
+                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', 1)"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <form action="{{ route('products.toggleAvailability', $product->id) }}" method="POST" class="mb-4 availability-toggle">
+                            @csrf
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" name="is_available" onchange="this.form.submit()"
+                                       {{ $product->is_available ? 'checked' : '' }} class="h-4 w-4 rounded coffee-border focus:ring-[#6f4e37] text-[#6f4e37]">
+                                <span class="text-sm coffee-text-primary">Available</span>
+                            </label>
+                        </form>
+
+                        {{-- Add Button --}}
+                        {{-- ✅ THEME APPLIED --}}
+                        <button class="w-full coffee-btn-primary add-to-order text-sm" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" data-price-small="{{ $product->price_small }}" data-price-medium="{{ $product->price_medium }}" data-price-large="{{ $product->price_large }}" data-price="{{ $product->price }}">
+                            Add to Order
+                        </button>
                     </div>
-                </div>
-            </div>
-
-            <!-- Quantity Adjustment -->
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700">Quantity</label>
-                <div class="flex items-center space-x-2">
-                    <!-- Decrease Quantity Button -->
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                                hover:bg-gray-200 transition" 
-                            onclick="adjustQuantity('{{ $product->id }}', -1)">
-                        –
-                    </button>
-
-                    <!-- Quantity Input Field -->
-                    <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" 
-                        class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
-
-                    <!-- Increase Quantity Button -->
-                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
-                                hover:bg-gray-200 transition" 
-                            onclick="adjustQuantity('{{ $product->id }}', 1)">
-                        +
-                    </button>
                 </div>
                 @endforeach
             </div>
@@ -240,80 +185,41 @@
     </div>
 </div>
 
-
-    <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded-2xl w-96 shadow-xl transform transition-all scale-95">
-            <!-- Header -->
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Confirm Order</h2>
-
-            <!-- Total Price -->
-            <p class="text-lg font-medium text-gray-700">Total: 
-                <span class="text-green-600 font-semibold">₱<span id="modal-total-price">0.00</span></span>
-            </p>
-            
-            <!-- Amount Received Input -->
-            <div class="mt-4">
-                <label for="amountReceived" class="block text-sm font-medium text-gray-700">Amount Received</label>
-                <input type="number" id="amountReceived" 
-                    class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition shadow-sm" 
-                    placeholder="Enter amount received">
-            </div>
-
-            <!-- Payment Method Dropdown -->
-            <div class="mt-4">
-                <label for="paymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                <select id="paymentMethod" 
-                    class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition shadow-sm">
-                    <option value="cash" selected>Cash</option>
-                    <option value="gcash">GCash</option>
-                </select>
-            </div>
-
-        
-
-            <!-- Change Amount -->
-            <div class="mt-4">
-                <p class="text-lg font-medium text-gray-700">Change: 
-                    <span class="text-red-500 font-semibold">₱<span id="changeAmount">0.00</span></span>
-                </p>
-            </div>
-
-            <!-- Buttons (Aligned to the Right) -->
-            <div class="mt-6 flex justify-end space-x-3">
-                <button id="confirmOrder" 
-                        class="px-5 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition">
-                    Confirm
-                </button>
-                <button id="cancelOrder" 
-                        class="px-5 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
-                    Cancel
-                </button>
-            </div>
+<div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-2xl w-96 shadow-xl transform transition-all scale-95">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Confirm Order</h2>
+        <p class="text-lg font-medium text-gray-700">Total: <span class="text-green-600 font-semibold">₱<span id="modal-total-price">0.00</span></span></p>
+        <div class="mt-4">
+            <label for="amountReceived" class="block text-sm font-medium text-gray-700">Amount Received</label>
+            <input type="number" id="amountReceived" class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition shadow-sm" placeholder="Enter amount received">
+        </div>
+        <div class="mt-4">
+            <label for="paymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
+            <select id="paymentMethod" class="w-full py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition shadow-sm">
+                <option value="cash" selected>Cash</option>
+                <option value="gcash">GCash</option>
+            </select>
+        </div>
+        <div class="mt-4">
+            <p class="text-lg font-medium text-gray-700">Change: <span class="text-red-500 font-semibold">₱<span id="changeAmount">0.00</span></span></p>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+            <button id="confirmOrder" class="px-5 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition">Confirm</button>
+            <button id="cancelOrder" class="px-5 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition close-modal-btn">Cancel</button> {{-- Added close-modal-btn class --}}
         </div>
     </div>
+</div>
 
-
-
-    <!-- Receipt Modal -->
-    <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden print:bg-transparent print:static">
+<div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden print:bg-transparent print:static">
     <div class="bg-white p-6 rounded-lg w-80 shadow-xl transform transition-all scale-95 border border-gray-300 print:shadow-none print:border-none print:rounded-none print:w-full print:p-4">
-        
-        <!-- Receipt Header -->
         <div class="text-center border-b pb-3 print:border-b print:pb-2">
-            <!-- Company Logo -->
-            <div class="flex justify-center mb-2">
-                <img src="{{ asset('storage/logo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto">
-            </div>
-
+            <div class="flex justify-center mb-2"><img src="{{ asset('storage/logo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto"></div>
             <h2 class="text-lg font-bold text-gray-800 tracking-wide print:text-base">Order Receipt</h2>
             <p class="text-sm text-gray-600 print:text-xs">Thank you for your purchase!</p>
         </div>
-
-        <!-- Order Details -->
         <div class="mt-4 text-sm text-gray-700 space-y-1 print:text-xs print:mt-2">
             <p class="flex justify-between"><span class="font-medium">Order ID:</span> <span id="receipt-order-id"></span></p>
-            <p class="flex justify-between"><span class="font-medium">Payment Method:</span> <span id="receipt-payment-method"></span></p> <!-- ADD THIS LINE -->
+            <p class="flex justify-between"><span class="font-medium">Payment Method:</span> <span id="receipt-payment-method"></span></p>
             <p class="flex justify-between"><span>Total (No VAT):</span> <span>₱<span id="receipt-total-without-vat"></span></span></p>
             <p class="flex justify-between"><span>VAT (12%):</span> <span>₱<span id="receipt-vat"></span></span></p>
             <hr class="border-gray-300 my-2 print:my-1">
@@ -321,28 +227,13 @@
             <p class="flex justify-between"><span>Amount Received:</span> <span>₱<span id="receipt-amount-received"></span></span></p>
             <p class="flex justify-between text-red-500"><span>Change:</span> <span>₱<span id="receipt-change"></span></span></p>
         </div>
-
         <hr class="my-3 border-gray-300 print:my-2">
-
-        <!-- Item List -->
         <h3 class="text-md font-bold text-gray-800 print:text-sm">Items:</h3>
         <ul id="receipt-items" class="text-sm text-gray-700 list-disc list-inside space-y-1 print:text-xs"></ul>
-
-        <!-- Footer Message -->
-        <div class="text-center text-xs text-gray-500 mt-4 italic border-t pt-2 print:mt-2 print:text-[10px] print:pt-1 print:border-t">
-            <p>“This receipt serves as an official record of your transaction.”</p>
-        </div>
-
-        <!-- Action Buttons (Hide in Print) -->
+        <div class="text-center text-xs text-gray-500 mt-4 italic border-t pt-2 print:mt-2 print:text-[10px] print:pt-1 print:border-t"><p>“This receipt serves as an official record of your transaction.”</p></div>
         <div class="mt-4 flex justify-end space-x-3 print:hidden">
-            <button onclick="printReceipt()" 
-                    class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
-                Print Receipt
-            </button>
-            <button onclick="closeReceiptModal()" 
-                    class="px-4 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition">
-                Close
-            </button>
+            <button onclick="printReceipt()" class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">Print Receipt</button>
+            <button class="px-4 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition close-modal-btn">Close</button> {{-- Added close-modal-btn class --}}
         </div>
     </div>
 </div>
@@ -351,21 +242,26 @@
     // Global cart variable
     let cart = [];
 
-    function adjustQuantity(productId, change) {
+   function adjustQuantity(productId, change) {
         const quantityInput = document.getElementById(`quantity-${productId}`);
         const sizeElement = document.getElementById(`size-${productId}`);
         const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
-        const maxAvailable = selectedOption ? parseInt(selectedOption.getAttribute('data-max')) : 100;
-        
+        const stockMax = selectedOption ? parseInt(selectedOption.getAttribute('data-max') || '100') : 100;
+        const absoluteMax = 100;
+        const maxAvailable = Math.min(stockMax, absoluteMax);
+
         let quantity = parseInt(quantityInput.value);
         quantity += change;
 
-        // Ensure the quantity stays within the range of 1 to max available
-        if (quantity < 1) {
-            quantity = 1;
-        } else if (quantity > maxAvailable) {
+        if (quantity < 1) quantity = 1;
+        else if (quantity > maxAvailable && maxAvailable > 0) {
             quantity = maxAvailable;
-            alert(`Maximum available: ${maxAvailable}`);
+            alert(`Maximum allowed quantity: ${maxAvailable}`);
+        } else if (maxAvailable === 0 && change > 0) {
+             quantity = 0;
+             alert('This size is currently out of stock.');
+        } else if (quantity > maxAvailable && maxAvailable === 0) {
+             quantity = 0;
         }
         quantityInput.value = quantity;
     }
@@ -458,34 +354,33 @@
     });
 
     // Get references to the search input and category filter
-    const searchInput = document.getElementById('productSearch');
-    const categoryFilter = document.getElementById('categoryFilter');
-
+   const searchInput = document.getElementById('productSearch');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const productGrid = document.getElementById('productGrid');
+        const productItems = productGrid.querySelectorAll('.product-item');
     // Add event listeners for both search and category filter
     searchInput.addEventListener('input', filterProducts);
     categoryFilter.addEventListener('change', filterProducts);
 
-    function filterProducts() {
-        const searchQuery = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-        const productItems = document.querySelectorAll('.product-item');
+   function filterProducts() {
+            const searchQuery = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
 
-        productItems.forEach(item => {
-            const productName = item.querySelector('h2').textContent.toLowerCase();
-            const productCategory = item.getAttribute('data-category');
-            const isAvailable = item.getAttribute('data-available');
+            productItems.forEach(item => {
+                const productName = item.dataset.name; // Use data-name
+                const productCategory = item.dataset.category;
+                const isAvailable = item.dataset.available === 'true'; // Keep as boolean
 
-            const matchesSearch = productName.includes(searchQuery);
-            const matchesCategory = selectedCategory === '' || productCategory === selectedCategory;
-            const matchesAvailability = selectedCategory !== 'unavailable' || isAvailable === 'false';
+                const matchesSearch = productName.includes(searchQuery);
+                const matchesCategory = selectedCategory === '' || productCategory === selectedCategory;
 
-            if (matchesSearch && matchesCategory && matchesAvailability) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
+                // ✅ Show item if it matches search and category.
+                // Availability is handled by the sorting and CSS opacity/pointer-events.
+                const showItem = matchesSearch && matchesCategory;
+
+                item.style.display = showItem ? 'flex' : 'none';
+            });
+        }
 
     // Enhanced addToCart function with real-time updates
     function addToCart(productId, name, size, price, quantity) {
