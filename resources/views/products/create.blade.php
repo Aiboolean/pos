@@ -248,7 +248,7 @@
                         <div><label class="block text-xs coffee-text-primary mb-1">Small</label><input type="number" step="0.01" name="small_multipliers[]" value="0.75" class="w-full px-3 py-2 coffee-input rounded-lg" readonly><div class="calculated-quantity text-xs coffee-text-secondary mt-1 small-quantity text-center">0.00</div></div>
                         <div><label class="block text-xs coffee-text-primary mb-1">Medium</label><input type="number" step="0.01" name="medium_multipliers[]" value="1.00" class="w-full px-3 py-2 coffee-input rounded-lg" readonly><div class="calculated-quantity text-xs coffee-text-secondary mt-1 medium-quantity text-center">0.00</div></div>
                         <div><label class="block text-xs coffee-text-primary mb-1">Large</label><input type="number" step="0.01" name="large_multipliers[]" value="1.50" class="w-full px-3 py-2 coffee-input rounded-lg" readonly><div class="calculated-quantity text-xs coffee-text-secondary mt-1 large-quantity text-center">0.00</div></div>
-                        <div class="flex items-end justify-center"><span class="ingredient-unit text-sm coffee-text-primary font-medium">-</span></div>
+                        
                     </div>
                 </div>`;
                 container.insertAdjacentHTML('beforeend', newField);
@@ -281,7 +281,3 @@
     })();
 </script>
 
-{{-- This closing tag is also conditional --}}
-@if(!request()->ajax())
-    @endsection
-@endif

@@ -110,48 +110,129 @@
                              class="object-cover w-full h-full">
                     </div>
 
-                    <div class="p-4 flex-grow flex flex-col">
-                        <h2 class="text-base font-semibold coffee-text-primary mb-1 leading-tight h-10 overflow-hidden line-clamp-2">{{ $product->name }}</h2>
-                        <p class="text-xs coffee-text-secondary mb-2">
-                            {{ $product->category->name }}
-                        </p>
-                        
-                        <div class="mt-auto mb-3">
-                            <label for="size-{{ $product->id }}" class="block text-xs font-medium coffee-text-secondary mb-1">Size</label>
-                            <div class="relative">
-                                <select id="size-{{ $product->id }}" 
-                                        class="w-full py-1 px-2 border coffee-border rounded-md bg-white coffee-text-primary 
-                                               focus:ring-1 focus:ring-[#8c7b6b] focus:border-[#8c7b6b] transition 
-                                               appearance-none text-xs">
-                                    @if($product->has_multiple_sizes)
-                                        @if($product->price_small && $product->small_enabled)<option value="small" data-price="{{ $product->price_small }}">Small - ₱{{ number_format($product->price_small, 2) }}</option>@endif
-                                        @if($product->price_medium && $product->medium_enabled)<option value="medium" data-price="{{ $product->price_medium }}">Medium - ₱{{ number_format($product->price_medium, 2) }}</option>@endif
-                                        @if($product->price_large && $product->large_enabled)<option value="large" data-price="{{ $product->price_large }}">Large - ₱{{ number_format($product->price_large, 2) }}</option>@endif
-                                    @else
-                                        <option value="single" data-price="{{ $product->price }}">Single - ₱{{ number_format($product->price, 2) }}</option>
+        <!-- Product Details -->
+        <div class="mt-4 space-y-1.5 sm:space-y-2 md:space-y-2.5 lg:space-y-3">
+            <div class="flex justify-between items-start">
+        <h2 class="text-lg font-semibold text-gray-800 sm:text-xl md:text-2xl">{{ $product->name }}</h2>
+        <!-- ADD THIS AVAILABILITY BADGE -->
+        <div class="availability-badge" data-product-id="{{ $product->id }}">
+            @php
+                $availability = $product->calculateAvailability();
+            @endphp
+            @if($product->has_multiple_sizes)
+            <div class="flex items-center space-x-3">
+                @if($product->small_enabled && $product->price_small)
+                    <span class="font-bold text-xs">
+                        S:{{ $availability['small'] }}
+                    </span>
+                @endif
+                @if($product->medium_enabled && $product->price_medium)
+                    <span class="font-bold text-xs">
+                        M:{{ $availability['medium'] }}
+                    </span>
+                @endif
+                @if($product->large_enabled && $product->price_large)
+                    <span class="font-bold text-xs">
+                        L:{{ $availability['large'] }}
+                    </span>
+                @endif
+            </div>
+        @else
+            <div class="text-xs">
+                <span class="font-bold">
+                    {{ $availability['single'] }} available
+                </span>
+            </div>
+        @endif
+</div>
+    </div>
+        </div>
+
+        <!-- Size Selection (For Available Products) -->
+        @if($product->is_available)
+            <div class="mt-6">
+                <label for="size-{{ $product->id }}" class="block text-sm font-medium text-gray-700">Size</label>
+                <div class="relative">
+                    <select id="size-{{ $product->id }}" 
+                        class="w-full py-1.5 px-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 
+                            focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition 
+                            appearance-none text-xs sm:text-sm">
+                        @if($product->has_multiple_sizes)
+                            @if($product->price_small && $product->small_enabled)
+                                <option value="small" 
+                                        data-price="{{ $product->price_small }}"
+                                        data-available="{{ $availability['small'] }}"
+                                        data-max="{{ $availability['small'] }}">
+                                    Small - ₱{{ $product->price_small }} 
+                                    @if($availability['small'] <= 5)
+                                        ({{ $availability['small'] }} left)
                                     @endif
-                                </select>
-                                <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none coffee-text-secondary">
-                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-xs font-medium coffee-text-secondary mb-1">Quantity</label>
-                            <div class="flex items-center space-x-2">
-                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', -1)"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                                <input type="number" id="quantity-{{ $product->id }}" min="1" max="100" value="1" class="quantity-input coffee-input">
-                                <button class="quantity-btn" onclick="adjustQuantity('{{ $product->id }}', 1)"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                            </div>
-                        </div>
-
-                        <button class="w-full coffee-btn-primary add-to-order" 
-                                data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-has-multiple-sizes="{{ $product->has_multiple_sizes }}" 
-                                data-price-small="{{ $product->price_small }}" data-price-medium="{{ $product->price_medium }}" data-price-large="{{ $product->price_large }}" data-price="{{ $product->price }}">
-                            Add to Order
-                        </button>
+                                </option>
+                            @endif
+                            @if($product->price_medium && $product->medium_enabled)
+                                <option value="medium" 
+                                        data-price="{{ $product->price_medium }}"
+                                        data-available="{{ $availability['medium'] }}"
+                                        data-max="{{ $availability['medium'] }}">
+                                    Medium - ₱{{ $product->price_medium }}
+                                    @if($availability['medium'] <= 5)
+                                        ({{ $availability['medium'] }} left)
+                                    @endif
+                                </option>
+                            @endif
+                            @if($product->price_large && $product->large_enabled)
+                                <option value="large" 
+                                        data-price="{{ $product->price_large }}"
+                                        data-available="{{ $availability['large'] }}"
+                                        data-max="{{ $availability['large'] }}">
+                                    Large - ₱{{ $product->price_large }}
+                                    @if($availability['large'] <= 5)
+                                        ({{ $availability['large'] }} left)
+                                    @endif
+                                </option>
+                            @endif
+                        @else
+                            <option value="single" 
+                                    data-price="{{ $product->price }}"
+                                    data-available="{{ $availability['single'] }}"
+                                    data-max="{{ $availability['single'] }}">
+                                Single - ₱{{ $product->price }}
+                                @if($availability['single'] <= 5)
+                                    ({{ $availability['single'] }} left)
+                                @endif
+                            </option>
+                        @endif
+                    </select>
+                    <!-- Custom dropdown icon -->
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
+                </div>
+            </div>
+
+            <!-- Quantity Adjustment -->
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                <div class="flex items-center space-x-2">
+                    <!-- Decrease Quantity Button -->
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                                hover:bg-gray-200 transition" 
+                            onclick="adjustQuantity('{{ $product->id }}', -1)">
+                        –
+                    </button>
+
+                    <!-- Quantity Input Field -->
+                    <input type="number" id="quantity-{{ $product->id }}" min="1" value="1" 
+                        class="w-14 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
+
+                    <!-- Increase Quantity Button -->
+                    <button class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-full shadow-sm border border-gray-300 
+                                hover:bg-gray-200 transition" 
+                            onclick="adjustQuantity('{{ $product->id }}', 1)">
+                        +
+                    </button>
                 </div>
                 @endforeach
             </div>
@@ -270,17 +351,21 @@
     // Global cart variable
     let cart = [];
 
-    function adjustQuantity(productId, change) {
+        function adjustQuantity(productId, change) {
         const quantityInput = document.getElementById(`quantity-${productId}`);
+        const sizeElement = document.getElementById(`size-${productId}`);
+        const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
+        const maxAvailable = selectedOption ? parseInt(selectedOption.getAttribute('data-max')) : 100;
+        
         let quantity = parseInt(quantityInput.value);
         quantity += change;
 
-        // Ensure the quantity stays within the range of 1 to 100
+        // Ensure the quantity stays within the range of 1 to max available
         if (quantity < 1) {
             quantity = 1;
-        } else if (quantity > 100) {
-            quantity = 100;
-            alert("Maximum quantity per order is 100.");
+        } else if (quantity > maxAvailable) {
+            quantity = maxAvailable;
+            alert(`Maximum available: ${maxAvailable}`);
         }
         quantityInput.value = quantity;
     }
@@ -332,6 +417,16 @@
 
     // Cart functions
     function addToCart(productId, name, size, price, quantity) {
+            // === ADD THIS VALIDATION BLOCK RIGHT HERE ===
+        const sizeElement = document.getElementById(`size-${productId}`);
+        const selectedOption = sizeElement?.querySelector('option:checked');
+        const available = selectedOption ? parseInt(selectedOption.getAttribute('data-available')) : 0;
+        
+        if (available < quantity) {
+            alert(`Not enough stock! Only ${available} available for ${name} (${size}).`);
+            return;
+        }
+        // === END OF VALIDATION BLOCK ===
         console.log("🛒 Adding to cart:", { productId, name, size, price, quantity });
         
         let existingProduct = cart.find(item => item.id === productId && item.size === size);
@@ -398,6 +493,50 @@
                 }
 
                 addToCart(productId, productName, size, price, quantity);
+            });
+        });
+        // Add this to your DOMContentLoaded event listener
+        document.querySelectorAll('select[id^="size-"]').forEach(select => {
+            select.addEventListener('change', function() {
+                const productId = this.id.replace('size-', '');
+                const selectedOption = this.options[this.selectedIndex];
+                const maxAvailable = parseInt(selectedOption.getAttribute('data-max')) || 100;
+                
+                const quantityInput = document.getElementById(`quantity-${productId}`);
+                quantityInput.max = maxAvailable;
+                
+                // If current quantity exceeds max, set to max
+                if (parseInt(quantityInput.value) > maxAvailable) {
+                    quantityInput.value = maxAvailable;
+                }
+            });
+        });
+
+        // Initialize max values on page load
+        document.querySelectorAll('select[id^="size-"]').forEach(select => {
+            const selectedOption = select.options[select.selectedIndex];
+            const maxAvailable = parseInt(selectedOption.getAttribute('data-max')) || 100;
+            const productId = select.id.replace('size-', '');
+            const quantityInput = document.getElementById(`quantity-${productId}`);
+            quantityInput.max = maxAvailable;
+        });
+
+        // Add this to your DOMContentLoaded event listener
+        document.querySelectorAll('input[id^="quantity-"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const productId = this.id.replace('quantity-', '');
+                const sizeElement = document.getElementById(`size-${productId}`);
+                const selectedOption = sizeElement?.options[sizeElement.selectedIndex];
+                const maxAvailable = selectedOption ? parseInt(selectedOption.getAttribute('data-max')) : 100;
+                
+                let quantity = parseInt(this.value);
+                
+                if (quantity > maxAvailable) {
+                    this.value = maxAvailable;
+                    alert(`Maximum available: ${maxAvailable}`);
+                } else if (quantity < 1) {
+                    this.value = 1;
+                }
             });
         });
         
@@ -502,7 +641,8 @@
             items: cart,
             total_price: totalPrice,
             amount_received: amountReceived,
-            change: (amountReceived - totalPrice).toFixed(2)
+            change: (amountReceived - totalPrice).toFixed(2),
+            payment_method: document.getElementById('paymentMethod').value // ← ADD THIS LINE
         };
 
         console.log("📦 Sending order data:", orderData);
@@ -533,6 +673,8 @@
             // Reset cart
             cart = [];
             updateCartUI();
+
+            location.reload();
             
             // Show receipt modal
             if (data.order && data.items) {

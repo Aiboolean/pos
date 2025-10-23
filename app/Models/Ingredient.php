@@ -54,6 +54,9 @@ class Ingredient extends Model
     /**
      * Get stock movements within a specific period
      */
+   /**
+ * Get stock movements within a specific period (ALL types)
+ */
     public function getStockMovementsInPeriod($startDate, $endDate)
     {
         return $this->stockHistories()

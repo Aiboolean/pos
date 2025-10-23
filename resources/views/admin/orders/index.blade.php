@@ -498,8 +498,8 @@
 
                 <!-- Payment Method -->
                 <div class="mb-4">
-                    <label for="payment_method" class="form-label-simple">Payment Method</label>
-                    <select name="payment_method" id="payment_method" class="form-input-simple" required>
+                    <label for="late_payment_method" class="form-label-simple">Payment Method</label>
+                    <select name="payment_method" id="late_payment_method" class="form-input-simple" required>
                         <option value="cash">Cash</option>
                         <option value="gcash">GCash</option>
                     </select>

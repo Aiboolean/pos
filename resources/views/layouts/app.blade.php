@@ -131,75 +131,125 @@
                 </button>
 
                 <!-- Notification Dropdown -->
-                <div x-show="notificationOpen" @click.away="notificationOpen = false" 
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="transform opacity-0 scale-95"
-                    x-transition:enter-end="transform opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="transform opacity-100 scale-100"
-                    x-transition:leave-end="transform opacity-0 scale-95"
-                    class="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
-                    
-                    <!-- Notification Header -->
-                    <div class="bg-gray-50 px-4 py-3 border-b">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-semibold text-gray-800">Low Stock Alerts</h3>
-                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                                {{ $lowStockCount }} alert(s)
-                            </span>
-                        </div>
-                    </div>
+<div x-show="notificationOpen" @click.away="notificationOpen = false" 
+    x-transition:enter="transition ease-out duration-100"
+    x-transition:enter-start="transform opacity-0 scale-95"
+    x-transition:enter-end="transform opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-75"
+    x-transition:leave-start="transform opacity-100 scale-100"
+    x-transition:leave-end="transform opacity-0 scale-95"
+    class="absolute right-0 mt-2 w-96 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+    
+    <!-- Notification Header -->
+    <div class="bg-gray-50 px-4 py-3 border-b">
+        <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800">Low Stock Alerts</h3>
+            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                {{ $lowStockCount }} alert(s)
+            </span>
+        </div>
+    </div>
 
-                    <!-- Notification Content -->
-                    <div class="max-h-64 overflow-y-auto">
-                        @if($lowStockCount > 0)
-                            @foreach($lowStockIngredients as $ingredient)
-                            <div class="border-b border-gray-100 last:border-b-0">
-                                <div class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-                                    <div class="flex items-start space-x-3">
-                                        <div class="flex-shrink-0 mt-1">
-                                            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+    <!-- Notification Content -->
+    <div class="max-h-64 overflow-y-auto notification-scroll">
+        @if($lowStockCount > 0)
+            @foreach($lowStockIngredients as $ingredient)
+            @php
+                // Get products that use this ingredient and calculate their availability
+                $relatedProducts = $ingredient->products->map(function($product) {
+                    $availability = $product->calculateAvailability();
+                    return [
+                        'product' => $product,
+                        'availability' => $availability
+                    ];
+                })->filter(function($item) {
+                    // Only show products that can still be made (at least 1 in some size)
+                    foreach ($item['availability'] as $size => $count) {
+                        if ($count > 0) return true;
+                    }
+                    return false;
+                });
+            @endphp
+            
+            <div class="border-b border-gray-100 last:border-b-0">
+                <div class="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">
+                                {{ $ingredient->name }}
+                            </p>
+                            <p class="text-xs text-gray-600 mt-1">
+                                Current stock: 
+                                <span class="font-semibold {{ $ingredient->stock == 0 ? 'text-red-600' : 'text-orange-600' }}">
+                                    {{ $ingredient->stock }} {{ $ingredient->unit }}
+                                </span>
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                Alert threshold: {{ $ingredient->alert_threshold }} {{ $ingredient->unit }}
+                            </p>
+                            
+                            <!-- Products that can be made -->
+                            @if($relatedProducts->count() > 0)
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                                <p class="text-xs font-medium text-gray-700 mb-1">Can make:</p>
+                                <div class="space-y-1">
+                                    @foreach($relatedProducts as $item)
+                                    <div class="text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600 font-medium truncate flex-1 mr-2">
+                                                {{ $item['product']->name }}
+                                            </span>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-gray-900 truncate">
-                                                {{ $ingredient->name }}
-                                            </p>
-                                            <p class="text-xs text-gray-600 mt-1">
-                                                Current stock: 
-                                                <span class="font-semibold {{ $ingredient->stock == 0 ? 'text-red-600' : 'text-orange-600' }}">
-                                                    {{ $ingredient->stock }} {{ $ingredient->unit }}
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            @foreach($item['availability'] as $size => $count)
+                                                @if($count > 0)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                                                    {{ ucfirst($size) }}: {{ $count }}
                                                 </span>
-                                            </p>
-                                            <p class="text-xs text-gray-500">
-                                                Alert threshold: {{ $ingredient->alert_threshold }} {{ $ingredient->unit }}
-                                            </p>
+                                                @endif
+                                            @endforeach
                                         </div>
                                     </div>
+                                    @endforeach
                                 </div>
                             </div>
-                            @endforeach
-                        @else
-                            <!-- No alerts state -->
-                            <div class="px-4 py-8 text-center">
-                                <div class="flex justify-center mb-3">
-                                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500"></i>
-                                </div>
-                                <p class="text-gray-600 text-sm">All ingredients are well stocked!</p>
-                                <p class="text-gray-500 text-xs mt-1">No low stock alerts</p>
+                            @else
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                                <p class="text-xs text-red-500 italic">
+                                    Cannot make any products with current stock
+                                </p>
                             </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
-
-                    <!-- Notification Footer -->
-                    @if($lowStockCount > 0)
-                    <div class="bg-gray-50 px-4 py-3 border-t">
-                        <a href="{{ route('ingredients.index') }}" 
-                        class="block w-full text-center bg-blue-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200">
-                            Manage Ingredients
-                        </a>
-                    </div>
-                    @endif
                 </div>
+            </div>
+            @endforeach
+        @else
+            <!-- No alerts state -->
+            <div class="px-4 py-8 text-center">
+                <div class="flex justify-center mb-3">
+                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500"></i>
+                </div>
+                <p class="text-gray-600 text-sm">All ingredients are well stocked!</p>
+                <p class="text-gray-500 text-xs mt-1">No low stock alerts</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- Notification Footer -->
+    @if($lowStockCount > 0)
+    <div class="bg-gray-50 px-4 py-3 border-t">
+        <a href="{{ route('ingredients.index') }}" 
+        class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200">
+            Manage Ingredients
+        </a>
+    </div>
+    @endif
+</div>
             </div>
 
             <!-- User Dropdown (your existing code) -->
@@ -255,7 +305,7 @@
                               x-transition:leave="transition ease-in duration-200"
                               x-transition:leave-start="opacity-100 transform translate-x-0"
                               x-transition:leave-end="opacity-0 transform -translate-x-4" 
-                              class="ml-3">Collapse</span>
+                              class="ml-3"></span>
                     </button>
 
                     <!-- Sidebar Menu -->
