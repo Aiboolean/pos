@@ -344,37 +344,50 @@
     <!-- Pagination Controls -->
     @if($availabilityTotalPages > 1)
     <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t coffee-border gap-3">
+        {{-- Previous Button --}}
         <div class="order-2 sm:order-1">
             @if($availabilityCurrentPage > 1)
-                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage - 1 }}" 
-                   class="inline-flex items-center px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m15 18-6-6 6-6"/>
-                    </svg>
+                {{-- Applied coffee-btn-secondary --}}
+                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage - 1 }}"
+                   class="inline-flex items-center px-3 py-1 text-sm coffee-btn-secondary rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     Previous
                 </a>
+            @else {{-- Disabled state --}}
+                <span class="inline-flex items-center px-3 py-1 text-sm coffee-text-secondary opacity-50 border coffee-border rounded-lg cursor-not-allowed">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                     Previous
+                </span>
             @endif
         </div>
-        
-        <div class="order-1 sm:order-2 flex space-x-1">
+
+        {{-- Page Numbers --}}
+        <div class="order-1 sm:order-2 flex space-x-1 flex-wrap justify-center gap-1">
             @for($page = 1; $page <= $availabilityTotalPages; $page++)
                 @if($page == $availabilityCurrentPage)
-                    <span class="px-3 py-1 text-sm bg-coffee-500 text-white rounded-lg">{{ $page }}</span>
+                    {{-- Active page uses coffee-btn-primary --}}
+                    <span class="px-3 py-1 text-sm coffee-btn-primary rounded-lg">{{ $page }}</span>
                 @else
-                    <a href="{{ $paginationBaseUrl }}&availability_page={{ $page }}" class="px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">{{ $page }}</a>
+                    {{-- Other pages use coffee-btn-secondary --}}
+                    <a href="{{ $paginationBaseUrl }}&availability_page={{ $page }}" class="px-3 py-1 text-sm coffee-btn-secondary rounded-lg">{{ $page }}</a>
                 @endif
             @endfor
         </div>
-        
+
+        {{-- Next Button --}}
         <div class="order-3">
             @if($availabilityCurrentPage < $availabilityTotalPages)
-                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage + 1 }}" 
-                   class="inline-flex items-center px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">
+                 {{-- Applied coffee-btn-secondary --}}
+                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage + 1 }}"
+                   class="inline-flex items-center px-3 py-1 text-sm coffee-btn-secondary rounded-lg">
                     Next
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m9 18 6-6-6-6"/>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                 </a>
+            @else {{-- Disabled state --}}
+                 <span class="inline-flex items-center px-3 py-1 text-sm coffee-text-secondary opacity-50 border coffee-border rounded-lg cursor-not-allowed">
+                     Next
+                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </span>
             @endif
         </div>
     </div>
