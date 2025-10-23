@@ -125,6 +125,34 @@
             height: 300px;
         }
     }
+
+    /* ===== Availability Badge Styles ===== */
+    .availability-badge {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    
+    .availability-high {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .availability-medium {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+    
+    .availability-low {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .availability-out {
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
 </style>
 
 <div class="min-h-screen coffee-bg p-4 sm:p-6">
@@ -156,43 +184,71 @@
                     <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">{{ $totalOrders }}</p>
                 </div>
             </div>
-</a>
+        </a>
 
         <!-- Total Revenue -->
         <a href="{{ route('admin.orders') }}">
-        <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
-           
-            <div class="flex items-center space-x-3">
-                <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" x2="12" y1="2" y2="22"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs sm:text-sm font-medium coffee-text-secondary">Total Revenue</p>
-                    <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">₱{{ number_format($totalRevenue, 2) }}</p>
+            <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" x2="12" y1="2" y2="22"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm font-medium coffee-text-secondary">Total Revenue</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">₱{{ number_format($totalRevenue, 2) }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-</a>
+        </a>
+
         <!-- Today's Sales -->
-         <a href="{{ route('admin.orders') }}">
+        <a href="{{ route('admin.orders') }}">
+            <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm font-medium coffee-text-secondary">Today's Sales</p>
+                        <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">₱{{ number_format($totalSalesToday, 2) }}</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- NEW: Product Availability Card -->
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
-            
             <div class="flex items-center space-x-3">
                 <div class="p-2 sm:p-3 rounded-lg coffee-icon-bg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f4e37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                        <path d="M9 12l2 2 4-4"/>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs sm:text-sm font-medium coffee-text-secondary">Today's Sales</p>
-                    <p class="text-lg sm:text-xl lg:text-2xl font-bold coffee-text-primary">₱{{ number_format($totalSalesToday, 2) }}</p>
+                    <p class="text-xs sm:text-sm font-medium coffee-text-secondary">Product Availability</p>
+                    <div class="flex items-center space-x-2">
+                        @if($lowStockProducts > 0)
+                            <span class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{{ $lowStockProducts }}</span>
+                            <span class="text-xs coffee-text-secondary">low stock</span>
+                        @else
+                            <span class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">All Good</span>
+                        @endif
+                    </div>
+                    @if($outOfStockProducts > 0)
+                        <div class="mt-1">
+                            <span class="text-xs text-red-500 font-medium">{{ $outOfStockProducts }} out of stock</span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
-</a>
+
         <!-- Best Seller -->
         <div class="coffee-card p-4 transition-all duration-200 coffee-analytics-card">
             <div class="flex items-center space-x-3">
@@ -215,6 +271,144 @@
         </div>
     </div>
 
+    <!-- ===== Quick Product Availability Overview ===== -->
+<div class="coffee-card p-4 sm:p-6 mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <h3 class="text-base sm:text-lg font-semibold coffee-text-primary flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="mr-2" viewBox="0 0 24 24" fill="none" stroke="#5c4d3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+            </svg>
+            Quick Product Availability
+        </h3>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+            <!-- Category Filter -->
+            <div class="w-full sm:w-48">
+                <select id="availabilityCategoryFilter" class="w-full p-2 border coffee-border rounded-lg text-sm">
+                    <option value="all" {{ $availabilitySelectedCategory == 'all' ? 'selected' : '' }}>All Categories</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ $availabilitySelectedCategory == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Pagination Info -->
+                <span class="text-sm coffee-text-secondary whitespace-nowrap">
+                    Page {{ $availabilityCurrentPage }} of {{ $availabilityTotalPages }} 
+                    ({{ $availabilityTotalProducts }} total)
+                </span>
+                <a href="{{ route('admin.products') }}" class="text-sm coffee-btn-primary px-3 py-1 rounded-lg inline-flex items-center whitespace-nowrap">
+                    View All Products
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        @foreach($productAvailability as $product)
+            <div class="border coffee-border rounded-lg p-3 flex justify-between items-center">
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium coffee-text-primary truncate text-sm">{{ $product['name'] }}</p>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            {{ $product['category_name'] }}
+                        </span>
+                        @if($product['availability_type'] === 'multiple')
+                            @foreach($product['availability'] as $size => $quantity)
+                                @if($quantity > 0)
+                                    <span class="text-xs coffee-text-secondary">{{ $size }}: {{ $quantity }}</span>
+                                @endif
+                            @endforeach
+                        @else
+                            <span class="text-xs coffee-text-secondary">Available: {{ $product['availability']['single'] ?? 0 }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div>
+                    @php
+                        $minQuantity = $product['min_quantity'];
+                        $statusClass = 'availability-high';
+                        $statusText = 'Good';
+                        
+                        if ($minQuantity === 0) {
+                            $statusClass = 'availability-out';
+                            $statusText = 'Out';
+                        } elseif ($minQuantity <= 5) {
+                            $statusClass = 'availability-low';
+                            $statusText = 'Low';
+                        } elseif ($minQuantity <= 15) {
+                            $statusClass = 'availability-medium';
+                            $statusText = 'Medium';
+                        }
+                    @endphp
+                    <span class="availability-badge {{ $statusClass }}">{{ $statusText }}</span>
+                </div>
+            </div>
+        @endforeach
+        
+        @if(count($productAvailability) === 0)
+            <div class="col-span-full text-center py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" class="mx-auto mb-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" x2="12" y1="8" y2="12"/>
+                    <line x1="12" x2="12.01" y1="16" y2="16"/>
+                </svg>
+                <p class="text-gray-500">No products found for the selected category.</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- Pagination Controls -->
+    @if($availabilityTotalPages > 1)
+    <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t coffee-border gap-3">
+        <div class="order-2 sm:order-1">
+            @if($availabilityCurrentPage > 1)
+                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage - 1 }}" 
+                   class="inline-flex items-center px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    Previous
+                </a>
+            @endif
+        </div>
+        
+        <div class="order-1 sm:order-2 flex space-x-1">
+            @for($page = 1; $page <= $availabilityTotalPages; $page++)
+                @if($page == $availabilityCurrentPage)
+                    <span class="px-3 py-1 text-sm bg-coffee-500 text-white rounded-lg">{{ $page }}</span>
+                @else
+                    <a href="{{ $paginationBaseUrl }}&availability_page={{ $page }}" class="px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">{{ $page }}</a>
+                @endif
+            @endfor
+        </div>
+        
+        <div class="order-3">
+            @if($availabilityCurrentPage < $availabilityTotalPages)
+                <a href="{{ $paginationBaseUrl }}&availability_page={{ $availabilityCurrentPage + 1 }}" 
+                   class="inline-flex items-center px-3 py-1 text-sm coffee-text-primary border coffee-border rounded-lg hover:bg-gray-50">
+                    Next
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+            @endif
+        </div>
+    </div>
+    @endif
+</div>
+
+    <!-- ===== Charts Section ===== -->
+    <div class="space-y-4 sm:space-y-6">
         <!-- Revenue Chart -->
         <div class="coffee-card p-4 sm:p-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 chart-header">
@@ -472,7 +666,23 @@ function updateCategoryChart(data, year, period) {
         }
     });
 }
-
+// Category filter change handler
+document.getElementById('availabilityCategoryFilter').addEventListener('change', function() {
+    const categoryId = this.value;
+    const baseUrl = window.location.href.split('?')[0];
+    
+    // Remove existing availability filters and keep other query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.delete('availability_category');
+    urlParams.delete('availability_page');
+    
+    if (categoryId !== 'all') {
+        urlParams.set('availability_category', categoryId);
+    }
+    
+    // Navigate to the new URL
+    window.location.href = baseUrl + '?' + urlParams.toString();
+});
 const allCategoriesCtx = document.getElementById('allCategoriesRevenueChart').getContext('2d');
 let allCategoriesRevenueChart;
 
