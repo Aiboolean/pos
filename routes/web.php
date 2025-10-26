@@ -12,7 +12,7 @@ use App\Http\Controllers\ReportController;
 // 🔹 Redirect Home to Login
 Route::get('/', function () {
     if (!Session::has('admin_logged_in')) {
-        return redirect('/login')->with('error', 'You must log in first.');
+        return redirect('/login');
     }
     return redirect('/products');
 });
@@ -84,7 +84,7 @@ Route::resource('categories', CategoryController::class)->except(['show']);
 
 // 🔹 Admin Employee Management - Requires Login
 Route::get('/admin/employees', [AuthController::class, 'manageEmployees'])->name('admin.employees');
-Route::post('/admin/employees/{id}/update', [AuthController::class, 'updateEmployee'])->name('admin.employees.update');
+Route::put('/admin/employees/{id}/update', [AuthController::class, 'updateEmployee'])->name('admin.employees.update');
 Route::post('/admin/employees/{id}/toggle', [AuthController::class, 'toggleEmployeeStatus'])->name('admin.employees.toggle');
 
 Route::post('/admin/employees/{id}/reset-password', [AuthController::class, 'resetPassword'])->name('admin.employees.resetPassword');

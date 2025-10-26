@@ -205,6 +205,19 @@
     <div class="coffee-container p-6 w-full max-w-6xl">
         <div class="coffee-card p-6 relative" style="min-height: 700px; padding-bottom: 60px;">
 
+        <!-- Error Alert (shows when no records found) -->
+                @if (session('error'))
+                    <div class="flex items-center bg-[#fef3f2] border-l-4 border-[#b45309] text-[#92400e] p-4 rounded-lg shadow-sm mb-4 animate-fade-in" role="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#b45309]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.054 0 1.918-.816 1.995-1.851L21 5.851A2 2 0 0018.995 4H5.005A2 2 0 003 5.851l.087 11.298c.077 1.035.941 1.851 1.995 1.851z" />
+                        </svg>
+                        <div>
+                            <p class="font-semibold">No Records Found</p>
+                            <p class="text-sm">{{ session('error') }}</p>
+                        </div>
+                    </div>
+                @endif
+
             <!-- Header Section -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div class="flex items-center">

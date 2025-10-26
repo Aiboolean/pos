@@ -103,14 +103,76 @@ public function logout()
                             ->orderByDesc('total_quantity')
                             ->with('product')
                             ->first();
-//Fetch Categories and Products
+
+    // Fetch Categories and Products
     $categories = Category::with('products')->get();
     $products = Product::all();
+    
     // Fetch Admin + Employees for Cashier dropdown
     $cashiers = DB::table('users')
                 ->whereIn('role', ['Admin', 'Employee'])
                 ->where('is_active', 1) // only active accounts
                 ->get();
+
+    // NEW: Calculate product availability with pagination and category filtering
+    $selectedCategory = request()->get('availability_category', 'all');
+    
+    $productsWithIngredients = Product::with(['ingredients', 'category'])
+                                    ->when($selectedCategory !== 'all', function($query) use ($selectedCategory) {
+                                        return $query->where('category_id', $selectedCategory);
+                                    })
+                                    ->get();
+
+    $productAvailability = [];
+    $lowStockProducts = 0;
+    $outOfStockProducts = 0;
+
+    foreach ($productsWithIngredients as $product) {
+        $availability = $product->calculateAvailability();
+        $minQuantity = PHP_INT_MAX;
+        
+        // Find the minimum available quantity across all sizes
+        foreach ($availability as $size => $quantity) {
+            $minQuantity = min($minQuantity, $quantity);
+        }
+        
+        if ($minQuantity === PHP_INT_MAX) {
+            $minQuantity = 0;
+        }
+
+        // Count low stock and out of stock products
+        if ($minQuantity === 0) {
+            $outOfStockProducts++;
+        } elseif ($minQuantity <= 5) {
+            $lowStockProducts++;
+        }
+
+        $productAvailability[] = [
+            'name' => $product->name,
+            'category_name' => $product->category->name ?? 'Uncategorized',
+            'availability' => $availability,
+            'min_quantity' => $minQuantity,
+            'availability_type' => $product->has_multiple_sizes ? 'multiple' : 'single'
+        ];
+    }
+
+    // Sort products by availability (lowest first) and paginate
+    usort($productAvailability, function($a, $b) {
+        return $a['min_quantity'] <=> $b['min_quantity'];
+    });
+
+    // Manual pagination for 6 items per page
+    $currentPage = request()->get('availability_page', 1);
+    $perPage = 6;
+    $offset = ($currentPage - 1) * $perPage;
+    $paginatedAvailability = array_slice($productAvailability, $offset, $perPage);
+    $totalPages = ceil(count($productAvailability) / $perPage);
+
+    // Build pagination URLs with category filter preserved
+    $paginationBaseUrl = '?' . http_build_query([
+        'availability_category' => $selectedCategory
+    ]);
+
     // Pass analytics data to the view
     return view('admin.dashboard', [
         'totalOrders' => $totalOrders,
@@ -119,7 +181,15 @@ public function logout()
         'bestSeller' => $bestSeller,
         'categories' => $categories,
         'products' => $products,
-        'cashiers' => $cashiers, // new
+        'cashiers' => $cashiers,
+        'productAvailability' => $paginatedAvailability,
+        'lowStockProducts' => $lowStockProducts,
+        'outOfStockProducts' => $outOfStockProducts,
+        'availabilityCurrentPage' => $currentPage,
+        'availabilityTotalPages' => $totalPages,
+        'availabilityTotalProducts' => count($productAvailability),
+        'availabilitySelectedCategory' => $selectedCategory, // NEW
+        'paginationBaseUrl' => $paginationBaseUrl // NEW
     ]);
 }
 
@@ -145,6 +215,18 @@ public function storeEmployee(Request $request)
         return redirect('/login')->with('error', 'Unauthorized access.');
     }
 
+    // Custom validation for duplicate names
+    $existingEmployee = DB::table('users')
+        ->where('first_name', strtoupper($request->first_name))
+        ->where('last_name', strtoupper($request->last_name))
+        ->first();
+        
+    if ($existingEmployee) {
+        return redirect()->route('admin.employees')
+            ->withErrors(['first_name' => 'An employee with this first and last name already exists.'])
+            ->withInput();
+    }
+
     $request->validate([
         'first_name' => 'required',
         'last_name' => 'required',
@@ -157,6 +239,7 @@ public function storeEmployee(Request $request)
         'phone.regex' => 'Phone number must be in the format +63 9XX XXX XXXX.',
         'phone.unique' => 'The phone number is already registered.',
     ]);
+
     // Generate username
     $username = strtolower($request->first_name . '.' . $request->last_name);
     
@@ -180,7 +263,6 @@ public function storeEmployee(Request $request)
 
     return redirect()->route('admin.employees')->with('success', "Employee added. Username: $username, Password: $password");
 }
-
 public function manageEmployees()
 {
     if (!Session::has('admin_logged_in')) {
@@ -195,6 +277,20 @@ public function updateEmployee(Request $request, $id)
 {
     if (!Session::has('admin_logged_in')) {
         return redirect('/login')->with('error', 'Unauthorized access.');
+    }
+
+    // Custom validation for duplicate names (excluding current employee)
+    $existingEmployee = DB::table('users')
+        ->where('first_name', strtoupper($request->first_name))
+        ->where('last_name', strtoupper($request->last_name))
+        ->where('id', '!=', $id)
+        ->first();
+        
+    if ($existingEmployee) {
+        return redirect()->route('admin.employees')
+            ->withErrors(['first_name' => 'Another employee with this first and last name already exists.'])
+            ->withInput()
+            ->with('edit_errors', true);
     }
 
     // Validate the request data

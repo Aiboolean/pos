@@ -42,18 +42,8 @@
             </div>
             
             <div>
-                <label class="block coffee-text-primary font-medium mb-1">Username</label>
-                <input type="text" name="username" class="w-full p-3 coffee-input rounded-lg" required>
-            </div>
-
-            <div>
                 <label class="block coffee-text-primary font-medium mb-1">Phone Number</label>
                 <input type="text" name="phone" id="phone" class="w-full p-3 coffee-input rounded-lg" value="+63 9" required>
-            </div>
-            
-            <div>
-                <label class="block coffee-text-primary font-medium mb-1">Password</label>
-                <input type="password" name="password" class="w-full p-3 coffee-input rounded-lg" required>
             </div>
 
             <div class="flex space-x-3 pt-4">
