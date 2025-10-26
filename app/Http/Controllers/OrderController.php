@@ -260,6 +260,10 @@ public function adminIndex(Request $request)
         }
         $filteredOrders = $query->get();
 
+        if ($filteredOrders->isEmpty()) {
+            return redirect()->back()->with('error', 'No records found for the selected date range.');
+        }
+
         // 2. Calculate Product Sales Data - COMPLETELY REWRITTEN
         // First, get all order IDs that match our date filter
         $filteredOrderIds = Order::when($request->filled('start_date'), function ($query) use ($request) {
