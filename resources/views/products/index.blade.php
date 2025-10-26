@@ -740,6 +740,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show modal
         receiptModal.classList.remove("hidden");
         console.log("Modal should now be visible");
+
+        // ADD THIS LINE - Fix for receipt modal close button
+        document.querySelector('#receiptModal .close-modal-btn').addEventListener('click', closeReceiptModal);
     }
 
     function closeReceiptModal() {
