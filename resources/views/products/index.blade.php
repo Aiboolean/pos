@@ -213,7 +213,11 @@
 <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden print:bg-transparent print:static">
     <div class="bg-white p-6 rounded-lg w-80 shadow-xl transform transition-all scale-95 border border-gray-300 print:shadow-none print:border-none print:rounded-none print:w-full print:p-4">
         <div class="text-center border-b pb-3 print:border-b print:pb-2">
-            <div class="flex justify-center mb-2"><img src="{{ asset('storage/logo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto"></div>
+            <!-- Company Logo -->
+            <div class="flex justify-center mb-2">
+                <img src="{{ asset('storage/images/cupslogo.png') }}" alt="Company Logo" class="w-16 h-16 object-contain print:mx-auto">
+            </div>
+
             <h2 class="text-lg font-bold text-gray-800 tracking-wide print:text-base">Order Receipt</h2>
             <p class="text-sm text-gray-600 print:text-xs">Thank you for your purchase!</p>
         </div>
