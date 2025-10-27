@@ -155,14 +155,20 @@
                                         </button>
                                     </form>
                                 </div>
-                                <div class="flex space-x-2">
-                                    <button data-url="{{ route('ingredients.edit', $ingredient->id) }}" class="edit-ingredient-btn coffee-btn-secondary p-2 rounded-lg flex items-center" title="Edit">
-                                        <i data-lucide="edit" class="w-4 h-4"></i>
-                                    </button>
-                                    <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST" class="inline delete-form">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="coffee-btn-danger p-2 rounded-lg flex items-center" title="Delete">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                 <div class="flex space-x-3">
+                                    <a href="{{ route('ingredients.edit', $ingredient->id) }}" 
+                                    class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i data-lucide="edit" class="w-4 h-4 mr-1"></i>
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('ingredients.destroy', $ingredient->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="text-red-600 hover:text-red-900 flex items-center"
+                                                onclick="return confirm('Are you sure you want to delete this ingredient?')">
+                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
+                                            Delete
                                         </button>
                                     </form>
                                 </div>
